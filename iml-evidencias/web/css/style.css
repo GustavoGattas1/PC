@@ -1,0 +1,288 @@
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+	user-select: none;
+}
+
+html {
+	font-size: 16px;
+}
+
+body {
+	font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+	background: transparent;
+	overflow: hidden;
+	color: #e8e8e8;
+}
+
+.hidden {
+	display: none !important;
+}
+
+#app {
+	position: fixed;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(0, 0, 0, 0.55);
+}
+
+.panel {
+	width: 42rem;
+	max-width: 92vw;
+	max-height: 85vh;
+	background: linear-gradient(145deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+	border: 1px solid rgba(255, 255, 255, 0.08);
+	border-radius: 0.75rem;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.5);
+}
+
+.panel-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 1.25rem 1.5rem;
+	background: rgba(0, 0, 0, 0.25);
+	border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.logo {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+}
+
+.logo-icon {
+	font-size: 2rem;
+	color: #e74c3c;
+}
+
+.panel-header h1 {
+	font-size: 1.15rem;
+	font-weight: 600;
+	color: #fff;
+}
+
+.panel-header p {
+	font-size: 0.75rem;
+	color: rgba(255, 255, 255, 0.5);
+	margin-top: 0.15rem;
+}
+
+.btn-close {
+	background: rgba(255, 255, 255, 0.06);
+	border: none;
+	color: rgba(255, 255, 255, 0.6);
+	font-size: 1.5rem;
+	width: 2.25rem;
+	height: 2.25rem;
+	border-radius: 0.5rem;
+	cursor: pointer;
+	transition: background 0.2s, color 0.2s;
+}
+
+.btn-close:hover {
+	background: rgba(231, 76, 60, 0.3);
+	color: #e74c3c;
+}
+
+.panel-body {
+	flex: 1;
+	overflow-y: auto;
+	padding: 1.25rem 1.5rem;
+}
+
+.panel-body h2 {
+	font-size: 0.95rem;
+	font-weight: 500;
+	color: rgba(255, 255, 255, 0.7);
+	margin-bottom: 1rem;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+}
+
+.hint {
+	font-size: 0.8rem;
+	color: rgba(255, 255, 255, 0.4);
+	margin-bottom: 1rem;
+}
+
+.card-list {
+	display: flex;
+	flex-direction: column;
+	gap: 0.6rem;
+}
+
+.card {
+	background: rgba(255, 255, 255, 0.04);
+	border: 1px solid rgba(255, 255, 255, 0.06);
+	border-radius: 0.5rem;
+	padding: 1rem 1.15rem;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	transition: background 0.2s, border-color 0.2s;
+}
+
+.card:hover {
+	background: rgba(255, 255, 255, 0.07);
+	border-color: rgba(231, 76, 60, 0.3);
+}
+
+.card-info h3 {
+	font-size: 0.9rem;
+	font-weight: 500;
+	color: #fff;
+}
+
+.card-info p {
+	font-size: 0.75rem;
+	color: rgba(255, 255, 255, 0.45);
+	margin-top: 0.2rem;
+}
+
+.card-icon {
+	font-size: 1.5rem;
+	margin-right: 0.75rem;
+}
+
+.card-left {
+	display: flex;
+	align-items: center;
+}
+
+.btn-action {
+	background: linear-gradient(135deg, #c0392b, #e74c3c);
+	border: none;
+	color: #fff;
+	font-size: 0.75rem;
+	font-weight: 600;
+	padding: 0.45rem 1rem;
+	border-radius: 0.35rem;
+	cursor: pointer;
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+	transition: opacity 0.2s, transform 0.15s;
+}
+
+.btn-action:hover {
+	opacity: 0.9;
+	transform: scale(1.02);
+}
+
+.btn-action.secondary {
+	background: rgba(255, 255, 255, 0.08);
+}
+
+.empty-state {
+	text-align: center;
+	padding: 2.5rem 1rem;
+	color: rgba(255, 255, 255, 0.35);
+	font-size: 0.85rem;
+}
+
+/* Laudo */
+.report-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 1.25rem;
+}
+
+.report-badge {
+	background: rgba(231, 76, 60, 0.2);
+	color: #e74c3c;
+	font-size: 0.65rem;
+	font-weight: 700;
+	padding: 0.3rem 0.6rem;
+	border-radius: 0.25rem;
+	letter-spacing: 0.08em;
+}
+
+.report-content {
+	background: rgba(0, 0, 0, 0.2);
+	border: 1px solid rgba(255, 255, 255, 0.06);
+	border-radius: 0.5rem;
+	padding: 1.25rem;
+}
+
+.report-row {
+	display: flex;
+	justify-content: space-between;
+	padding: 0.5rem 0;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+	font-size: 0.85rem;
+}
+
+.report-row:last-child {
+	border-bottom: none;
+}
+
+.report-label {
+	color: rgba(255, 255, 255, 0.45);
+}
+
+.report-value {
+	color: #fff;
+	font-weight: 500;
+	text-align: right;
+	max-width: 60%;
+}
+
+.report-value.match {
+	color: #2ecc71;
+}
+
+.report-value.no-match {
+	color: #e74c3c;
+}
+
+.report-section {
+	margin-top: 1rem;
+	padding-top: 0.75rem;
+	border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.report-section h4 {
+	font-size: 0.8rem;
+	color: rgba(255, 255, 255, 0.5);
+	margin-bottom: 0.5rem;
+	text-transform: uppercase;
+}
+
+.report-findings li {
+	font-size: 0.8rem;
+	color: rgba(255, 255, 255, 0.7);
+	padding: 0.25rem 0;
+	list-style: none;
+}
+
+.report-findings li::before {
+	content: "• ";
+	color: #e74c3c;
+}
+
+.panel-footer {
+	display: flex;
+	justify-content: space-between;
+	padding: 0.75rem 1.5rem;
+	background: rgba(0, 0, 0, 0.2);
+	border-top: 1px solid rgba(255, 255, 255, 0.04);
+	font-size: 0.7rem;
+	color: rgba(255, 255, 255, 0.3);
+}
+
+@media (max-width: 768px) {
+	html {
+		font-size: 14px;
+	}
+
+	.panel {
+		width: 95vw;
+	}
+}

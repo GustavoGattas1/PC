@@ -1,0 +1,393 @@
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- VRP
+-----------------------------------------------------------------------------------------------------------------------------------------
+local Tunnel = module("vrp", "lib/Tunnel")
+local Proxy = module("vrp", "lib/Proxy")
+vRP = Proxy.getInterface("vRP")
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- TUNNEL
+-----------------------------------------------------------------------------------------------------------------------------------------
+vSERVER = Tunnel.getInterface("iml-evidencias")
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- STATE
+-----------------------------------------------------------------------------------------------------------------------------------------
+local SceneEvidence = {}
+local WearingGloves = false
+local LastWeapon = nil
+local InIMLZone = false
+local NuiOpen = false
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- BLIP DO IML
+-----------------------------------------------------------------------------------------------------------------------------------------
+CreateThread(function()
+	if not Config.Blips.Enabled then return end
+
+	local Blip = AddBlipForCoord(Config.Blips.Coords.x, Config.Blips.Coords.y, Config.Blips.Coords.z)
+	SetBlipSprite(Blip, Config.Blips.Sprite)
+	SetBlipColour(Blip, Config.Blips.Color)
+	SetBlipScale(Blip, Config.Blips.Scale)
+	SetBlipAsShortRange(Blip, true)
+	BeginTextCommandSetBlipName("STRING")
+	AddTextComponentString(Config.Blips.Label)
+	EndTextCommandSetBlipName(Blip)
+end)
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- CARREGAR CENA AO ENTRAR
+-----------------------------------------------------------------------------------------------------------------------------------------
+RegisterNetEvent("vRP:Active")
+AddEventHandler("vRP:Active", function()
+	Wait(5000)
+	local Scene = vSERVER.RequestScene()
+	if Scene then
+		for _, Evidence in ipairs(Scene) do
+			SceneEvidence[Evidence.id] = Evidence
+		end
+	end
+end)
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- SINCRONIZAÇÃO DE EVIDÊNCIAS
+-----------------------------------------------------------------------------------------------------------------------------------------
+RegisterNetEvent("iml-evidencias:SyncEvidence")
+AddEventHandler("iml-evidencias:SyncEvidence", function(Evidence)
+	if Evidence and Evidence.id then
+		SceneEvidence[Evidence.id] = Evidence
+	end
+end)
+
+RegisterNetEvent("iml-evidencias:RemoveEvidence")
+AddEventHandler("iml-evidencias:RemoveEvidence", function(EvidenceId)
+	SceneEvidence[EvidenceId] = nil
+end)
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- DETECTAR TIROS (CÁPSULAS + SANGUE NA VÍTIMA)
+-----------------------------------------------------------------------------------------------------------------------------------------
+CreateThread(function()
+	while true do
+		local Sleep = 1000
+		local Ped = PlayerPedId()
+
+		if IsPedShooting(Ped) then
+			Sleep = 0
+			local Weapon = GetSelectedPedWeapon(Ped)
+			LastWeapon = Weapon
+
+			if math.random(100) <= Config.Chances.Casing then
+				local Coords = GetOffsetFromEntityInWorldCoords(Ped, 0.0, 0.5, -0.9)
+				TriggerServerEvent("iml-evidencias:CreateEvidence", {
+					type = "casing",
+					weapon_hash = Weapon,
+					coords = { x = Coords.x, y = Coords.y, z = Coords.z },
+					heading = GetEntityHeading(Ped)
+				})
+			end
+
+			if math.random(100) <= Config.Chances.Magazine then
+				local Coords = GetOffsetFromEntityInWorldCoords(Ped, 0.3, 0.3, -0.9)
+				TriggerServerEvent("iml-evidencias:CreateEvidence", {
+					type = "magazine",
+					weapon_hash = Weapon,
+					coords = { x = Coords.x, y = Coords.y, z = Coords.z },
+					heading = GetEntityHeading(Ped)
+				})
+			end
+		end
+
+		Wait(Sleep)
+	end
+end)
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- DETECTAR DANO (SANGUE)
+-----------------------------------------------------------------------------------------------------------------------------------------
+CreateThread(function()
+	local LastHealth = 200
+
+	while true do
+		Wait(500)
+		local Ped = PlayerPedId()
+		local Health = GetEntityHealth(Ped)
+
+		if Health < LastHealth and Health > 100 then
+			if math.random(100) <= Config.Chances.Blood then
+				local Coords = GetEntityCoords(Ped)
+				TriggerServerEvent("iml-evidencias:CreateEvidence", {
+					type = "blood",
+					coords = { x = Coords.x, y = Coords.y, z = Coords.z - 0.95 }
+				})
+			end
+		end
+
+		LastHealth = Health
+	end
+end)
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- IMPRESSÃO DIGITAL EM VEÍCULOS
+-----------------------------------------------------------------------------------------------------------------------------------------
+CreateThread(function()
+	while true do
+		Wait(2000)
+		local Ped = PlayerPedId()
+
+		if not WearingGloves and IsPedGettingIntoAVehicle(Ped) then
+			local Vehicle = GetVehiclePedIsTryingToEnter(Ped)
+			if Vehicle ~= 0 and math.random(100) <= Config.Chances.Fingerprint then
+				local Coords = GetEntityCoords(Vehicle)
+				TriggerServerEvent("iml-evidencias:CreateEvidence", {
+					type = "fingerprint",
+					coords = { x = Coords.x, y = Coords.y, z = Coords.z },
+					vehicle = VehToNet(Vehicle)
+				})
+			end
+		end
+	end
+end)
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- LUVAS DE LÁTEX
+-----------------------------------------------------------------------------------------------------------------------------------------
+RegisterNetEvent("iml-evidencias:ToggleGloves")
+AddEventHandler("iml-evidencias:ToggleGloves", function()
+	WearingGloves = not WearingGloves
+	local Message = WearingGloves and "Luvas de látex equipadas." or "Luvas de látex removidas."
+	TriggerEvent("Notify", WearingGloves and "success" or "important", Message, false, 3000)
+end)
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- DESENHAR EVIDÊNCIAS NA CENA
+-----------------------------------------------------------------------------------------------------------------------------------------
+CreateThread(function()
+	while true do
+		local Sleep = 1000
+		local Ped = PlayerPedId()
+		local PedCoords = GetEntityCoords(Ped)
+		local NearEvidence = false
+
+		for Id, Evidence in pairs(SceneEvidence) do
+			if Evidence.coords and not Evidence.collected then
+				local EvCoords = vector3(Evidence.coords.x, Evidence.coords.y, Evidence.coords.z)
+				local Distance = #(PedCoords - EvCoords)
+
+				if Distance < 30.0 then
+					Sleep = 0
+					local TypeInfo = Config.EvidenceTypes[Evidence.type]
+
+					if TypeInfo and TypeInfo.Prop then
+						DrawMarker(28, EvCoords.x, EvCoords.y, EvCoords.z + 0.05, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.15, 0.15, 0.15, 200, 30, 30, 150, false, false, 2, false, nil, nil, false)
+					else
+						DrawMarker(28, EvCoords.x, EvCoords.y, EvCoords.z + 0.05, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.12, 0.12, 0.12, 142, 68, 173, 150, false, false, 2, false, nil, nil, false)
+					end
+
+					if Distance < Config.CollectDistance then
+						NearEvidence = true
+						DrawText3D(EvCoords.x, EvCoords.y, EvCoords.z + 0.3, "~r~[E]~w~ Coletar " .. (TypeInfo and TypeInfo.Label or "Evidência"))
+
+						if IsControlJustPressed(0, 38) then
+							TriggerServerEvent("iml-evidencias:CollectEvidence", Id)
+						end
+					end
+				end
+			end
+		end
+
+		Wait(Sleep)
+	end
+end)
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- MARCADORES DO IML
+-----------------------------------------------------------------------------------------------------------------------------------------
+CreateThread(function()
+	while true do
+		local Sleep = 1000
+		local Ped = PlayerPedId()
+		local PedCoords = GetEntityCoords(Ped)
+
+		local AllLocations = {}
+		for _, Loc in ipairs(Config.Locations.Lab) do AllLocations[#AllLocations + 1] = { data = Loc, action = "lab" } end
+		for _, Loc in ipairs(Config.Locations.Autopsy) do AllLocations[#AllLocations + 1] = { data = Loc, action = "autopsy" } end
+		for _, Loc in ipairs(Config.Locations.Locker) do AllLocations[#AllLocations + 1] = { data = Loc, action = "locker" } end
+		for _, Loc in ipairs(Config.Locations.BodyDrop) do AllLocations[#AllLocations + 1] = { data = Loc, action = "bodydrop" } end
+
+		for _, Entry in ipairs(AllLocations) do
+			local Loc = Entry.data
+			local Distance = #(PedCoords - Loc.Coords)
+
+			if Distance < Config.Marker.DrawDistance then
+				Sleep = 0
+				local M = Config.Marker
+				DrawMarker(M.Type, Loc.Coords.x, Loc.Coords.y, Loc.Coords.z - 0.95, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, M.Size.x, M.Size.y, M.Size.z, M.Color.r, M.Color.g, M.Color.b, M.Color.a, false, false, 2, false, nil, nil, false)
+
+				if Distance < Config.Marker.InteractDistance then
+					local ActionText = {
+						lab = "~r~[E]~w~ Analisar Evidências",
+						autopsy = "~r~[E]~w~ Realizar Autópsia",
+						locker = "~r~[E]~w~ Armário de Evidências",
+						bodydrop = "~r~[E]~w~ Entregar Corpo"
+					}
+
+					DrawText3D(Loc.Coords.x, Loc.Coords.y, Loc.Coords.z, ActionText[Entry.action] or "~r~[E]~w~ Interagir")
+
+					if IsControlJustPressed(0, 38) then
+						HandleLocationAction(Entry.action)
+					end
+				end
+			end
+		end
+
+		Wait(Sleep)
+	end
+end)
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- AÇÕES NOS LOCAIS
+-----------------------------------------------------------------------------------------------------------------------------------------
+function HandleLocationAction(Action)
+	if Action == "lab" then
+		OpenLabMenu()
+	elseif Action == "autopsy" then
+		OpenAutopsyMenu()
+	elseif Action == "locker" then
+		OpenLockerMenu()
+	elseif Action == "bodydrop" then
+		OpenBodyDropMenu()
+	end
+end
+
+function OpenLabMenu()
+	local Evidence = vSERVER.GetMyEvidence()
+	if not Evidence or #Evidence == 0 then
+		TriggerEvent("Notify", "important", Config.Lang.NoEvidence, false, 5000)
+		return
+	end
+
+	SetNuiFocus(true, true)
+	NuiOpen = true
+	SendNUIMessage({ action = "openLab", evidence = Evidence })
+end
+
+function OpenAutopsyMenu()
+	local Bodies = vSERVER.GetPendingBodies()
+	SetNuiFocus(true, true)
+	NuiOpen = true
+	SendNUIMessage({ action = "openAutopsy", bodies = Bodies })
+end
+
+function OpenLockerMenu()
+	local Evidence = vSERVER.GetMyEvidence()
+	SetNuiFocus(true, true)
+	NuiOpen = true
+	SendNUIMessage({ action = "openLocker", evidence = Evidence })
+end
+
+function OpenBodyDropMenu()
+	local Bodies = vSERVER.GetMyBodies()
+	SetNuiFocus(true, true)
+	NuiOpen = true
+	SendNUIMessage({ action = "openBodyDrop", bodies = Bodies })
+end
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- COLETAR CORPO DE JOGADOR MORTO PRÓXIMO
+-----------------------------------------------------------------------------------------------------------------------------------------
+RegisterCommand("coletarcorpo", function()
+	local Ped = PlayerPedId()
+	local PedCoords = GetEntityCoords(Ped)
+	local ClosestPlayer = nil
+	local ClosestDist = 3.0
+
+	for _, Player in ipairs(GetActivePlayers()) do
+		local TargetPed = GetPlayerPed(Player)
+		if TargetPed ~= Ped then
+			local TargetCoords = GetEntityCoords(TargetPed)
+			local Dist = #(PedCoords - TargetCoords)
+
+			if Dist < ClosestDist and (IsEntityDead(TargetPed) or GetEntityHealth(TargetPed) <= 100) then
+				ClosestDist = Dist
+				ClosestPlayer = GetPlayerServerId(Player)
+			end
+		end
+	end
+
+	if ClosestPlayer then
+		TriggerServerEvent("iml-evidencias:CollectBody", ClosestPlayer, "Trauma por arma de fogo")
+	else
+		TriggerEvent("Notify", "negado", "Nenhum corpo encontrado nas proximidades.", false, 5000)
+	end
+end)
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- NUI CALLBACKS
+-----------------------------------------------------------------------------------------------------------------------------------------
+RegisterNUICallback("close", function(_, cb)
+	SetNuiFocus(false, false)
+	NuiOpen = false
+	cb("ok")
+end)
+
+RegisterNUICallback("analyze", function(Data, cb)
+	if Data and Data.evidence_id then
+		TriggerServerEvent("iml-evidencias:AnalyzeEvidence", Data.evidence_id)
+	end
+	SetNuiFocus(false, false)
+	NuiOpen = false
+	cb("ok")
+end)
+
+RegisterNUICallback("autopsy", function(Data, cb)
+	if Data and Data.body_id then
+		TriggerServerEvent("iml-evidencias:PerformAutopsy", Data.body_id)
+	end
+	SetNuiFocus(false, false)
+	NuiOpen = false
+	cb("ok")
+end)
+
+RegisterNUICallback("deliverBody", function(Data, cb)
+	if Data and Data.body_id then
+		TriggerServerEvent("iml-evidencias:DeliverBody", Data.body_id)
+	end
+	SetNuiFocus(false, false)
+	NuiOpen = false
+	cb("ok")
+end)
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- ABRIR LAUDO
+-----------------------------------------------------------------------------------------------------------------------------------------
+RegisterNetEvent("iml-evidencias:OpenReport")
+AddEventHandler("iml-evidencias:OpenReport", function(Report, Title)
+	SetNuiFocus(true, true)
+	NuiOpen = true
+	SendNUIMessage({ action = "openReport", report = Report, title = Title })
+end)
+
+RegisterNetEvent("iml-evidencias:BodyCollected")
+AddEventHandler("iml-evidencias:BodyCollected", function()
+	local Ped = PlayerPedId()
+	SetEntityVisible(Ped, false, false)
+	SetEntityCollision(Ped, false, false)
+end)
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- DRAW TEXT 3D
+-----------------------------------------------------------------------------------------------------------------------------------------
+function DrawText3D(x, y, z, text)
+	local OnScreen, _x, _y = World3dToScreen2d(x, y, z)
+	if OnScreen then
+		SetTextScale(0.35, 0.35)
+		SetTextFont(4)
+		SetTextProportional(true)
+		SetTextColour(255, 255, 255, 215)
+		SetTextEntry("STRING")
+		SetTextCentre(true)
+		AddTextComponentString(text)
+		DrawText(_x, _y)
+	end
+end

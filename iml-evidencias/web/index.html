@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>IML - Sistema Pericial</title>
+	<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+	<div id="app" class="hidden">
+		<div class="panel">
+			<header class="panel-header">
+				<div class="logo">
+					<span class="logo-icon">⚕</span>
+					<div>
+						<h1 id="panel-title">Instituto Médico Legal</h1>
+						<p id="panel-subtitle">Sistema de Perícia Forense</p>
+					</div>
+				</div>
+				<button class="btn-close" id="btn-close">&times;</button>
+			</header>
+
+			<main class="panel-body">
+				<!-- Laboratório -->
+				<section id="view-lab" class="view hidden">
+					<h2>Evidências para Análise</h2>
+					<div id="evidence-list" class="card-list"></div>
+				</section>
+
+				<!-- Autópsia -->
+				<section id="view-autopsy" class="view hidden">
+					<h2>Corpos Aguardando Autópsia</h2>
+					<div id="body-list" class="card-list"></div>
+				</section>
+
+				<!-- Armário -->
+				<section id="view-locker" class="view hidden">
+					<h2>Armário de Evidências</h2>
+					<div id="locker-list" class="card-list"></div>
+				</section>
+
+				<!-- Entrega de corpos -->
+				<section id="view-bodydrop" class="view hidden">
+					<h2>Entrega de Corpos</h2>
+					<p class="hint">Selecione o corpo acondicionado para entregar ao IML.</p>
+					<div id="bodydrop-list" class="card-list"></div>
+				</section>
+
+				<!-- Laudo -->
+				<section id="view-report" class="view hidden">
+					<div class="report-header">
+						<h2 id="report-title">Laudo Pericial</h2>
+						<span class="report-badge" id="report-badge">OFICIAL</span>
+					</div>
+					<div id="report-content" class="report-content"></div>
+				</section>
+			</main>
+
+			<footer class="panel-footer">
+				<span>IML - Departamento de Criminalística</span>
+				<span id="report-date"></span>
+			</footer>
+		</div>
+	</div>
+
+	<script src="js/app.js"></script>
+</body>
+</html>
