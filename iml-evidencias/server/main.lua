@@ -586,6 +586,43 @@ AddEventHandler("iml-evidencias:PerformAutopsy", function(BodyId)
 end)
 
 -----------------------------------------------------------------------------------------------------------------------------------------
+-- VISUALIZAR LAUDO (item laudo-pericial)
+-----------------------------------------------------------------------------------------------------------------------------------------
+RegisterNetEvent("iml-evidencias:ViewReport")
+AddEventHandler("iml-evidencias:ViewReport", function(ReportId)
+	local Source = source
+	local Passport = vRP.Passport(Source)
+	if not Passport then return end
+
+	local LaudoData = vRP.UserData(Passport, "iml_laudos") or {}
+	if type(LaudoData) == "string" then LaudoData = json.decode(LaudoData) or {} end
+
+	local Report = ReportId and LaudoData[ReportId]
+	local Title = "Laudo Pericial"
+
+	if not Report and ReportId then
+		local DbReport = vRP.Query("iml/GetReport", { report_id = ReportId })
+		if DbReport[1] then
+			Report = json.decode(DbReport[1].content)
+			Title = DbReport[1].title or Title
+		end
+	end
+
+	if not Report then
+		for _, Data in pairs(LaudoData) do
+			Report = Data
+			break
+		end
+	end
+
+	if Report then
+		TriggerClientEvent("iml-evidencias:OpenReport", Source, Report, Title)
+	else
+		IML_Notify(Source, "negado", "Laudo não encontrado.")
+	end
+end)
+
+-----------------------------------------------------------------------------------------------------------------------------------------
 -- TUNNEL GETTERS
 -----------------------------------------------------------------------------------------------------------------------------------------
 function IML.GetPendingBodies()

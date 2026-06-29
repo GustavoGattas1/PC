@@ -14,6 +14,7 @@ vSERVER = Tunnel.getInterface("iml-evidencias")
 -- STATE
 -----------------------------------------------------------------------------------------------------------------------------------------
 SceneEvidence = {}
+SceneCorpses = {}
 WearingGloves = false
 NuiOpen = false
 
@@ -45,6 +46,15 @@ AddEventHandler("vRP:Active", function()
 			SceneEvidence[Evidence.id] = Evidence
 		end
 	end
+
+	local Corpses = vSERVER.RequestCorpses()
+	if Corpses then
+		for _, Corpse in ipairs(Corpses) do
+			if Corpse.victim_passport then
+				SceneCorpses[Corpse.victim_passport] = Corpse
+			end
+		end
+	end
 end)
 
 -----------------------------------------------------------------------------------------------------------------------------------------
@@ -60,6 +70,18 @@ end)
 RegisterNetEvent("iml-evidencias:RemoveEvidence")
 AddEventHandler("iml-evidencias:RemoveEvidence", function(EvidenceId)
 	SceneEvidence[EvidenceId] = nil
+end)
+
+RegisterNetEvent("iml-evidencias:SyncCorpse")
+AddEventHandler("iml-evidencias:SyncCorpse", function(Corpse)
+	if Corpse and Corpse.victim_passport then
+		SceneCorpses[Corpse.victim_passport] = Corpse
+	end
+end)
+
+RegisterNetEvent("iml-evidencias:RemoveCorpse")
+AddEventHandler("iml-evidencias:RemoveCorpse", function(VictimPassport)
+	SceneCorpses[VictimPassport] = nil
 end)
 
 -----------------------------------------------------------------------------------------------------------------------------------------
