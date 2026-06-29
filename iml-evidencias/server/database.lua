@@ -54,6 +54,29 @@ vRP.Prepare("iml/InsertDna", "INSERT INTO iml_dna (passport, dna_code) VALUES (@
 
 vRP.Prepare("iml/GetPendingBodies", "SELECT * FROM iml_bodies WHERE autopsy_done = 0 ORDER BY created_at DESC LIMIT 20")
 
+vRP.Prepare("iml/InsertWeapon", [[
+	INSERT INTO iml_weapon_registry (passport, weapon_hash, weapon_serial, ammo_type)
+	VALUES (@passport, @weapon_hash, @weapon_serial, @ammo_type)
+]])
+
+vRP.Prepare("iml/GetWeaponBySerial", "SELECT * FROM iml_weapon_registry WHERE weapon_serial = @weapon_serial LIMIT 1")
+vRP.Prepare("iml/GetWeaponsByPassport", "SELECT * FROM iml_weapon_registry WHERE passport = @passport")
+
+vRP.Prepare("iml/InsertDeathRecord", [[
+	INSERT INTO iml_death_records (record_id, victim_passport, killer_passport, weapon_hash, weapon_serial, ammo_type, ammo_label, cause_of_death, bone_hit, distance, headshot, coords, time_of_death)
+	VALUES (@record_id, @victim_passport, @killer_passport, @weapon_hash, @weapon_serial, @ammo_type, @ammo_label, @cause_of_death, @bone_hit, @distance, @headshot, @coords, NOW())
+]])
+
+vRP.Prepare("iml/GetDeathByVictim", "SELECT * FROM iml_death_records WHERE victim_passport = @victim_passport AND bagged = 0 ORDER BY id DESC LIMIT 1")
+vRP.Prepare("iml/GetDeathByRecord", "SELECT * FROM iml_death_records WHERE record_id = @record_id LIMIT 1")
+vRP.Prepare("iml/UpdateDeathBagged", "UPDATE iml_death_records SET bagged = 1 WHERE record_id = @record_id")
+vRP.Prepare("iml/UpdateDeathExamined", "UPDATE iml_death_records SET examined = 1 WHERE record_id = @record_id")
+
+vRP.Prepare("iml/InsertBodyFull", [[
+	INSERT INTO iml_bodies (body_id, victim_passport, victim_name, cause, killer_passport, weapon_hash, weapon_serial, ammo_type, metadata, collected_by, created_at)
+	VALUES (@body_id, @victim_passport, @victim_name, @cause, @killer_passport, @weapon_hash, @weapon_serial, @ammo_type, @metadata, @collected_by, NOW())
+]])
+
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- HELPERS
 -----------------------------------------------------------------------------------------------------------------------------------------

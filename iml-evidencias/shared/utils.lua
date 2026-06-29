@@ -7,16 +7,43 @@ function DebugPrint(...)
 	end
 end
 
-function HasForensicGroup(Groups)
-	if not Groups then return false end
-	for _, Group in ipairs(Groups) do
-		if Group then return true end
-	end
-	return false
+function GetWeaponLabel(Hash)
+	if not Hash then return "Desconhecida" end
+	return Config.Weapons[Hash] or ("Arma Desconhecida (#" .. tostring(Hash) .. ")")
 end
 
-function GetWeaponLabel(Hash)
-	return Config.Weapons[Hash] or ("Arma Desconhecida (#" .. tostring(Hash) .. ")")
+function GetAmmoInfo(Hash)
+	if not Hash then return { Type = "?", Label = "Desconhecido", Category = "?" } end
+	return Config.AmmoTypes[Hash] or { Type = "?", Label = "Munição não catalogada", Category = "?" }
+end
+
+function GetDeathCause(WeaponHash)
+	if not WeaponHash or WeaponHash == 0 then
+		return Config.DeathCauses.Unknown
+	end
+
+	if Config.MeleeWeapons[WeaponHash] then
+		return Config.DeathCauses.Melee
+	end
+
+	if WeaponHash == `WEAPON_UNARMED` then
+		return Config.DeathCauses.Unarmed
+	end
+
+	local Ammo = GetAmmoInfo(WeaponHash)
+	if Ammo.Category == "Shotgun" then
+		return Config.DeathCauses.Shotgun
+	elseif Ammo.Category == "Precisão" then
+		return Config.DeathCauses.Sniper
+	elseif Ammo.Category == "Pistola" or Ammo.Category == "Submetralhadora" or Ammo.Category == "Rifle" then
+		return Config.DeathCauses.Firearm
+	end
+
+	return Config.DeathCauses.Unknown
+end
+
+function GetBoneLabel(BoneId)
+	return Config.BoneLabels[BoneId] or "Região não identificada"
 end
 
 function GenerateSerial()
@@ -35,4 +62,19 @@ end
 
 function FormatTimestamp()
 	return os.date("%d/%m/%Y às %H:%M")
+end
+
+function FormatTimeOnly()
+	return os.date("%H:%M:%S")
+end
+
+function IsFirearm(WeaponHash)
+	if not WeaponHash then return false end
+	local Ammo = Config.AmmoTypes[WeaponHash]
+	return Ammo ~= nil
+end
+
+function RoundNumber(Number, Decimals)
+	local Mult = 10 ^ (Decimals or 1)
+	return math.floor(Number * Mult + 0.5) / Mult
 end

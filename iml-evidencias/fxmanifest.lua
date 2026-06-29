@@ -14,11 +14,16 @@ shared_scripts {
 }
 
 client_scripts {
-	"client/*.lua"
+	"client/main.lua",
+	"client/death.lua",
+	"client/forensics.lua"
 }
 
 server_scripts {
-	"server/*.lua"
+	"server/database.lua",
+	"server/weapons.lua",
+	"server/death.lua",
+	"server/main.lua"
 }
 
 ui_page "web/index.html"

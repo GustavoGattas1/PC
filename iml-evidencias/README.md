@@ -1,196 +1,111 @@
-# IML / Evidências — Creative Uncharted
+# IML / Evidências — Creative Uncharted (Completo)
 
-Sistema completo de **Instituto Médico Legal (IML)** e **perícia forense** para servidores FiveM com base **Creative Uncharted** (vRP Creative Network).
+Sistema **completo** de Instituto Médico Legal e perícia forense para FiveM com base **Creative Uncharted**.
 
-Inspirado em sistemas de evidências de servidores brasileiros com coleta na cena do crime, análise laboratorial, laudos periciais e autópsia.
+## Funcionalidades Completas
 
-## Funcionalidades
+### Cena do Crime (automático)
+| Evidência | Como é gerada |
+|-----------|---------------|
+| Sangue | Jogador recebe dano |
+| Poça de sangue | Jogador morre |
+| Cápsula de projétil | Disparo de arma de fogo |
+| Pente abandonado | Chance ao disparar |
+| Projétil impactado | Raycast do tiro |
+| Marca de tiro em veículo | Projétil atinge veículo |
+| Impressão digital | Entrar em veículo sem luvas |
+| Resíduo de pólvora (GSR) | Disparo (fica no jogador) |
 
-### Cena do crime (automático)
-- **Sangue** — gerado quando jogadores recebem dano
-- **Cápsulas de projétil** — geradas ao atirar
-- **Pentes abandonados** — chance ao disparar
-- **Impressões digitais** — ao entrar em veículos sem luvas
-- Evidências expiram após tempo configurável
-- Sincronização entre todos os jogadores
+### Rastreamento de Morte
+- **Arma que matou** (nome + hash + serial balístico)
+- **Calibre/munição** (9mm, 5.56, .50, 12ga, etc.)
+- **Autor do crime** (passaporte do killer)
+- **Região do impacto** (cabeça, tórax, etc.)
+- **Distância do disparo** em metros
+- **Headshot** detectado
+- **Hora do óbito**
 
-### Coleta forense
-- Polícia e IML coletam evidências com **Kit de Perícia**
-- Evidências lacradas em **Saco de Evidência**
-- Coleta de corpos com **Saco Mortuário** (`/coletarcorpo`)
-- **Luvas de látex** evitam deixar digitais
+### Perícia no Cadáver
+| Tecla | Ação |
+|-------|------|
+| `E` | Perícia preliminar (arma, munição, killer, causa) |
+| `G` | Coletar sangue com swab |
+| `H` | Acondicionar corpo no saco mortuário |
 
-### Laboratório IML
-- Análise de DNA (sangue)
-- Comparação de impressões digitais
-- Perícia balística (cápsulas, pentes, projéteis)
-- Geração de **Laudo Pericial** oficial (NUI)
+### Comandos
+| Comando | Descrição |
+|---------|-----------|
+| `/periciar` | Perícia preliminar do cadáver próximo |
+| `/coletarsangue` | Coletar swab de sangue do cadáver |
+| `/coletarcorpo` | Acondicionar corpo |
+| `/coletargsr` | Coletar resíduo de pólvora de suspeito |
 
-### Autópsia
-- Entrega de corpos no IML
-- Exame médico-legal com laudo completo
-- Registro de causa da morte e DNA da vítima
+### Laboratório / IML
+- Análise de **DNA** (sangue, poça, swab de cadáver)
+- **Perícia balística** (cápsula, pente, projétil) com serial e dono da arma
+- **Impressão digital** com match na base
+- **GSR** com identificação do suspeito e arma
+- **Autópsia completa** com arma, calibre, killer e laudo médico-legal
 
-### Interface NUI
-- Painel moderno para laboratório, autópsia e laudos
-- Design escuro compatível com Creative
+### Registro Balístico
+- Cada arma de fogo recebe **serial único** por jogador
+- Cápsulas/pentes/projéteis carregam o serial
+- Laboratório identifica **dono registrado** da arma
 
 ---
 
 ## Instalação
 
-### 1. Banco de dados
+1. Execute `sql/install.sql` no MariaDB
+2. Copie para `resources/[scripts]/iml-evidencias`
+3. Adicione os 7 itens do `items_reference.lua`
+4. Ajuste `config.lua` (grupos + coordenadas do IML)
+5. `ensure iml-evidencias` no server.cfg
 
-Execute o arquivo SQL no seu MariaDB:
-
-```bash
-# Via HeidiSQL ou terminal
-source iml-evidencias/sql/install.sql
-```
-
-### 2. Copiar o resource
-
-Coloque a pasta `iml-evidencias` em:
-
-```
-resources/[scripts]/iml-evidencias
-```
-
-### 3. Adicionar itens
-
-Abra `items_reference.lua` e adicione os itens no arquivo de inventário da sua base (geralmente `vrp/config/Item.lua`):
+## Itens necessários
 
 | Item | Função |
 |------|--------|
-| `kitpericia` | Coletar evidências na cena |
+| `kitpericia` | Coletar evidências e periciar corpo |
 | `saco-evidencia` | Armazenar evidência coletada |
-| `luvas-latex` | Evitar impressões digitais |
-| `saco-cadaver` | Coletar corpos |
-| `laudo-pericial` | Documento de laudo gerado |
+| `luvas-latex` | Evitar digitais |
+| `swab-sangue` | Coletar sangue do cadáver |
+| `kit-gsr` | Coletar pólvora das mãos |
+| `saco-cadaver` | Transportar corpo |
+| `laudo-pericial` | Laudo gerado pela perícia |
 
-### 4. Configurar grupos
+## Fluxo completo de homicídio
 
-Edite `config.lua` e ajuste os grupos conforme sua base:
-
-```lua
-Config.Groups = {
-    IML = { "IML", "Paramedico" },
-    Police = { "Policia", "PC", "PRF", "BOPE" },
-    AllForensic = { "IML", "Policia", "PC", "PRF", "BOPE" }
-}
-```
-
-### 5. Configurar locais
-
-Ajuste as coordenadas do IML em `config.lua` → `Config.Locations`.  
-Coordenadas padrão apontam para o hospital de Los Santos (região do IML).
-
-### 6. server.cfg
-
-```cfg
-ensure vrp
-ensure iml-evidencias
-```
+1. Criminoso atira → gera cápsulas, projéteis, GSR (serial da arma registrado)
+2. Vítima morre → sistema registra arma, calibre, killer, distância, headshot
+3. Poça de sangue aparece na cena
+4. Polícia/IML chega → pericia corpo (`E`), coleta sangue (`G`), coleta cápsulas no chão
+5. Corpo é acondicionado (`H` ou `/coletarcorpo`) e entregue no IML
+6. Laboratório analisa evidências → laudos com DNA, balística e dono da arma
+7. Legista faz autópsia → laudo médico-legal com arma do crime e suspeito
+8. `/coletargsr` no suspeito confirma disparo recente
 
 ---
 
-## Como usar in-game
-
-| Ação | Como fazer |
-|------|------------|
-| Coletar evidência | Aproxime-se do marcador na cena e pressione **E** (precisa do kit) |
-| Analisar evidência | Vá ao **Laboratório Forense** e pressione **E** |
-| Coletar corpo | Use `/coletarcorpo` perto de um jogador morto |
-| Entregar corpo | Vá ao ponto de **Entrega de Corpos** no IML |
-| Autópsia | Vá à **Sala de Autópsia** com corpo entregue |
-| Equipar luvas | Use o item `luvas-latex` no inventário |
-
----
-
-## Comandos
-
-| Comando | Descrição |
-|---------|-----------|
-| `/coletarcorpo` | Coleta corpo de jogador morto próximo (requer saco mortuário) |
-
----
-
-## Configuração avançada
-
-### Chances de evidência (`config.lua`)
-
-```lua
-Config.Chances = {
-    Blood = 85,        -- % ao receber dano
-    Fingerprint = 70,  -- % ao entrar em veículo
-    Casing = 95,       -- % ao atirar
-    Magazine = 40      -- % ao atirar (pente)
-}
-```
-
-### Expiração
-
-```lua
-Config.EvidenceExpire = 3600  -- segundos (1 hora)
-```
-
-### Debug
-
-```lua
-Config.Debug = true  -- logs no console do servidor
-```
-
----
-
-## Estrutura de arquivos
+## Estrutura
 
 ```
 iml-evidencias/
-├── fxmanifest.lua
-├── config.lua
-├── items_reference.lua
 ├── client/
-│   └── main.lua
+│   ├── main.lua       # Evidências na cena, IML, NUI
+│   ├── death.lua      # Morte, tiros, balística, sangue
+│   └── forensics.lua  # Perícia de cadáver, comandos
 ├── server/
-│   ├── database.lua
-│   └── main.lua
-├── shared/
-│   └── utils.lua
-├── sql/
-│   └── install.sql
-└── web/
-    ├── index.html
-    ├── css/style.css
-    └── js/app.js
+│   ├── database.lua   # SQL prepares
+│   ├── weapons.lua    # Registro balístico
+│   ├── death.lua      # Mortes, laudos, análises
+│   └── main.lua       # Eventos principais
+└── web/               # Interface NUI
 ```
 
----
+## Configuração
 
-## Dependências
-
-- **vrp** (Creative Uncharted)
-- **oxmysql** (via vRP)
-- MariaDB
-
----
-
-## Personalização
-
-- **Blip no mapa:** `Config.Blips`
-- **Marcadores:** `Config.Marker`
-- **Armas no laudo balístico:** `Config.Weapons`
-- **Mensagens:** `Config.Lang`
-
----
-
-## Notas
-
-- Biometria (DNA e digital) é registrada automaticamente ao conectar o personagem.
-- Laudos ficam salvos no banco (`iml_reports`) e no `playerdata` do jogador.
-- Ajuste os nomes dos grupos se sua base usar nomenclatura diferente (ex: `Policia` vs `Police`).
-
----
-
-## Suporte
-
-Revise `config.lua` antes de abrir ticket. A maioria dos problemas é grupo/permissão ou item não cadastrado no inventário.
+- `Config.Groups` — grupos da sua base
+- `Config.Locations` — coordenadas do IML
+- `Config.Weapons` / `Config.AmmoTypes` — armas e calibres
+- `Config.Chances` — probabilidade de cada evidência

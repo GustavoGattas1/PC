@@ -16,9 +16,9 @@ vCLIENT = Tunnel.getInterface("iml-evidencias")
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- STATE
 -----------------------------------------------------------------------------------------------------------------------------------------
-local SceneEvidence = {}
 local PlayerCooldowns = {}
 local CollectedBodies = {}
+local PlayerGSR = {}
 
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- PERMISSÕES
@@ -35,21 +35,6 @@ function IML.CanAutopsy(Passport)
 	return IML_HasGroup(Passport, Config.Groups.IML)
 end
 
-function IML.CanDeliverBody(Passport)
-	return IML_HasGroup(Passport, Config.Groups.AllForensic)
-end
-
-function IML.CheckPermission(Passport, PermissionType)
-	if PermissionType == "collect" then return IML.CanCollect(Passport) end
-	if PermissionType == "analyze" then return IML.CanAnalyze(Passport) end
-	if PermissionType == "autopsy" then return IML.CanAutopsy(Passport) end
-	if PermissionType == "body" then return IML.CanDeliverBody(Passport) end
-	return false
-end
-
------------------------------------------------------------------------------------------------------------------------------------------
--- COOLDOWN
------------------------------------------------------------------------------------------------------------------------------------------
 local function CheckCooldown(Source, Key, Time)
 	local Now = GetGameTimer()
 	if PlayerCooldowns[Source] and PlayerCooldowns[Source][Key] and (Now - PlayerCooldowns[Source][Key]) < Time then
@@ -61,7 +46,7 @@ local function CheckCooldown(Source, Key, Time)
 end
 
 -----------------------------------------------------------------------------------------------------------------------------------------
--- REGISTRAR BIOMETRIA AO CONECTAR
+-- BIOMETRIA AO CONECTAR
 -----------------------------------------------------------------------------------------------------------------------------------------
 AddEventHandler("Connect", function(Passport, Source)
 	IML_EnsureBiometrics(Passport)
@@ -69,6 +54,19 @@ end)
 
 AddEventHandler("CharacterChosen", function(Passport, Source)
 	IML_EnsureBiometrics(Passport)
+end)
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- REGISTRO DE ARMA ATIVA (SERIAL BALÍSTICO)
+-----------------------------------------------------------------------------------------------------------------------------------------
+RegisterNetEvent("iml-evidencias:RegisterWeapon")
+AddEventHandler("iml-evidencias:RegisterWeapon", function(WeaponHash)
+	local Source = source
+	local Passport = vRP.Passport(Source)
+	if not Passport or not WeaponHash or WeaponHash == 0 then return end
+
+	local Serial = IML_GetOrCreateWeaponSerial(Passport, WeaponHash)
+	TriggerClientEvent("iml-evidencias:SetWeaponSerial", Source, WeaponHash, Serial)
 end)
 
 -----------------------------------------------------------------------------------------------------------------------------------------
@@ -84,46 +82,76 @@ AddEventHandler("iml-evidencias:CreateEvidence", function(Data)
 
 	local Count = 0
 	for _ in pairs(SceneEvidence) do Count = Count + 1 end
-	if Count >= Config.MaxSceneEvidence then return end
+	if Count >= Config.MaxSceneEvidence then
+		return
+	end
 
-	local EvidenceId = IML_GenerateId("EVD")
-	local WeaponSerial = Data.weapon_serial or GenerateSerial()
+	if not Data.passport then
+		Data.passport = Passport
+	end
 
-	local Evidence = {
-		id = EvidenceId,
-		type = Data.type,
-		passport = Data.passport or Passport,
-		weapon_hash = Data.weapon_hash,
-		weapon_serial = WeaponSerial,
-		coords = Data.coords,
-		heading = Data.heading or 0.0,
-		vehicle = Data.vehicle,
-		collected = false,
-		created = os.time(),
-		metadata = Data.metadata or {}
-	}
+	if Data.weapon_hash and not Data.weapon_serial then
+		Data.weapon_serial = IML_GetOrCreateWeaponSerial(Passport, Data.weapon_hash)
+	end
 
-	SceneEvidence[EvidenceId] = Evidence
+	-- GSR fica no jogador, não na cena
+	if Data.type == "gsr" then
+		PlayerGSR[Passport] = {
+			weapon_hash = Data.weapon_hash,
+			weapon_serial = Data.weapon_serial,
+			timestamp = os.time()
+		}
+		return
+	end
 
-	vRP.Query("iml/InsertEvidence", {
-		evidence_id = EvidenceId,
-		type = Data.type,
-		passport = Evidence.passport,
-		weapon_hash = Evidence.weapon_hash,
-		weapon_serial = WeaponSerial,
-		coords = json.encode(Evidence.coords),
-		metadata = json.encode(Evidence.metadata)
-	})
-
-	TriggerClientEvent("iml-evidencias:SyncEvidence", -1, Evidence)
-	DebugPrint("Evidência criada:", EvidenceId, Data.type)
+	IML_CreateSceneEvidence(Data)
 end)
 
 -----------------------------------------------------------------------------------------------------------------------------------------
--- SINCRONIZAR CENA PARA JOGADOR
+-- MORTE DO JOGADOR
+-----------------------------------------------------------------------------------------------------------------------------------------
+RegisterNetEvent("iml-evidencias:PlayerDied")
+AddEventHandler("iml-evidencias:PlayerDied", function(Data)
+	local Source = source
+	local VictimPassport = vRP.Passport(Source)
+	if not VictimPassport or not Data then return end
+
+	local KillerPassport = nil
+	local KillerName = nil
+
+	if Data.killer_source and Data.killer_source > 0 then
+		KillerPassport = vRP.Passport(Data.killer_source)
+		if KillerPassport then
+			KillerName = IML_GetIdentity(KillerPassport).Name
+		end
+	end
+
+	local VictimName = IML_GetIdentity(VictimPassport).Name
+	local WeaponSerial = nil
+
+	if KillerPassport and Data.weapon_hash and Data.weapon_hash ~= 0 then
+		WeaponSerial = IML_GetOrCreateWeaponSerial(KillerPassport, Data.weapon_hash)
+	end
+
+	IML_RegisterDeath({
+		victim_passport = VictimPassport,
+		victim_name = VictimName,
+		killer_passport = KillerPassport,
+		killer_name = KillerName,
+		weapon_hash = Data.weapon_hash,
+		weapon_serial = WeaponSerial,
+		cause_of_death = GetDeathCause(Data.weapon_hash),
+		bone_hit = Data.bone_hit,
+		distance = Data.distance,
+		headshot = Data.headshot,
+		coords = Data.coords
+	})
+end)
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- SINCRONIZAR CENA
 -----------------------------------------------------------------------------------------------------------------------------------------
 function IML.RequestScene()
-	local Source = source
 	local List = {}
 	local Now = os.time()
 
@@ -138,9 +166,29 @@ function IML.RequestScene()
 	return List
 end
 
+function IML.RequestCorpses()
+	local List = {}
+	local Now = os.time()
+
+	for Id, Corpse in pairs(SceneCorpses) do
+		if not Corpse.bagged and Corpse.time_of_death_raw and (Now - Corpse.time_of_death_raw) < Config.CorpseExpire then
+			List[#List + 1] = Corpse
+		end
+	end
+
+	return List
+end
+
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- COLETAR EVIDÊNCIA
 -----------------------------------------------------------------------------------------------------------------------------------------
+local function StoreEvidenceBag(Passport, EvidenceId, ItemData)
+	local Stored = vRP.UserData(Passport, "iml_evidence_bags") or {}
+	if type(Stored) == "string" then Stored = json.decode(Stored) or {} end
+	Stored[EvidenceId] = ItemData
+	vRP.setUData(Passport, "iml_evidence_bags", json.encode(Stored))
+end
+
 RegisterNetEvent("iml-evidencias:CollectEvidence")
 AddEventHandler("iml-evidencias:CollectEvidence", function(EvidenceId)
 	local Source = source
@@ -181,24 +229,145 @@ AddEventHandler("iml-evidencias:CollectEvidence", function(EvidenceId)
 		passport = Evidence.passport,
 		weapon_hash = Evidence.weapon_hash,
 		weapon_serial = Evidence.weapon_serial,
+		metadata = Evidence.metadata,
 		collected_by = Passport,
 		collected_at = FormatTimestamp()
 	}
 
 	vRP.GenerateItem(Passport, Config.Items.EvidenceBag, 1, true)
-	vRP.GiveItem(Passport, Config.Items.EvidenceBag .. "-" .. EvidenceId, 1, true)
-
-	-- Armazena metadata no playerdata
-	local Stored = vRP.UserData(Passport, "iml_evidence_bags") or {}
-	Stored[EvidenceId] = ItemData
-	vRP.setUData(Passport, "iml_evidence_bags", json.encode(Stored))
+	StoreEvidenceBag(Passport, EvidenceId, ItemData)
 
 	TriggerClientEvent("iml-evidencias:RemoveEvidence", -1, EvidenceId)
 	IML_Notify(Source, "success", Config.Lang.EvidenceCollected)
 end)
 
 -----------------------------------------------------------------------------------------------------------------------------------------
--- ANALISAR EVIDÊNCIA NO LABORATÓRIO
+-- COLETAR SANGUE DO CADÁVER (SWAB)
+-----------------------------------------------------------------------------------------------------------------------------------------
+RegisterNetEvent("iml-evidencias:CollectBloodSwab")
+AddEventHandler("iml-evidencias:CollectBloodSwab", function(TargetSource)
+	local Source = source
+	local Passport = vRP.Passport(Source)
+	local VictimPassport = type(TargetSource) == "number" and vRP.Passport(TargetSource) or TargetSource
+	if not Passport or not VictimPassport then return end
+
+	if not IML.CanCollect(Passport) then
+		IML_Notify(Source, "negado", Config.Lang.NotAuthorized)
+		return
+	end
+
+	if vRP.ItemAmount(Passport, Config.Items.BloodSwab) < 1 then
+		IML_Notify(Source, "negado", Config.Lang.NeedSwab)
+		return
+	end
+
+	vRP.TakeItem(Passport, Config.Items.BloodSwab, 1, true)
+
+	local EvidenceId = IML_GenerateId("SWAB")
+	local Record = IML_GetDeathRecord(VictimPassport)
+	local TypeInfo = Config.EvidenceTypes.blood_swab
+
+	local ItemData = {
+		evidence_id = EvidenceId,
+		type = "blood_swab",
+		label = TypeInfo.Label,
+		passport = VictimPassport,
+		metadata = { victim = VictimPassport, record_id = Record and Record.record_id },
+		collected_by = Passport,
+		collected_at = FormatTimestamp()
+	}
+
+	vRP.GenerateItem(Passport, Config.Items.EvidenceBag, 1, true)
+	StoreEvidenceBag(Passport, EvidenceId, ItemData)
+
+	IML_Notify(Source, "success", Config.Lang.BloodSwabCollected)
+end)
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- COLETAR GSR DE SUSPEITO
+-----------------------------------------------------------------------------------------------------------------------------------------
+RegisterNetEvent("iml-evidencias:CollectGSR")
+AddEventHandler("iml-evidencias:CollectGSR", function(TargetSource)
+	local Source = source
+	local Passport = vRP.Passport(Source)
+	local TargetPassport = vRP.Passport(TargetSource)
+
+	if not Passport or not TargetPassport then return end
+
+	if not IML.CanCollect(Passport) then
+		IML_Notify(Source, "negado", Config.Lang.NotAuthorized)
+		return
+	end
+
+	if vRP.ItemAmount(Passport, Config.Items.GsrKit) < 1 then
+		IML_Notify(Source, "negado", "Você precisa de um Kit GSR.")
+		return
+	end
+
+	local GsrData = PlayerGSR[TargetPassport]
+	if not GsrData or (os.time() - GsrData.timestamp) > 1800 then
+		IML_Notify(Source, "negado", "Nenhum resíduo de pólvora detectado.")
+		return
+	end
+
+	vRP.TakeItem(Passport, Config.Items.GsrKit, 1, true)
+
+	local EvidenceId = IML_GenerateId("GSR")
+	local ItemData = {
+		evidence_id = EvidenceId,
+		type = "gsr",
+		label = Config.EvidenceTypes.gsr.Label,
+		passport = TargetPassport,
+		weapon_hash = GsrData.weapon_hash,
+		weapon_serial = GsrData.weapon_serial,
+		collected_by = Passport,
+		collected_at = FormatTimestamp()
+	}
+
+	vRP.GenerateItem(Passport, Config.Items.EvidenceBag, 1, true)
+	StoreEvidenceBag(Passport, EvidenceId, ItemData)
+	PlayerGSR[TargetPassport] = nil
+
+	IML_Notify(Source, "success", Config.Lang.GsrCollected)
+end)
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- PERICIAR CORPO (EXAME PRELIMINAR)
+-----------------------------------------------------------------------------------------------------------------------------------------
+RegisterNetEvent("iml-evidencias:ExamineCorpse")
+AddEventHandler("iml-evidencias:ExamineCorpse", function(TargetSource)
+	local Source = source
+	local Passport = vRP.Passport(Source)
+	local VictimPassport = type(TargetSource) == "number" and vRP.Passport(TargetSource) or TargetSource
+	if not Passport or not VictimPassport then return end
+
+	if not IML.CanCollect(Passport) then
+		IML_Notify(Source, "negado", Config.Lang.NotAuthorized)
+		return
+	end
+
+	if vRP.ItemAmount(Passport, Config.Items.ForensicKit) < 1 then
+		IML_Notify(Source, "negado", Config.Lang.NeedKit)
+		return
+	end
+
+	local Record = IML_GetDeathRecord(VictimPassport)
+	if not Record then
+		IML_Notify(Source, "negado", "Dados forenses do cadáver não encontrados.")
+		return
+	end
+
+	local Exam = IML_BuildCorpseExam(Record)
+	if Record.record_id then
+		vRP.Query("iml/UpdateDeathExamined", { record_id = Record.record_id })
+	end
+
+	TriggerClientEvent("iml-evidencias:OpenReport", Source, Exam, "Perícia Preliminar do Cadáver")
+	IML_Notify(Source, "success", Config.Lang.CorpseExamined)
+end)
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- ANALISAR EVIDÊNCIA
 -----------------------------------------------------------------------------------------------------------------------------------------
 RegisterNetEvent("iml-evidencias:AnalyzeEvidence")
 AddEventHandler("iml-evidencias:AnalyzeEvidence", function(EvidenceId)
@@ -222,40 +391,7 @@ AddEventHandler("iml-evidencias:AnalyzeEvidence", function(EvidenceId)
 
 	vRP.Query("iml/UpdateAnalyzed", { evidence_id = EvidenceId, analyzed_by = Passport })
 
-	local Result = {}
-	local TypeInfo = Config.EvidenceTypes[ItemData.type] or {}
-
-	if ItemData.type == "blood" then
-		local Dna = vRP.Query("iml/GetDna", { passport = ItemData.passport })
-		if Dna[1] then
-			local Identity = IML_GetIdentity(ItemData.passport)
-			Result.match = true
-			Result.message = string.format(Config.Lang.DnaMatch, Identity.Name, ItemData.passport)
-			Result.dna_code = Dna[1].dna_code
-			Result.identity = Identity
-		else
-			Result.match = false
-			Result.message = Config.Lang.DnaNoMatch
-		end
-	elseif ItemData.type == "fingerprint" then
-		local Fp = vRP.Query("iml/GetFingerprint", { passport = ItemData.passport })
-		if Fp[1] then
-			local Identity = IML_GetIdentity(ItemData.passport)
-			Result.match = true
-			Result.message = string.format(Config.Lang.FingerprintMatch, Identity.Name, ItemData.passport)
-			Result.fingerprint_hash = Fp[1].fingerprint_hash
-			Result.identity = Identity
-		else
-			Result.match = false
-			Result.message = Config.Lang.FingerprintNoMatch
-		end
-	elseif ItemData.type == "casing" or ItemData.type == "magazine" or ItemData.type == "bullet" then
-		local WeaponName = GetWeaponLabel(ItemData.weapon_hash or 0)
-		Result.match = true
-		Result.message = string.format(Config.Lang.BallisticMatch, WeaponName, ItemData.weapon_serial or "N/A")
-		Result.weapon = WeaponName
-		Result.serial = ItemData.weapon_serial
-	end
+	local Result, TypeInfo = IML_AnalyzeEvidence(ItemData)
 
 	local ReportId = IML_GenerateId("RPT")
 	local ReportContent = {
@@ -297,7 +433,7 @@ end)
 -- COLETAR CORPO
 -----------------------------------------------------------------------------------------------------------------------------------------
 RegisterNetEvent("iml-evidencias:CollectBody")
-AddEventHandler("iml-evidencias:CollectBody", function(TargetSource, Cause)
+AddEventHandler("iml-evidencias:CollectBody", function(TargetSource)
 	local Source = source
 	local Passport = vRP.Passport(Source)
 	local TargetPassport = vRP.Passport(TargetSource)
@@ -315,7 +451,7 @@ AddEventHandler("iml-evidencias:CollectBody", function(TargetSource, Cause)
 	end
 
 	if CollectedBodies[TargetPassport] then
-		IML_Notify(Source, "negado", "Este corpo já foi acondicionado.")
+		IML_Notify(Source, "negado", Config.Lang.CorpseAlreadyBagged)
 		return
 	end
 
@@ -323,26 +459,47 @@ AddEventHandler("iml-evidencias:CollectBody", function(TargetSource, Cause)
 
 	local BodyId = IML_GenerateId("BODY")
 	local Identity = IML_GetIdentity(TargetPassport)
+	local Record = IML_GetDeathRecord(TargetPassport)
 
-	CollectedBodies[TargetPassport] = {
+	local BodyInfo = {
 		body_id = BodyId,
 		victim_passport = TargetPassport,
 		victim_name = Identity.Name,
-		cause = Cause or "Causa indeterminada",
+		cause = Record and Record.cause_of_death or "Causa indeterminada",
+		killer_passport = Record and Record.killer_passport,
+		weapon_hash = Record and Record.weapon_hash,
+		weapon_serial = Record and Record.weapon_serial,
+		ammo_type = Record and Record.ammo_type,
+		metadata = Record and {
+			bone_hit = Record.bone_hit,
+			distance = Record.distance,
+			headshot = Record.headshot,
+			ammo_label = Record.ammo_label,
+			record_id = Record.record_id
+		} or {},
 		collected_by = Passport
 	}
 
+	CollectedBodies[TargetPassport] = BodyInfo
+
 	local BodyData = vRP.UserData(Passport, "iml_bodies") or {}
 	if type(BodyData) == "string" then BodyData = json.decode(BodyData) or {} end
-	BodyData[BodyId] = CollectedBodies[TargetPassport]
+	BodyData[BodyId] = BodyInfo
 	vRP.setUData(Passport, "iml_bodies", json.encode(BodyData))
+
+	if Record and Record.record_id then
+		vRP.Query("iml/UpdateDeathBagged", { record_id = Record.record_id })
+		Record.bagged = true
+		SceneCorpses[Record.record_id] = nil
+	end
 
 	IML_Notify(Source, "success", Config.Lang.BodyCollected)
 	TriggerClientEvent("iml-evidencias:BodyCollected", TargetSource)
+	TriggerClientEvent("iml-evidencias:RemoveCorpse", -1, TargetPassport)
 end)
 
 -----------------------------------------------------------------------------------------------------------------------------------------
--- ENTREGAR CORPO NO IML
+-- ENTREGAR CORPO
 -----------------------------------------------------------------------------------------------------------------------------------------
 RegisterNetEvent("iml-evidencias:DeliverBody")
 AddEventHandler("iml-evidencias:DeliverBody", function(BodyId)
@@ -359,11 +516,16 @@ AddEventHandler("iml-evidencias:DeliverBody", function(BodyId)
 		return
 	end
 
-	vRP.Query("iml/InsertBody", {
+	vRP.Query("iml/InsertBodyFull", {
 		body_id = BodyId,
 		victim_passport = Body.victim_passport,
 		victim_name = Body.victim_name,
 		cause = Body.cause,
+		killer_passport = Body.killer_passport,
+		weapon_hash = Body.weapon_hash,
+		weapon_serial = Body.weapon_serial,
+		ammo_type = Body.ammo_type,
+		metadata = json.encode(Body.metadata or {}),
 		collected_by = Body.collected_by
 	})
 
@@ -393,29 +555,13 @@ AddEventHandler("iml-evidencias:PerformAutopsy", function(BodyId)
 		return
 	end
 
-	local BodyInfo = Body[1]
-	local Identity = IML_GetIdentity(BodyInfo.victim_passport)
-	local Dna = vRP.Query("iml/GetDna", { passport = BodyInfo.victim_passport })
-
+	local ReportContent = IML_BuildAutopsyReport(Body[1], Passport)
 	local ReportId = IML_GenerateId("AUT")
-	local ReportContent = {
-		type = "autopsy",
-		victim = Identity,
-		cause_of_death = BodyInfo.cause,
-		dna_code = Dna[1] and Dna[1].dna_code or "Não registrado",
-		findings = {
-			"Exame externo realizado.",
-			"Coleta de material biológico para confirmação.",
-			"Causa provável: " .. BodyInfo.cause
-		},
-		pathologist = IML_GetIdentity(Passport),
-		timestamp = FormatTimestamp()
-	}
 
 	vRP.Query("iml/InsertReport", {
 		report_id = ReportId,
 		type = "autopsy",
-		victim_passport = BodyInfo.victim_passport,
+		victim_passport = Body[1].victim_passport,
 		author_passport = Passport,
 		title = "Laudo Médico-Legal - Autópsia",
 		content = json.encode(ReportContent),
@@ -440,42 +586,12 @@ AddEventHandler("iml-evidencias:PerformAutopsy", function(BodyId)
 end)
 
 -----------------------------------------------------------------------------------------------------------------------------------------
--- VISUALIZAR LAUDO
------------------------------------------------------------------------------------------------------------------------------------------
-RegisterNetEvent("iml-evidencias:ViewReport")
-AddEventHandler("iml-evidencias:ViewReport", function(ReportId)
-	local Source = source
-	local Passport = vRP.Passport(Source)
-	if not Passport then return end
-
-	local LaudoData = vRP.UserData(Passport, "iml_laudos") or {}
-	if type(LaudoData) == "string" then LaudoData = json.decode(LaudoData) or {} end
-
-	local Report = LaudoData[ReportId]
-	if not Report then
-		local DbReport = vRP.Query("iml/GetReport", { report_id = ReportId })
-		if DbReport[1] then
-			Report = json.decode(DbReport[1].content)
-		end
-	end
-
-	if Report then
-		TriggerClientEvent("iml-evidencias:OpenReport", Source, Report, Report.title or "Laudo Pericial")
-	else
-		IML_Notify(Source, "negado", "Laudo não encontrado.")
-	end
-end)
-
------------------------------------------------------------------------------------------------------------------------------------------
--- LISTAR CORPOS PENDENTES
+-- TUNNEL GETTERS
 -----------------------------------------------------------------------------------------------------------------------------------------
 function IML.GetPendingBodies()
 	return vRP.Query("iml/GetPendingBodies", {}) or {}
 end
 
------------------------------------------------------------------------------------------------------------------------------------------
--- LISTAR CORPOS DO JOGADOR
------------------------------------------------------------------------------------------------------------------------------------------
 function IML.GetMyBodies()
 	local Source = source
 	local Passport = vRP.Passport(Source)
@@ -492,9 +608,6 @@ function IML.GetMyBodies()
 	return List
 end
 
------------------------------------------------------------------------------------------------------------------------------------------
--- LISTAR EVIDÊNCIAS DO JOGADOR
------------------------------------------------------------------------------------------------------------------------------------------
 function IML.GetMyEvidence()
 	local Source = source
 	local Passport = vRP.Passport(Source)
@@ -511,22 +624,29 @@ function IML.GetMyEvidence()
 end
 
 -----------------------------------------------------------------------------------------------------------------------------------------
--- LIMPEZA DE EVIDÊNCIAS EXPIRADAS
+-- LIMPEZA
 -----------------------------------------------------------------------------------------------------------------------------------------
 CreateThread(function()
 	while true do
 		Wait(60000)
 		local Now = os.time()
+
 		for Id, Evidence in pairs(SceneEvidence) do
 			if (Now - Evidence.created) >= Config.EvidenceExpire then
 				SceneEvidence[Id] = nil
 				TriggerClientEvent("iml-evidencias:RemoveEvidence", -1, Id)
 			end
 		end
+
+		for Id, Corpse in pairs(SceneCorpses) do
+			if Corpse.time_of_death_raw and (Now - Corpse.time_of_death_raw) >= Config.CorpseExpire then
+				SceneCorpses[Id] = nil
+				TriggerClientEvent("iml-evidencias:RemoveCorpse", -1, Corpse.victim_passport)
+			end
+		end
 	end
 end)
 
 AddEventHandler("playerDropped", function()
-	local Source = source
-	PlayerCooldowns[Source] = nil
+	PlayerCooldowns[source] = nil
 end)
