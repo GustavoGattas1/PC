@@ -1,6 +1,14 @@
 # IML / Evidências — Creative Uncharted (Completo)
 
-Sistema **completo** de Instituto Médico Legal e perícia forense para FiveM com base **Creative Uncharted**.
+Sistema **completo** de perícia forense para Creative Uncharted — restrito à **Polícia Civil** (`Civil`).
+
+## Permissão
+
+Apenas jogadores com o grupo **`Civil`** podem:
+- Coletar evidências e periciar cadáveres
+- Analisar no laboratório
+- Realizar autópsias
+- Entregar corpos
 
 ## Funcionalidades Completas
 
@@ -105,7 +113,7 @@ iml-evidencias/
 
 ## Configuração
 
-- `Config.Groups` — grupos da sua base
+- `Config.Groups` — grupo `Civil` (Polícia Civil)
 - `Config.Locations` — coordenadas do IML
 - `Config.Weapons` / `Config.AmmoTypes` — armas e calibres
 - `Config.Chances` — probabilidade de cada evidência

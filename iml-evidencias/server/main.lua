@@ -24,15 +24,15 @@ local PlayerGSR = {}
 -- PERMISSÕES
 -----------------------------------------------------------------------------------------------------------------------------------------
 function IML.CanCollect(Passport)
-	return IML_HasGroup(Passport, Config.Groups.AllForensic)
+	return IML_HasGroup(Passport, Config.Groups.Civil)
 end
 
 function IML.CanAnalyze(Passport)
-	return IML_HasGroup(Passport, Config.Groups.AllForensic)
+	return IML_HasGroup(Passport, Config.Groups.Civil)
 end
 
 function IML.CanAutopsy(Passport)
-	return IML_HasGroup(Passport, Config.Groups.IML)
+	return IML_HasGroup(Passport, Config.Groups.Civil)
 end
 
 local function CheckCooldown(Source, Key, Time)

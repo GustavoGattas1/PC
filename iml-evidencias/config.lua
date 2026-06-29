@@ -5,10 +5,9 @@ Config = {}
 
 Config.Debug = false
 
+-- Grupo com permissão (apenas Polícia Civil)
 Config.Groups = {
-	IML = { "IML", "Paramedico" },
-	Police = { "Policia", "PC", "PRF", "BOPE", "GOT", "CORE" },
-	AllForensic = { "IML", "Paramedico", "Policia", "PC", "PRF", "BOPE", "GOT", "CORE" }
+	Civil = { "Civil" }
 }
 
 -----------------------------------------------------------------------------------------------------------------------------------------
@@ -201,7 +200,7 @@ Config.BoneLabels = {
 -- MENSAGENS
 -----------------------------------------------------------------------------------------------------------------------------------------
 Config.Lang = {
-	NotAuthorized = "Você não tem permissão para isso.",
+	NotAuthorized = "Apenas a Polícia Civil pode realizar esta ação.",
 	NeedKit = "Você precisa de um Kit de Perícia.",
 	NeedSwab = "Você precisa de um Swab de Sangue.",
 	NeedGloves = "Use luvas de látex para não deixar impressões digitais.",
