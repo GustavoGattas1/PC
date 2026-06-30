@@ -85,8 +85,8 @@ Ajuste os nomes das colunas em `Config.Database` se sua base for diferente:
 
 ```lua
 Config.Database = {
-    CharacterName = "name",
-    CharacterName2 = "name2",
+    CharacterName = "Name",       -- corenetwork
+    CharacterName2 = "Lastname",  -- corenetwork
     CharacterBank = "bank",
     AccountGems = "gemstone"
 }

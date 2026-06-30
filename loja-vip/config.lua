@@ -5,12 +5,12 @@ Config = {}
 
 Config.Debug = false
 
--- Consultas diretas ao banco (recomendado na Base Cliente — evita vRP.Identity)
+-- Base corenetwork / Base Cliente — colunas da tabela characters
 Config.Database = {
 	CharacterId = "id",
 	CharacterLicense = "license",
-	CharacterName = "name",
-	CharacterName2 = "name2",
+	CharacterName = "Name",
+	CharacterName2 = "Lastname",
 	CharacterBank = "bank",
 	CharacterGems = "gemstone",
 	AccountLicense = "license",

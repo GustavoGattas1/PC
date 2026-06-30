@@ -82,9 +82,9 @@ vRP.Prepare("loja_vip/BuyProperty", [[
 	ON DUPLICATE KEY UPDATE Passport = @passport
 ]])
 
--- Personagem e moedas (sem vRP.Identity)
+-- Personagem e moedas (sem vRP.Identity) — schema corenetwork.characters
 vRP.Prepare("loja_vip/GetCharacter", [[
-	SELECT id, license, name, name2, bank, gemstone
+	SELECT id, license, Name, Lastname, bank, gemstone
 	FROM characters
 	WHERE id = @passport
 	LIMIT 1
