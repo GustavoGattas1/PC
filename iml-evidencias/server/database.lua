@@ -1,8 +1,8 @@
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- VRP
 -----------------------------------------------------------------------------------------------------------------------------------------
-local Tunnel = module("vrp", "lib/Tunnel")
-local Proxy = module("vrp", "lib/Proxy")
+local Tunnel = module("vrp","lib/Tunnel")
+local Proxy = module("vrp","lib/Proxy")
 vRP = Proxy.getInterface("vRP")
 
 -----------------------------------------------------------------------------------------------------------------------------------------
@@ -82,19 +82,37 @@ vRP.Prepare("iml/InsertBodyFull", [[
 -----------------------------------------------------------------------------------------------------------------------------------------
 function IML_HasGroup(Passport, GroupList)
 	for _, Permission in ipairs(GroupList) do
-		if vRP.HasGroup(Passport, Permission) or vRP.HasService(Passport, Permission) then
+		if Config.RequireService then
+			if vRP.HasService(Passport, Permission) then
+				return true
+			end
+		end
+
+		if vRP.HasGroup(Passport, Permission) then
 			return true
 		end
 	end
+
 	return false
 end
 
-function IML_Notify(Source, Type, Message)
-	TriggerClientEvent("Notify", Source, Type, Message, false, 5000)
+function IML_Notify(Source, Type, Message, Duration)
+	local Info = Config.Notify[Type] or Config.Notify.important
+	TriggerClientEvent("Notify", Source, Info.Title, Message, Info.Color, Duration or 5000)
 end
 
 function IML_GetIdentity(Passport)
+	local Name = vRP.FullName(Passport)
 	local Identity = vRP.Identity(Passport)
+
+	if Name and Name ~= "" then
+		return {
+			Passport = Passport,
+			Name = Name,
+			Phone = Identity and (Identity.phone or Identity.Phone) or "N/A"
+		}
+	end
+
 	if Identity then
 		return {
 			Passport = Passport,
@@ -102,6 +120,7 @@ function IML_GetIdentity(Passport)
 			Phone = Identity.phone or Identity.Phone or "N/A"
 		}
 	end
+
 	return { Passport = Passport, Name = "Desconhecido", Phone = "N/A" }
 end
 
@@ -135,14 +154,14 @@ function IML_GetCivilSources()
 				end
 			end
 		end
-	end
 
-	if not Config.RequireService then
-		local Players = vRP.Players()
-		if Players then
-			for Passport, Source in pairs(Players) do
-				if IML_HasGroup(Passport, Config.Groups.Civil) and Source and not List[Source] then
-					List[Source] = true
+		if not Config.RequireService then
+			local Players = vRP.Players()
+			if Players then
+				for Passport, Source in pairs(Players) do
+					if vRP.HasGroup(Passport, Permission) and Source and not List[Source] then
+						List[Source] = true
+					end
 				end
 			end
 		end
@@ -162,10 +181,4 @@ function IML_BroadcastCivil(Event, ...)
 	for _, Source in ipairs(IML_GetCivilSources()) do
 		TriggerClientEvent(Event, Source, table.unpack(Payload))
 	end
-end
-
-function IML_ValidateFlashlight(Source)
-	if not vCLIENT then return true end
-	local Active = vCLIENT.IsFlashlightActive(Source)
-	return Active == true
 end

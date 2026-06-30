@@ -1,8 +1,8 @@
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- VRP
 -----------------------------------------------------------------------------------------------------------------------------------------
-local Tunnel = module("vrp", "lib/Tunnel")
-local Proxy = module("vrp", "lib/Proxy")
+local Tunnel = module("vrp","lib/Tunnel")
+local Proxy = module("vrp","lib/Proxy")
 vRP = Proxy.getInterface("vRP")
 vRPclient = Tunnel.getInterface("vRP")
 
@@ -729,6 +729,6 @@ CreateThread(function()
 	end
 end)
 
-AddEventHandler("playerDropped", function()
-	PlayerCooldowns[source] = nil
+AddEventHandler("Disconnect", function(Passport, Source)
+	PlayerCooldowns[Source] = nil
 end)

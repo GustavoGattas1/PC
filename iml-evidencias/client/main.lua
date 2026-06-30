@@ -1,8 +1,8 @@
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- VRP
 -----------------------------------------------------------------------------------------------------------------------------------------
-local Tunnel = module("vrp", "lib/Tunnel")
-local Proxy = module("vrp", "lib/Proxy")
+local Tunnel = module("vrp","lib/Tunnel")
+local Proxy = module("vrp","lib/Proxy")
 vRP = Proxy.getInterface("vRP")
 
 -----------------------------------------------------------------------------------------------------------------------------------------
@@ -196,7 +196,7 @@ RegisterNetEvent("iml-evidencias:ToggleGloves")
 AddEventHandler("iml-evidencias:ToggleGloves", function()
 	WearingGloves = not WearingGloves
 	local Message = WearingGloves and "Luvas de látex equipadas." or "Luvas de látex removidas."
-	TriggerEvent("Notify", WearingGloves and "success" or "important", Message, false, 3000)
+	IMLNotify(WearingGloves and "success" or "important", Message, 3000)
 end)
 
 -----------------------------------------------------------------------------------------------------------------------------------------
@@ -312,7 +312,7 @@ end
 function OpenLabMenu()
 	local Evidence = vSERVER.GetMyEvidence()
 	if not Evidence or #Evidence == 0 then
-		TriggerEvent("Notify", "important", Config.Lang.NoEvidence, false, 5000)
+		IMLNotify("important", Config.Lang.NoEvidence)
 		return
 	end
 	SetNuiFocus(true, true)

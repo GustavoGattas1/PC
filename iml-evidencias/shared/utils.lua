@@ -68,6 +68,11 @@ function FormatTimeOnly()
 	return os.date("%H:%M:%S")
 end
 
+function IMLNotify(Type, Message, Duration)
+	local Info = Config.Notify[Type] or Config.Notify.important
+	TriggerEvent("Notify", Info.Title, Message, Info.Color, Duration or 5000)
+end
+
 function IsFirearm(WeaponHash)
 	if not WeaponHash then return false end
 	local Ammo = Config.AmmoTypes[WeaponHash]

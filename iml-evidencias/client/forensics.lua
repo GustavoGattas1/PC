@@ -97,7 +97,7 @@ RegisterCommand("coletargsr", function()
 	if ClosestPlayer then
 		TriggerServerEvent("iml-evidencias:CollectGSR", ClosestPlayer)
 	else
-		TriggerEvent("Notify", "negado", "Nenhum suspeito próximo.", false, 5000)
+		IMLNotify("negado", "Nenhum suspeito próximo.")
 	end
 end)
 
@@ -109,7 +109,7 @@ RegisterCommand("coletarcorpo", function()
 	if TargetSource then
 		TriggerServerEvent("iml-evidencias:CollectBody", TargetSource)
 	else
-		TriggerEvent("Notify", "negado", Config.Lang.NoCorpse, false, 5000)
+		IMLNotify("negado", Config.Lang.NoCorpse)
 	end
 end)
 
@@ -118,7 +118,7 @@ RegisterCommand("periciar", function()
 	if TargetSource then
 		TriggerServerEvent("iml-evidencias:ExamineCorpse", TargetSource)
 	else
-		TriggerEvent("Notify", "negado", Config.Lang.NoCorpse, false, 5000)
+		IMLNotify("negado", Config.Lang.NoCorpse)
 	end
 end)
 
@@ -127,6 +127,6 @@ RegisterCommand("coletarsangue", function()
 	if TargetSource then
 		TriggerServerEvent("iml-evidencias:CollectBloodSwab", TargetSource)
 	else
-		TriggerEvent("Notify", "negado", Config.Lang.NoCorpse, false, 5000)
+		IMLNotify("negado", Config.Lang.NoCorpse)
 	end
 end)

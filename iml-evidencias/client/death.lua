@@ -69,7 +69,7 @@ CreateThread(function()
 		local Ped = PlayerPedId()
 		local Health = GetEntityHealth(Ped)
 
-		if not IsDead and (IsEntityDead(Ped) or Health <= 100) then
+		if not IsDead and not LocalPlayer.state.Death and (IsEntityDead(Ped) or Health <= 100) then
 			HandlePlayerDeath()
 		end
 
@@ -86,6 +86,8 @@ end)
 -----------------------------------------------------------------------------------------------------------------------------------------
 function HandlePlayerDeath()
 	if IsDead then return end
+	if LocalPlayer.state.Death then return end
+
 	IsDead = true
 
 	local Ped = PlayerPedId()
