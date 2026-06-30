@@ -84,13 +84,10 @@ function Loja_Bridge_GetGems(Passport)
 	if not Char or not Char.license then return 0 end
 
 	local Result = vRP.Query("loja_vip/GetAccountGems", { license = Char.license })
-	if not Result or not Result[1] then
-		Result = vRP.Query("loja_vip/GetAccountGemsAlt", { license = Char.license })
-	end
 
 	if Result and Result[1] then
 		local DB = Config.Database
-		local Gems = Result[1][DB.AccountGems] or Result[1].gemstone or Result[1].gems
+		local Gems = Result[1][DB.AccountGems] or Result[1].Gemstone or Result[1].gemstone
 		return tonumber(Gems) or 0
 	end
 

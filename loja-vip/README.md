@@ -88,7 +88,7 @@ Config.Database = {
     CharacterName = "Name",       -- corenetwork
     CharacterName2 = "Lastname",  -- corenetwork
     CharacterBank = "bank",
-    AccountGems = "gemstone"
+    AccountGems = "Gemstone"
 }
 ```
 

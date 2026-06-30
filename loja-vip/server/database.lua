@@ -108,12 +108,12 @@ vRP.Prepare("loja_vip/GiveBank", [[
 ]])
 
 vRP.Prepare("loja_vip/TakeGems", [[
-	UPDATE accounts SET gemstone = gemstone - @amount
-	WHERE License = @license AND gemstone >= @amount
+	UPDATE accounts SET Gemstone = Gemstone - @amount
+	WHERE License = @license AND Gemstone >= @amount
 ]])
 
 vRP.Prepare("loja_vip/GiveGems", [[
-	UPDATE accounts SET gemstone = gemstone + @amount WHERE License = @license
+	UPDATE accounts SET Gemstone = Gemstone + @amount WHERE License = @license
 ]])
 
 CreateThread(function()

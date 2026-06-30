@@ -13,7 +13,7 @@ Config.Database = {
 	CharacterName2 = "Lastname",
 	CharacterBank = "Bank",
 	AccountLicense = "License",
-	AccountGems = "gemstone"
+	AccountGems = "Gemstone"
 }
 
 -- Comando para abrir a loja
