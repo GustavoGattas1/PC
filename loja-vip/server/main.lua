@@ -17,29 +17,66 @@ Tunnel.bindInterface("loja-vip", Loja)
 local PurchaseCooldowns = {}
 
 -----------------------------------------------------------------------------------------------------------------------------------------
+-- PERSONAGEM / IDENTIDADE (compatível com Base Cliente e Creative)
+-----------------------------------------------------------------------------------------------------------------------------------------
+local function IsCharacterReady(Passport)
+	if not Passport then return false end
+
+	if vRP.Datatable then
+		local Ok, Datatable = pcall(vRP.Datatable, Passport)
+		if Ok and not Datatable then
+			return false
+		end
+	end
+
+	return true
+end
+
+local function GetPlayerName(Source, Passport)
+	if vRP.FullName then
+		local Ok, Name = pcall(vRP.FullName, Source)
+		if Ok and type(Name) == "string" and Name ~= "" then
+			return Name
+		end
+	end
+
+	if vRP.Identity and Passport then
+		local Ok, Identity = pcall(vRP.Identity, Passport)
+		if Ok and type(Identity) == "table" then
+			local First = Identity.name or Identity.Name or Identity.nome or Identity.firstname or ""
+			local Last = Identity.name2 or Identity.Lastname or Identity.sobrenome or ""
+			local Full = (tostring(First) .. " " .. tostring(Last)):gsub("^%s+", ""):gsub("%s+$", "")
+			if Full ~= "" then
+				return Full
+			end
+		end
+	end
+
+	return "Jogador #" .. tostring(Passport)
+end
+
+local function SafeCall(Function, ...)
+	if not Function then return nil end
+	local Ok, Result = pcall(Function, ...)
+	if Ok then return Result end
+	Loja_Debug("SafeCall error:", Result)
+	return nil
+end
+
+-----------------------------------------------------------------------------------------------------------------------------------------
 -- MOEDA
 -----------------------------------------------------------------------------------------------------------------------------------------
 local function GetBalance(Passport, Currency)
 	if Currency == "bank" then
-		if vRP.GetBank then
-			return vRP.GetBank(Passport) or 0
-		end
-		if vRP.Bank then
-			return vRP.Bank(Passport) or 0
-		end
-		return 0
+		local Bank = SafeCall(vRP.GetBank, Passport) or SafeCall(vRP.Bank, Passport)
+		return tonumber(Bank) or 0
 	end
 
-	if vRP.UserGemstone then
-		return vRP.UserGemstone(Passport) or 0
-	end
-	if vRP.Gemstone then
-		return vRP.Gemstone(Passport) or 0
-	end
-	if vRP.GetGems then
-		return vRP.GetGems(Passport) or 0
-	end
-	return 0
+	local Gems = SafeCall(vRP.UserGemstone, Passport)
+		or SafeCall(vRP.Gemstone, Passport)
+		or SafeCall(vRP.GetGems, Passport)
+
+	return tonumber(Gems) or 0
 end
 
 local function TakeBalance(Passport, Currency, Amount)
@@ -243,18 +280,14 @@ end
 function Loja.GetShopData()
 	local Source = source
 	local Passport = vRP.Passport(Source)
-	if not Passport then return nil end
+	if not Passport or not IsCharacterReady(Passport) then return nil end
 
-	local Identity = vRP.Identity(Passport)
-	local Name = "Jogador"
-	if Identity then
-		Name = (Identity.name or Identity.Name or "") .. " " .. (Identity.name2 or Identity.Lastname or "")
-	end
+	local Name = GetPlayerName(Source, Passport)
 
 	local VipGroup = nil
 	for _, Product in ipairs(Config.Products) do
 		if Product.type == "vip" and Product.data and Product.data.group then
-			if vRP.HasGroup(Passport, Product.data.group) then
+			if SafeCall(vRP.HasGroup, Passport, Product.data.group) then
 				VipGroup = Product.data.group
 			end
 		end
@@ -264,7 +297,7 @@ function Loja.GetShopData()
 		catalog = Loja_SanitizeCatalog(),
 		player = {
 			passport = Passport,
-			name = Name:gsub("^%s+", ""):gsub("%s+$", ""),
+			name = Name,
 			vip = VipGroup,
 			balance = {
 				gems = GetBalance(Passport, "gems"),
