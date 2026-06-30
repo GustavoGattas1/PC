@@ -5,6 +5,18 @@ Config = {}
 
 Config.Debug = false
 
+-- Consultas diretas ao banco (recomendado na Base Cliente — evita vRP.Identity)
+Config.Database = {
+	CharacterId = "id",
+	CharacterLicense = "license",
+	CharacterName = "name",
+	CharacterName2 = "name2",
+	CharacterBank = "bank",
+	CharacterGems = "gemstone",
+	AccountLicense = "license",
+	AccountGems = "gemstone"
+}
+
 -- Comando para abrir a loja
 Config.Command = "loja"
 Config.CommandAliases = { "vip", "store", "donate" }

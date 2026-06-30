@@ -16,45 +16,6 @@ Tunnel.bindInterface("loja-vip", Loja)
 -----------------------------------------------------------------------------------------------------------------------------------------
 local PurchaseCooldowns = {}
 
------------------------------------------------------------------------------------------------------------------------------------------
--- PERSONAGEM / IDENTIDADE (compatível com Base Cliente e Creative)
------------------------------------------------------------------------------------------------------------------------------------------
-local function IsCharacterReady(Passport)
-	if not Passport then return false end
-
-	if vRP.Datatable then
-		local Ok, Datatable = pcall(vRP.Datatable, Passport)
-		if Ok and not Datatable then
-			return false
-		end
-	end
-
-	return true
-end
-
-local function GetPlayerName(Source, Passport)
-	if vRP.FullName then
-		local Ok, Name = pcall(vRP.FullName, Source)
-		if Ok and type(Name) == "string" and Name ~= "" then
-			return Name
-		end
-	end
-
-	if vRP.Identity and Passport then
-		local Ok, Identity = pcall(vRP.Identity, Passport)
-		if Ok and type(Identity) == "table" then
-			local First = Identity.name or Identity.Name or Identity.nome or Identity.firstname or ""
-			local Last = Identity.name2 or Identity.Lastname or Identity.sobrenome or ""
-			local Full = (tostring(First) .. " " .. tostring(Last)):gsub("^%s+", ""):gsub("%s+$", "")
-			if Full ~= "" then
-				return Full
-			end
-		end
-	end
-
-	return "Jogador #" .. tostring(Passport)
-end
-
 local function SafeCall(Function, ...)
 	if not Function then return nil end
 	local Ok, Result = pcall(Function, ...)
@@ -64,54 +25,28 @@ local function SafeCall(Function, ...)
 end
 
 -----------------------------------------------------------------------------------------------------------------------------------------
--- MOEDA
+-- MOEDA (via bridge — não usa UserGemstone/GetBank que chamam Identity)
 -----------------------------------------------------------------------------------------------------------------------------------------
 local function GetBalance(Passport, Currency)
 	if Currency == "bank" then
-		local Bank = SafeCall(vRP.GetBank, Passport) or SafeCall(vRP.Bank, Passport)
-		return tonumber(Bank) or 0
+		return Loja_Bridge_GetBank(Passport)
 	end
-
-	local Gems = SafeCall(vRP.UserGemstone, Passport)
-		or SafeCall(vRP.Gemstone, Passport)
-		or SafeCall(vRP.GetGems, Passport)
-
-	return tonumber(Gems) or 0
+	return Loja_Bridge_GetGems(Passport)
 end
 
 local function TakeBalance(Passport, Currency, Amount)
 	if Currency == "bank" then
-		if vRP.PaymentBank then
-			return vRP.PaymentBank(Passport, Amount)
-		end
-		if vRP.TryPayment then
-			return vRP.TryPayment(Passport, Amount)
-		end
-		return false
+		return Loja_Bridge_TakeBank(Passport, Amount)
 	end
-
-	if vRP.PaymentGems then
-		return vRP.PaymentGems(Passport, Amount)
-	end
-	if vRP.RemoveGemstone then
-		return vRP.RemoveGemstone(Passport, Amount)
-	end
-	if vRP.TakeGems then
-		return vRP.TakeGems(Passport, Amount)
-	end
-	return false
+	return Loja_Bridge_TakeGems(Passport, Amount)
 end
 
 local function GiveBank(Passport, Amount)
-	if vRP.GiveBank then
-		vRP.GiveBank(Passport, Amount)
-		return true
-	end
-	if vRP.AddBank then
-		vRP.AddBank(Passport, Amount)
-		return true
-	end
-	return false
+	return Loja_Bridge_GiveBank(Passport, Amount)
+end
+
+local function GiveGems(Passport, Amount)
+	return Loja_Bridge_GiveGems(Passport, Amount)
 end
 
 local function GeneratePlate()
@@ -214,7 +149,7 @@ end
 
 local function DeliverItems(Passport, Data)
 	if Data.bank and Data.bank > 0 then
-		GiveBank(Passport, Data.bank)
+		Loja_Bridge_GiveBank(Passport, Data.bank)
 	end
 
 	if Data.items then
@@ -280,9 +215,9 @@ end
 function Loja.GetShopData()
 	local Source = source
 	local Passport = vRP.Passport(Source)
-	if not Passport or not IsCharacterReady(Passport) then return nil end
+	if not Passport or not Loja_Bridge_CharacterExists(Passport) then return nil end
 
-	local Name = GetPlayerName(Source, Passport)
+	local Name = Loja_Bridge_GetPlayerName(Passport)
 
 	local VipGroup = nil
 	for _, Product in ipairs(Config.Products) do
@@ -367,10 +302,8 @@ function Loja.Purchase(ProductId)
 	if not Ok then
 		if Currency == "bank" then
 			GiveBank(Passport, Price)
-		elseif vRP.GiveGems then
-			vRP.GiveGems(Passport, Price)
-		elseif vRP.AddGemstone then
-			vRP.AddGemstone(Passport, Price)
+		else
+			GiveGems(Passport, Price)
 		end
 
 		local Message = Config.Lang.PurchaseFailed

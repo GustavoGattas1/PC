@@ -82,6 +82,36 @@ vRP.Prepare("loja_vip/BuyProperty", [[
 	ON DUPLICATE KEY UPDATE Passport = @passport
 ]])
 
+-- Personagem e moedas (sem vRP.Identity)
+vRP.Prepare("loja_vip/GetCharacter", [[
+	SELECT id, license, name, name2, bank, gemstone
+	FROM characters
+	WHERE id = @passport
+	LIMIT 1
+]])
+
+vRP.Prepare("loja_vip/GetAccountGems", [[
+	SELECT gemstone FROM accounts WHERE license = @license LIMIT 1
+]])
+
+vRP.Prepare("loja_vip/TakeBank", [[
+	UPDATE characters SET bank = bank - @amount
+	WHERE id = @passport AND bank >= @amount
+]])
+
+vRP.Prepare("loja_vip/GiveBank", [[
+	UPDATE characters SET bank = bank + @amount WHERE id = @passport
+]])
+
+vRP.Prepare("loja_vip/TakeGems", [[
+	UPDATE accounts SET gemstone = gemstone - @amount
+	WHERE license = @license AND gemstone >= @amount
+]])
+
+vRP.Prepare("loja_vip/GiveGems", [[
+	UPDATE accounts SET gemstone = gemstone + @amount WHERE license = @license
+]])
+
 CreateThread(function()
 	vRP.Query("loja_vip/CreatePurchases", {})
 	vRP.Query("loja_vip/CreateExtras", {})

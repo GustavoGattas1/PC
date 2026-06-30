@@ -79,15 +79,23 @@ Config.Locations = {
 
 ## Integração com a base
 
-O resource detecta automaticamente as funções da base:
+O resource **não usa** `vRP.Identity`, `vRP.UserGemstone` nem `vRP.GetBank` — essas funções quebram em algumas bases (ex: Base Cliente). Em vez disso, consulta direto as tabelas `characters` e `accounts`.
 
-- **Gems:** `vRP.UserGemstone`, `vRP.PaymentGems`
-- **Banco:** `vRP.GetBank`, `vRP.PaymentBank`
-- **VIP:** `vRP.SetPermission`
-- **Itens:** `vRP.GenerateItem`
-- **Placas:** `vRP.GeneratePlate`
+Ajuste os nomes das colunas em `Config.Database` se sua base for diferente:
 
-Se sua base usa nomes diferentes, ajuste em `server/main.lua`.
+```lua
+Config.Database = {
+    CharacterName = "name",
+    CharacterName2 = "name2",
+    CharacterBank = "bank",
+    AccountGems = "gemstone"
+}
+```
+
+Funções vRP ainda usadas (seguras):
+- `vRP.Passport`, `vRP.HasGroup`, `vRP.SetPermission`
+- `vRP.GenerateItem`, `vRP.GeneratePlate`
+- `vRP.Query` / `vRP.Prepare`
 
 ## Estrutura
 

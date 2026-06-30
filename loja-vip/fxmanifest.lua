@@ -23,6 +23,7 @@ client_scripts {
 server_scripts {
 	"@vrp/lib/Utils.lua",
 	"server/database.lua",
+	"server/bridge.lua",
 	"server/main.lua"
 }
 
