@@ -5,15 +5,14 @@ Config = {}
 
 Config.Debug = false
 
--- Base corenetwork / Base Cliente — colunas da tabela characters
+-- Base corenetwork — colunas da tabela characters (ver HeidiSQL)
 Config.Database = {
 	CharacterId = "id",
-	CharacterLicense = "license",
+	CharacterLicense = "License",
 	CharacterName = "Name",
 	CharacterName2 = "Lastname",
-	CharacterBank = "bank",
-	CharacterGems = "gemstone",
-	AccountLicense = "license",
+	CharacterBank = "Bank",
+	AccountLicense = "License",
 	AccountGems = "gemstone"
 }
 

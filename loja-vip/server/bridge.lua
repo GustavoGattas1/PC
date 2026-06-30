@@ -43,11 +43,10 @@ function Loja_Bridge_GetCharacter(Passport)
 	local Row = Result[1]
 	local Data = {
 		passport = Passport,
-		license = Row[DB.CharacterLicense] or Row.license,
-		name = Row[DB.CharacterName] or Row.name or Row.Name,
-		name2 = Row[DB.CharacterName2] or Row.name2 or Row.Lastname,
-		bank = tonumber(Row[DB.CharacterBank] or Row.bank or Row.Bank) or 0,
-		gems = tonumber(Row[DB.CharacterGems] or Row.gemstone or Row.gems) or nil
+		license = Row[DB.CharacterLicense] or Row.License or Row.license,
+		name = Row[DB.CharacterName] or Row.Name or Row.name,
+		name2 = Row[DB.CharacterName2] or Row.Lastname or Row.name2,
+		bank = tonumber(Row[DB.CharacterBank] or Row.Bank or Row.bank) or 0
 	}
 
 	SetCache(Passport, Data)
@@ -82,19 +81,17 @@ end
 
 function Loja_Bridge_GetGems(Passport)
 	local Char = Loja_Bridge_GetCharacter(Passport)
-	if not Char then return 0 end
+	if not Char or not Char.license then return 0 end
 
-	if Char.gems then
-		return Char.gems
+	local Result = vRP.Query("loja_vip/GetAccountGems", { license = Char.license })
+	if not Result or not Result[1] then
+		Result = vRP.Query("loja_vip/GetAccountGemsAlt", { license = Char.license })
 	end
 
-	if Char.license then
-		local Result = vRP.Query("loja_vip/GetAccountGems", { license = Char.license })
-		if Result and Result[1] then
-			local DB = Config.Database
-			local Gems = Result[1][DB.AccountGems] or Result[1].gemstone or Result[1].gems
-			return tonumber(Gems) or 0
-		end
+	if Result and Result[1] then
+		local DB = Config.Database
+		local Gems = Result[1][DB.AccountGems] or Result[1].gemstone or Result[1].gems
+		return tonumber(Gems) or 0
 	end
 
 	return 0

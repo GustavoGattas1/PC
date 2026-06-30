@@ -82,34 +82,38 @@ vRP.Prepare("loja_vip/BuyProperty", [[
 	ON DUPLICATE KEY UPDATE Passport = @passport
 ]])
 
--- Personagem e moedas (sem vRP.Identity) — schema corenetwork.characters
+-- Personagem e moedas — schema corenetwork.characters
 vRP.Prepare("loja_vip/GetCharacter", [[
-	SELECT id, license, Name, Lastname, bank, gemstone
+	SELECT id, License, Name, Lastname, Bank
 	FROM characters
-	WHERE id = @passport
+	WHERE id = @passport AND Deleted = 0
 	LIMIT 1
 ]])
 
 vRP.Prepare("loja_vip/GetAccountGems", [[
+	SELECT gemstone FROM accounts WHERE License = @license LIMIT 1
+]])
+
+vRP.Prepare("loja_vip/GetAccountGemsAlt", [[
 	SELECT gemstone FROM accounts WHERE license = @license LIMIT 1
 ]])
 
 vRP.Prepare("loja_vip/TakeBank", [[
-	UPDATE characters SET bank = bank - @amount
-	WHERE id = @passport AND bank >= @amount
+	UPDATE characters SET Bank = Bank - @amount
+	WHERE id = @passport AND Bank >= @amount
 ]])
 
 vRP.Prepare("loja_vip/GiveBank", [[
-	UPDATE characters SET bank = bank + @amount WHERE id = @passport
+	UPDATE characters SET Bank = Bank + @amount WHERE id = @passport
 ]])
 
 vRP.Prepare("loja_vip/TakeGems", [[
 	UPDATE accounts SET gemstone = gemstone - @amount
-	WHERE license = @license AND gemstone >= @amount
+	WHERE License = @license AND gemstone >= @amount
 ]])
 
 vRP.Prepare("loja_vip/GiveGems", [[
-	UPDATE accounts SET gemstone = gemstone + @amount WHERE license = @license
+	UPDATE accounts SET gemstone = gemstone + @amount WHERE License = @license
 ]])
 
 CreateThread(function()
