@@ -122,3 +122,32 @@ end
 function IML_GenerateId(Prefix)
 	return Prefix .. "-" .. os.time() .. "-" .. math.random(1000, 9999)
 end
+
+function IML_GetCivilSources()
+	local List = {}
+	local Players = vRP.Players()
+
+	if Players then
+		for Passport, Source in pairs(Players) do
+			if IML_HasGroup(Passport, Config.Groups.Civil) then
+				List[#List + 1] = Source
+			end
+		end
+	end
+
+	return List
+end
+
+function IML_BroadcastCivil(Event, ...)
+	local Payload = { ... }
+
+	for _, Source in ipairs(IML_GetCivilSources()) do
+		TriggerClientEvent(Event, Source, table.unpack(Payload))
+	end
+end
+
+function IML_ValidateFlashlight(Source)
+	if not vCLIENT then return true end
+	local Active = vCLIENT.IsFlashlightActive(Source)
+	return Active == true
+end

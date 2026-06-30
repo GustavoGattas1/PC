@@ -67,7 +67,7 @@ function IML_RegisterDeath(Data)
 		})
 	end
 
-	TriggerClientEvent("iml-evidencias:SyncCorpse", -1, Record)
+	IML_BroadcastCivil("iml-evidencias:SyncCorpse", Record)
 	DebugPrint("Morte registrada:", RecordId, "Vítima:", VictimPassport)
 
 	return Record
@@ -303,6 +303,6 @@ function IML_CreateSceneEvidence(Data)
 		metadata = json.encode(Evidence.metadata)
 	})
 
-	TriggerClientEvent("iml-evidencias:SyncEvidence", -1, Evidence)
+	IML_BroadcastCivil("iml-evidencias:SyncEvidence", Evidence)
 	return EvidenceId
 end

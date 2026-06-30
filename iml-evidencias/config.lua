@@ -47,6 +47,15 @@ Config.CorpseDistance = 3.0
 Config.MaxSceneEvidence = 300
 
 -----------------------------------------------------------------------------------------------------------------------------------------
+-- LANTERNA (obrigatória para ver e coletar evidências)
+-----------------------------------------------------------------------------------------------------------------------------------------
+Config.Flashlight = {
+	Weapon = `WEAPON_FLASHLIGHT`,
+	RequireAiming = false,
+	DrawDistance = 25.0
+}
+
+-----------------------------------------------------------------------------------------------------------------------------------------
 -- LOCAIS DO IML
 -----------------------------------------------------------------------------------------------------------------------------------------
 Config.Locations = {
@@ -202,6 +211,7 @@ Config.BoneLabels = {
 Config.Lang = {
 	NotAuthorized = "Apenas a Polícia Civil pode realizar esta ação.",
 	NeedKit = "Você precisa de um Kit de Perícia.",
+	NeedFlashlight = "Equipe a lanterna para localizar e coletar evidências.",
 	NeedSwab = "Você precisa de um Swab de Sangue.",
 	NeedGloves = "Use luvas de látex para não deixar impressões digitais.",
 	EvidenceCollected = "Evidência coletada e lacrada no saco.",

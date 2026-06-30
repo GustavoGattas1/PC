@@ -10,6 +10,12 @@ vRP = Proxy.getInterface("vRP")
 -----------------------------------------------------------------------------------------------------------------------------------------
 vSERVER = Tunnel.getInterface("iml-evidencias")
 
+ClientIML = {}
+function ClientIML.IsFlashlightActive()
+	return IsFlashlightOut()
+end
+Tunnel.bindInterface("iml-evidencias", ClientIML)
+
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- STATE
 -----------------------------------------------------------------------------------------------------------------------------------------
@@ -17,12 +23,69 @@ SceneEvidence = {}
 SceneCorpses = {}
 WearingGloves = false
 NuiOpen = false
+IsCivil = false
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- LANTERNA
+-----------------------------------------------------------------------------------------------------------------------------------------
+function IsFlashlightOut()
+	local Ped = PlayerPedId()
+	if GetSelectedPedWeapon(Ped) ~= Config.Flashlight.Weapon then
+		return false
+	end
+
+	if Config.Flashlight.RequireAiming then
+		return IsPlayerFreeAiming(PlayerId())
+	end
+
+	return true
+end
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- PERMISSÃO CIVIL
+-----------------------------------------------------------------------------------------------------------------------------------------
+CreateThread(function()
+	local WasCivil = false
+
+	while true do
+		Wait(5000)
+		local Civil = vSERVER.IsCivil()
+		IsCivil = Civil
+
+		if Civil and not WasCivil then
+			local Scene = vSERVER.RequestScene()
+			if Scene then
+				for _, Evidence in ipairs(Scene) do
+					SceneEvidence[Evidence.id] = Evidence
+				end
+			end
+
+			local Corpses = vSERVER.RequestCorpses()
+			if Corpses then
+				for _, Corpse in ipairs(Corpses) do
+					if Corpse.victim_passport then
+						SceneCorpses[Corpse.victim_passport] = Corpse
+					end
+				end
+			end
+		elseif not Civil and WasCivil then
+			SceneEvidence = {}
+			SceneCorpses = {}
+		end
+
+		WasCivil = Civil
+	end
+end)
 
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- BLIP DO IML
 -----------------------------------------------------------------------------------------------------------------------------------------
 CreateThread(function()
 	if not Config.Blips.Enabled then return end
+
+	while not IsCivil do
+		Wait(5000)
+	end
 
 	local Blip = AddBlipForCoord(Config.Blips.Coords.x, Config.Blips.Coords.y, Config.Blips.Coords.z)
 	SetBlipSprite(Blip, Config.Blips.Sprite)
@@ -40,6 +103,10 @@ end)
 RegisterNetEvent("vRP:Active")
 AddEventHandler("vRP:Active", function()
 	Wait(5000)
+	IsCivil = vSERVER.IsCivil()
+
+	if not IsCivil then return end
+
 	local Scene = vSERVER.RequestScene()
 	if Scene then
 		for _, Evidence in ipairs(Scene) do
@@ -62,6 +129,7 @@ end)
 -----------------------------------------------------------------------------------------------------------------------------------------
 RegisterNetEvent("iml-evidencias:SyncEvidence")
 AddEventHandler("iml-evidencias:SyncEvidence", function(Evidence)
+	if not IsCivil then return end
 	if Evidence and Evidence.id then
 		SceneEvidence[Evidence.id] = Evidence
 	end
@@ -74,6 +142,7 @@ end)
 
 RegisterNetEvent("iml-evidencias:SyncCorpse")
 AddEventHandler("iml-evidencias:SyncCorpse", function(Corpse)
+	if not IsCivil then return end
 	if Corpse and Corpse.victim_passport then
 		SceneCorpses[Corpse.victim_passport] = Corpse
 	end
@@ -122,45 +191,51 @@ end)
 CreateThread(function()
 	while true do
 		local Sleep = 1000
-		local Ped = PlayerPedId()
-		local PedCoords = GetEntityCoords(Ped)
 
-		for Id, Evidence in pairs(SceneEvidence) do
-			if Evidence.coords and not Evidence.collected then
-				local EvCoords = vector3(Evidence.coords.x, Evidence.coords.y, Evidence.coords.z)
-				local Distance = #(PedCoords - EvCoords)
-				local TypeInfo = Config.EvidenceTypes[Evidence.type]
+		if not IsCivil or not IsFlashlightOut() then
+			Wait(Sleep)
+		else
+			local Ped = PlayerPedId()
+			local PedCoords = GetEntityCoords(Ped)
+			local DrawDistance = Config.Flashlight.DrawDistance or 25.0
 
-				if Distance < 30.0 then
-					Sleep = 0
-					local R, G, B = 200, 30, 30
+			for Id, Evidence in pairs(SceneEvidence) do
+				if Evidence.coords and not Evidence.collected then
+					local EvCoords = vector3(Evidence.coords.x, Evidence.coords.y, Evidence.coords.z)
+					local Distance = #(PedCoords - EvCoords)
+					local TypeInfo = Config.EvidenceTypes[Evidence.type]
 
-					if Evidence.type == "blood" or Evidence.type == "blood_pool" then
-						R, G, B = 180, 20, 20
-					elseif Evidence.type == "casing" then
-						R, G, B = 212, 172, 13
-					elseif Evidence.type == "bullet" or Evidence.type == "bullet_fragment" then
-						R, G, B = 230, 126, 34
-					elseif Evidence.type == "fingerprint" then
-						R, G, B = 142, 68, 173
-					elseif Evidence.type == "vehicle_bullet" then
-						R, G, B = 26, 82, 118
-					end
+					if Distance < DrawDistance then
+						Sleep = 0
+						local R, G, B = 200, 30, 30
 
-					DrawMarker(28, EvCoords.x, EvCoords.y, EvCoords.z + 0.05, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.14, 0.14, 0.14, R, G, B, 150, false, false, 2, false, nil, nil, false)
+						if Evidence.type == "blood" or Evidence.type == "blood_pool" then
+							R, G, B = 180, 20, 20
+						elseif Evidence.type == "casing" then
+							R, G, B = 212, 172, 13
+						elseif Evidence.type == "bullet" or Evidence.type == "bullet_fragment" then
+							R, G, B = 230, 126, 34
+						elseif Evidence.type == "fingerprint" then
+							R, G, B = 142, 68, 173
+						elseif Evidence.type == "vehicle_bullet" then
+							R, G, B = 26, 82, 118
+						end
 
-					if Distance < Config.CollectDistance then
-						DrawText3D(EvCoords.x, EvCoords.y, EvCoords.z + 0.3, "~r~[E]~w~ Coletar " .. (TypeInfo and TypeInfo.Label or "Evidência"))
+						DrawMarker(28, EvCoords.x, EvCoords.y, EvCoords.z + 0.05, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.14, 0.14, 0.14, R, G, B, 150, false, false, 2, false, nil, nil, false)
 
-						if IsControlJustPressed(0, 38) then
-							TriggerServerEvent("iml-evidencias:CollectEvidence", Id)
+						if Distance < Config.CollectDistance then
+							DrawText3D(EvCoords.x, EvCoords.y, EvCoords.z + 0.3, "~y~[Lanterna]~w~ ~r~[E]~w~ Coletar " .. (TypeInfo and TypeInfo.Label or "Evidência"))
+
+							if IsControlJustPressed(0, 38) and IsFlashlightOut() then
+								TriggerServerEvent("iml-evidencias:CollectEvidence", Id)
+							end
 						end
 					end
 				end
 			end
-		end
 
-		Wait(Sleep)
+			Wait(Sleep)
+		end
 	end
 end)
 
@@ -181,6 +256,8 @@ CreateThread(function()
 		for _, Loc in ipairs(Config.Locations.BodyDrop) do AllLocations[#AllLocations + 1] = { data = Loc, action = "bodydrop" } end
 
 		for _, Entry in ipairs(AllLocations) do
+			if not IsCivil then break end
+
 			local Loc = Entry.data
 			local Distance = #(PedCoords - Loc.Coords)
 

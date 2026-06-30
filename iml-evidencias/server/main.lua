@@ -35,6 +35,16 @@ function IML.CanAutopsy(Passport)
 	return IML_HasGroup(Passport, Config.Groups.Civil)
 end
 
+function IML.IsCivil()
+	local Passport = vRP.Passport(source)
+	return IML.CanCollect(Passport)
+end
+
+function IML_ValidateFlashlight(Source)
+	local Active = vCLIENT.IsFlashlightActive(Source)
+	return Active == true
+end
+
 local function CheckCooldown(Source, Key, Time)
 	local Now = GetGameTimer()
 	if PlayerCooldowns[Source] and PlayerCooldowns[Source][Key] and (Now - PlayerCooldowns[Source][Key]) < Time then
@@ -152,6 +162,11 @@ end)
 -- SINCRONIZAR CENA
 -----------------------------------------------------------------------------------------------------------------------------------------
 function IML.RequestScene()
+	local Passport = vRP.Passport(source)
+	if not IML.CanCollect(Passport) then
+		return {}
+	end
+
 	local List = {}
 	local Now = os.time()
 
@@ -167,6 +182,11 @@ function IML.RequestScene()
 end
 
 function IML.RequestCorpses()
+	local Passport = vRP.Passport(source)
+	if not IML.CanCollect(Passport) then
+		return {}
+	end
+
 	local List = {}
 	local Now = os.time()
 
@@ -210,6 +230,11 @@ AddEventHandler("iml-evidencias:CollectEvidence", function(EvidenceId)
 		return
 	end
 
+	if not IML_ValidateFlashlight(Source) then
+		IML_Notify(Source, "negado", Config.Lang.NeedFlashlight)
+		return
+	end
+
 	local Evidence = SceneEvidence[EvidenceId]
 	if not Evidence or Evidence.collected then
 		IML_Notify(Source, "negado", Config.Lang.AlreadyCollected)
@@ -237,7 +262,7 @@ AddEventHandler("iml-evidencias:CollectEvidence", function(EvidenceId)
 	vRP.GenerateItem(Passport, Config.Items.EvidenceBag, 1, true)
 	StoreEvidenceBag(Passport, EvidenceId, ItemData)
 
-	TriggerClientEvent("iml-evidencias:RemoveEvidence", -1, EvidenceId)
+	IML_BroadcastCivil("iml-evidencias:RemoveEvidence", EvidenceId)
 	IML_Notify(Source, "success", Config.Lang.EvidenceCollected)
 end)
 
@@ -258,6 +283,11 @@ AddEventHandler("iml-evidencias:CollectBloodSwab", function(TargetSource)
 
 	if vRP.ItemAmount(Passport, Config.Items.BloodSwab) < 1 then
 		IML_Notify(Source, "negado", Config.Lang.NeedSwab)
+		return
+	end
+
+	if not IML_ValidateFlashlight(Source) then
+		IML_Notify(Source, "negado", Config.Lang.NeedFlashlight)
 		return
 	end
 
@@ -301,6 +331,11 @@ AddEventHandler("iml-evidencias:CollectGSR", function(TargetSource)
 
 	if vRP.ItemAmount(Passport, Config.Items.GsrKit) < 1 then
 		IML_Notify(Source, "negado", "Você precisa de um Kit GSR.")
+		return
+	end
+
+	if not IML_ValidateFlashlight(Source) then
+		IML_Notify(Source, "negado", Config.Lang.NeedFlashlight)
 		return
 	end
 
@@ -348,6 +383,11 @@ AddEventHandler("iml-evidencias:ExamineCorpse", function(TargetSource)
 
 	if vRP.ItemAmount(Passport, Config.Items.ForensicKit) < 1 then
 		IML_Notify(Source, "negado", Config.Lang.NeedKit)
+		return
+	end
+
+	if not IML_ValidateFlashlight(Source) then
+		IML_Notify(Source, "negado", Config.Lang.NeedFlashlight)
 		return
 	end
 
@@ -450,6 +490,11 @@ AddEventHandler("iml-evidencias:CollectBody", function(TargetSource)
 		return
 	end
 
+	if not IML_ValidateFlashlight(Source) then
+		IML_Notify(Source, "negado", Config.Lang.NeedFlashlight)
+		return
+	end
+
 	if CollectedBodies[TargetPassport] then
 		IML_Notify(Source, "negado", Config.Lang.CorpseAlreadyBagged)
 		return
@@ -495,7 +540,7 @@ AddEventHandler("iml-evidencias:CollectBody", function(TargetSource)
 
 	IML_Notify(Source, "success", Config.Lang.BodyCollected)
 	TriggerClientEvent("iml-evidencias:BodyCollected", TargetSource)
-	TriggerClientEvent("iml-evidencias:RemoveCorpse", -1, TargetPassport)
+	IML_BroadcastCivil("iml-evidencias:RemoveCorpse", TargetPassport)
 end)
 
 -----------------------------------------------------------------------------------------------------------------------------------------
@@ -671,14 +716,14 @@ CreateThread(function()
 		for Id, Evidence in pairs(SceneEvidence) do
 			if (Now - Evidence.created) >= Config.EvidenceExpire then
 				SceneEvidence[Id] = nil
-				TriggerClientEvent("iml-evidencias:RemoveEvidence", -1, Id)
+				IML_BroadcastCivil("iml-evidencias:RemoveEvidence", Id)
 			end
 		end
 
 		for Id, Corpse in pairs(SceneCorpses) do
 			if Corpse.time_of_death_raw and (Now - Corpse.time_of_death_raw) >= Config.CorpseExpire then
 				SceneCorpses[Id] = nil
-				TriggerClientEvent("iml-evidencias:RemoveCorpse", -1, Corpse.victim_passport)
+				IML_BroadcastCivil("iml-evidencias:RemoveCorpse", Corpse.victim_passport)
 			end
 		end
 	end
