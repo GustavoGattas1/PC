@@ -147,16 +147,14 @@ function DeliverHouse(Passport, Data)
 	return true
 end
 
-local function DeliverItems(Passport, Data)
+local function DeliverItems(Passport, Source, Data)
 	if Data.bank and Data.bank > 0 then
-		Loja_Bridge_GiveBank(Passport, Data.bank)
+		Loja_GiveBank(Passport, Data.bank)
 	end
 
 	if Data.items then
 		for _, Entry in ipairs(Data.items) do
-			if vRP.GenerateItem then
-				vRP.GenerateItem(Passport, Entry.item, Entry.amount or 1, true)
-			end
+			Loja_GiveItem(Passport, Source, Entry.item, Entry.amount or 1)
 		end
 	end
 
@@ -179,7 +177,7 @@ local function DeliverExtra(Passport, Data)
 	return false
 end
 
-local function DeliverProduct(Passport, Product)
+local function DeliverProduct(Passport, Source, Product)
 	if not Product or not Product.data then return false, "invalid" end
 
 	if Product.type == "vip" then
@@ -189,7 +187,7 @@ local function DeliverProduct(Passport, Product)
 	elseif Product.type == "house" then
 		return DeliverHouse(Passport, Product.data)
 	elseif Product.type == "item" then
-		return DeliverItems(Passport, Product.data), nil
+		return DeliverItems(Passport, Source, Product.data), nil
 	elseif Product.type == "extra" then
 		return DeliverExtra(Passport, Product.data), nil
 	elseif Product.type == "pack" then
@@ -197,7 +195,7 @@ local function DeliverProduct(Passport, Product)
 		for _, SubId in ipairs(Product.data.products or {}) do
 			local Sub = Loja_FindProduct(SubId)
 			if Sub then
-				local Ok = select(1, DeliverProduct(Passport, Sub))
+				local Ok = select(1, DeliverProduct(Passport, Source, Sub))
 				if not Ok then AllOk = false end
 			else
 				AllOk = false
@@ -249,7 +247,7 @@ end
 function Loja.Purchase(ProductId)
 	local Source = source
 	local Passport = vRP.Passport(Source)
-	if not Passport then
+	if not Passport or not Loja_Bridge_CharacterExists(Passport) then
 		return { success = false, message = Config.Lang.NoPassport }
 	end
 
@@ -298,7 +296,7 @@ function Loja.Purchase(ProductId)
 		return { success = false, message = Config.Lang.InsufficientFunds }
 	end
 
-	local Ok, Reason = DeliverProduct(Passport, Product)
+	local Ok, Reason = DeliverProduct(Passport, Source, Product)
 	if not Ok then
 		if Currency == "bank" then
 			GiveBank(Passport, Price)
@@ -315,6 +313,7 @@ function Loja.Purchase(ProductId)
 
 	Loja_DB_LogPurchase(Passport, Product)
 	PurchaseCooldowns[Source] = Now
+	Loja_ClearPlayerCache(Passport)
 
 	Loja_Notify(Source, "success", Config.Lang.PurchaseSuccess)
 

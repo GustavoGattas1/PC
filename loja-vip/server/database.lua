@@ -91,11 +91,7 @@ vRP.Prepare("loja_vip/GetCharacter", [[
 ]])
 
 vRP.Prepare("loja_vip/GetAccountGems", [[
-	SELECT gemstone FROM accounts WHERE License = @license LIMIT 1
-]])
-
-vRP.Prepare("loja_vip/GetAccountGemsAlt", [[
-	SELECT gemstone FROM accounts WHERE license = @license LIMIT 1
+	SELECT Gemstone FROM accounts WHERE License = @license LIMIT 1
 ]])
 
 vRP.Prepare("loja_vip/TakeBank", [[

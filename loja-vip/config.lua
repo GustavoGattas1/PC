@@ -317,10 +317,10 @@ Config.Products = {
 		currency = "gems",
 		data = {
 			items = {
-				{ item = "water", amount = 10 },
-				{ item = "sandwich", amount = 10 },
-				{ item = "bandage", amount = 5 },
-				{ item = "cellphone", amount = 1 }
+				{ item = "agua", amount = 10 },
+				{ item = "hamburguer", amount = 10 },
+				{ item = "bandagem", amount = 5 },
+				{ item = "celular", amount = 1 }
 			}
 		}
 	},

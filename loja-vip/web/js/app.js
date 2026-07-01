@@ -122,12 +122,18 @@ function showToast(msg, type = "success") {
 	document.getElementById("toast-icon").textContent = type === "success" ? "✅" : "❌";
 	document.getElementById("toast-message").textContent = msg;
 	toast.className = `toast ${type}`;
+	toast.classList.remove("hidden");
 	setTimeout(() => toast.classList.add("hidden"), 3500);
 }
 
 function closeApp() {
+	if (modalOverlay && !modalOverlay.classList.contains("hidden")) {
+		closeModal();
+		return;
+	}
 	app.classList.add("hidden");
 	closeModal();
+	purchasing = false;
 	post("close");
 }
 
@@ -239,7 +245,7 @@ function renderProducts() {
 
 		card.innerHTML = `
 			<div class="card-image">
-				<img src="${img}" alt="${product.name}" loading="lazy">
+				<img src="${img}" alt="${product.name}" loading="lazy" onerror="this.src='${TYPE_IMAGES[product.type] || TYPE_IMAGES.item}'">
 				<div class="card-image-overlay"></div>
 				<span class="card-type-pill">${TYPE_EMOJI[product.type] || "📋"} ${TYPE_LABELS[product.type] || product.type}</span>
 				${badge}
@@ -253,11 +259,15 @@ function renderProducts() {
 						<span class="gem">💎</span>
 						<strong>${formatGems(product.price)}</strong>
 					</div>
-					<button class="btn-buy">Comprar</button>
+					<button class="btn-buy" type="button">Comprar</button>
 				</div>
 			</div>
 		`;
 
+		card.querySelector(".btn-buy").addEventListener("click", (e) => {
+			e.stopPropagation();
+			openModal(product);
+		});
 		card.addEventListener("click", () => openModal(product));
 		productGrid.appendChild(card);
 	});
@@ -323,19 +333,24 @@ function closeModal() {
 async function confirmPurchase() {
 	if (!selectedProduct || purchasing) return;
 	purchasing = true;
-	document.getElementById("modal-confirm").disabled = true;
+	const btn = document.getElementById("modal-confirm");
+	btn.disabled = true;
 
-	const result = await post("purchase", { productId: selectedProduct.id });
+	try {
+		const result = await post("purchase", { productId: selectedProduct.id });
 
-	if (result?.success) {
-		showToast(result.message || "Compra realizada! 🎉", "success");
-		if (result.balance) updateBalance(result.balance);
-		closeModal();
-		post("refresh");
-	} else {
-		showToast(result?.message || "Erro na compra.", "error");
+		if (result?.success) {
+			showToast(result.message || "Compra realizada! 🎉", "success");
+			closeModal();
+			post("refresh");
+		} else {
+			showToast(result?.message || "Erro na compra.", "error");
+		}
+	} catch {
+		showToast("Erro de conexão com a loja.", "error");
+	} finally {
 		purchasing = false;
-		document.getElementById("modal-confirm").disabled = false;
+		btn.disabled = false;
 	}
 }
 
@@ -372,8 +387,22 @@ window.addEventListener("message", (event) => {
 	if (!data?.action) return;
 	switch (data.action) {
 		case "open": openShop(data); break;
-		case "close": app.classList.add("hidden"); closeModal(); break;
+		case "close":
+			app.classList.add("hidden");
+			closeModal();
+			purchasing = false;
+			break;
 		case "updateBalance": updateBalance(data.balance); break;
+		case "purchaseSuccess":
+			if (data.message) showToast(data.message, "success");
+			if (data.balance) updateBalance(data.balance);
+			closeModal();
+			break;
+		case "purchaseFailed":
+			if (data.message) showToast(data.message, "error");
+			purchasing = false;
+			document.getElementById("modal-confirm").disabled = false;
+			break;
 		case "refresh":
 			if (data.catalog) catalog = data.catalog;
 			if (data.player) { player = data.player; updatePlayer(player); }

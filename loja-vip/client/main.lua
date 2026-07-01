@@ -16,10 +16,27 @@ vSERVER = Tunnel.getInterface("loja-vip")
 local NuiOpen = false
 
 -----------------------------------------------------------------------------------------------------------------------------------------
+-- FOCO NUI — garante liberar controles ao fechar
+-----------------------------------------------------------------------------------------------------------------------------------------
+local function ReleaseFocus()
+	SetNuiFocus(false, false)
+	pcall(function()
+		SetNuiFocusKeepInput(false)
+	end)
+end
+
+local function CanOpenShop()
+	if IsPauseMenuActive() then return false end
+	if IsEntityDead(PlayerPedId()) then return false end
+	return true
+end
+
+-----------------------------------------------------------------------------------------------------------------------------------------
 -- ABRIR / FECHAR LOJA
 -----------------------------------------------------------------------------------------------------------------------------------------
 function OpenShop()
 	if NuiOpen then return end
+	if not CanOpenShop() then return end
 
 	local Data = vSERVER.GetShopData()
 	if not Data then
@@ -38,9 +55,8 @@ function OpenShop()
 end
 
 function CloseShop()
-	if not NuiOpen then return end
 	NuiOpen = false
-	SetNuiFocus(false, false)
+	ReleaseFocus()
 	SendNUIMessage({ action = "close" })
 end
 
@@ -48,12 +64,20 @@ end
 -- COMANDO /loja
 -----------------------------------------------------------------------------------------------------------------------------------------
 RegisterCommand(Config.Command, function()
-	OpenShop()
+	if NuiOpen then
+		CloseShop()
+	else
+		OpenShop()
+	end
 end, false)
 
 for _, Alias in ipairs(Config.CommandAliases or {}) do
 	RegisterCommand(Alias, function()
-		OpenShop()
+		if NuiOpen then
+			CloseShop()
+		else
+			OpenShop()
+		end
 	end, false)
 end
 
@@ -82,7 +106,7 @@ CreateThread(function()
 		for _, Location in ipairs(Config.Locations) do
 			local Distance = #(Coords - Location.Coords)
 
-			if Distance <= 15.0 then
+			if Distance <= 15.0 and not NuiOpen then
 				Sleep = 0
 
 				if Location.Marker then
@@ -101,7 +125,7 @@ CreateThread(function()
 				if Distance <= Config.InteractDistance then
 					DrawText3D(Location.Coords.x, Location.Coords.y, Location.Coords.z + 0.5, Config.Lang.OpenShop)
 
-					if IsControlJustPressed(0, 38) and not NuiOpen then
+					if IsControlJustPressed(0, 38) then
 						OpenShop()
 					end
 				end
@@ -127,14 +151,23 @@ RegisterNUICallback("purchase", function(Data, cb)
 	end
 
 	local Result = vSERVER.Purchase(Data.productId)
-	cb(Result or { success = false, message = Config.Lang.PurchaseFailed })
 
-	if Result and Result.success and Result.balance then
+	if Result and Result.success then
+		if Result.balance then
+			SendNUIMessage({
+				action = "updateBalance",
+				balance = Result.balance
+			})
+		end
+		SendNUIMessage({ action = "purchaseSuccess", message = Result.message })
+	else
 		SendNUIMessage({
-			action = "updateBalance",
-			balance = Result.balance
+			action = "purchaseFailed",
+			message = (Result and Result.message) or Config.Lang.PurchaseFailed
 		})
 	end
+
+	cb(Result or { success = false, message = Config.Lang.PurchaseFailed })
 end)
 
 RegisterNUICallback("refresh", function(_, cb)
@@ -151,20 +184,57 @@ RegisterNUICallback("refresh", function(_, cb)
 end)
 
 -----------------------------------------------------------------------------------------------------------------------------------------
--- ESC FECHAR
+-- CONTROLES BLOQUEADOS COM PAINEL ABERTO
 -----------------------------------------------------------------------------------------------------------------------------------------
 CreateThread(function()
 	while true do
 		if NuiOpen then
 			DisableControlAction(0, 1, true)
 			DisableControlAction(0, 2, true)
+			DisableControlAction(0, 24, true)
+			DisableControlAction(0, 25, true)
+			DisableControlAction(0, 38, true)
+			DisableControlAction(0, 44, true)
+			DisableControlAction(0, 140, true)
+			DisableControlAction(0, 141, true)
 			DisableControlAction(0, 142, true)
+			DisableControlAction(0, 143, true)
+			DisableControlAction(0, 257, true)
+			DisableControlAction(0, 263, true)
 			DisableControlAction(0, 18, true)
 			DisableControlAction(0, 322, true)
 			DisableControlAction(0, 106, true)
+
+			if IsDisabledControlJustPressed(0, 322) then
+				CloseShop()
+			end
+
 			Wait(0)
 		else
-			Wait(500)
+			Wait(400)
+		end
+	end
+end)
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- FORÇAR FECHAR (morte, spawn, stop resource)
+-----------------------------------------------------------------------------------------------------------------------------------------
+RegisterNetEvent("loja-vip:ForceClose")
+AddEventHandler("loja-vip:ForceClose", function()
+	CloseShop()
+end)
+
+AddEventHandler("onResourceStop", function(Resource)
+	if Resource == GetCurrentResourceName() then
+		ReleaseFocus()
+	end
+end)
+
+AddEventHandler("gameEventTriggered", function(Event, Args)
+	if Event == "CEventNetworkEntityDamage" and NuiOpen then
+		local Victim = Args[1]
+		if Victim == PlayerPedId() and IsEntityDead(Victim) then
+			CloseShop()
 		end
 	end
 end)

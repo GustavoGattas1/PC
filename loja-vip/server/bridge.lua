@@ -142,6 +142,10 @@ function Loja_Bridge_TakeGems(Passport, Amount)
 	return Loja_Bridge_GetGems(Passport) <= (Before - Amount)
 end
 
+function Loja_Bridge_ClearCache(Passport)
+	ClearCache(Passport)
+end
+
 function Loja_Bridge_GiveGems(Passport, Amount)
 	Amount = tonumber(Amount) or 0
 	if Amount <= 0 then return false end
