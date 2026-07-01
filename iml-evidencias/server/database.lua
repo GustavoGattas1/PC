@@ -110,6 +110,23 @@ function IML_Notify(Source, Type, Message, Duration)
 	TriggerClientEvent("Notify", Source, Info.Title, Message, Info.Color, Duration or 5000)
 end
 
+function IML_ConsumeItem(Passport, ItemName, FromItemUse)
+	if not Passport or not ItemName then
+		return false
+	end
+
+	if vRP.ItemAmount(Passport, ItemName) >= 1 then
+		vRP.TakeItem(Passport, ItemName, 1, true)
+		return true
+	end
+
+	if FromItemUse then
+		return true
+	end
+
+	return false
+end
+
 function IML_GetIdentity(Passport)
 	local Name = vRP.FullName(Passport)
 	local Identity = vRP.Identity(Passport)
@@ -153,25 +170,12 @@ end
 
 function IML_GetCivilSources()
 	local List = {}
+	local Players = vRP.Players()
 
-	for _, Permission in ipairs(Config.Groups.Civil) do
-		local Services = vRP.NumPermission(Permission)
-		if Services then
-			for Passport, Source in pairs(Services) do
-				if Source and not List[Source] then
-					List[Source] = true
-				end
-			end
-		end
-
-		if not Config.RequireService then
-			local Players = vRP.Players()
-			if Players then
-				for Passport, Source in pairs(Players) do
-					if vRP.HasGroup(Passport, Permission) and Source and not List[Source] then
-						List[Source] = true
-					end
-				end
+	if Players then
+		for Passport, Source in pairs(Players) do
+			if Source and IML_HasGroup(Passport, Config.Groups.Civil) and not List[Source] then
+				List[Source] = true
 			end
 		end
 	end

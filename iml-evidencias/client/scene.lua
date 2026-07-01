@@ -1,12 +1,10 @@
 -----------------------------------------------------------------------------------------------------------------------------------------
--- PROPS 3D, OVERLAY, MARCADORES E FITA POLICIAL
+-- PROPS 3D, OVERLAY E MARCADORES
 -----------------------------------------------------------------------------------------------------------------------------------------
 EvidenceProps = {}
 MarkerProps = {}
-TapeProps = {}
 SceneOverlayActive = false
 SceneMarkers = {}
-SceneTape = {}
 SceneEvidenceIndex = {}
 
 -----------------------------------------------------------------------------------------------------------------------------------------
@@ -62,6 +60,14 @@ function RemoveEvidenceProp(EvidenceId)
 	EvidenceProps[EvidenceId] = nil
 end
 
+function RemoveEvidenceLocal(EvidenceId)
+	if SceneEvidence then
+		SceneEvidence[EvidenceId] = nil
+	end
+	RemoveEvidenceProp(EvidenceId)
+	SceneEvidenceIndex[EvidenceId] = nil
+end
+
 RegisterNetEvent("iml-evidencias:SyncEvidence")
 AddEventHandler("iml-evidencias:SyncEvidence", function(Evidence)
 	if Evidence and Evidence.id and Evidence.coords then
@@ -69,10 +75,14 @@ AddEventHandler("iml-evidencias:SyncEvidence", function(Evidence)
 	end
 end)
 
+RegisterNetEvent("iml-evidencias:CollectSuccess")
+AddEventHandler("iml-evidencias:CollectSuccess", function(EvidenceId)
+	RemoveEvidenceLocal(EvidenceId)
+end)
+
 RegisterNetEvent("iml-evidencias:RemoveEvidence")
 AddEventHandler("iml-evidencias:RemoveEvidence", function(EvidenceId)
-	RemoveEvidenceProp(EvidenceId)
-	SceneEvidenceIndex[EvidenceId] = nil
+	RemoveEvidenceLocal(EvidenceId)
 end)
 
 -----------------------------------------------------------------------------------------------------------------------------------------
@@ -210,13 +220,13 @@ CreateThread(function()
 							local RingSize = 0.35 * Pulse
 							DrawMarker(25, EvCoords.x, EvCoords.y, EvCoords.z + 0.02, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, RingSize, RingSize, 0.08, R, G, B, 120, false, false, 2, false, nil, nil, false)
 							DrawMarker(32, EvCoords.x, EvCoords.y, EvCoords.z + 0.55, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.2, 0.2, 0.2, R, G, B, 200, true, false, 2, true, nil, nil, false)
-							DrawLightWithRange(EvCoords.x, EvCoords.y, EvCoords.z + 0.3, R, G, B, 2.5, 0.4)
+							DrawLightWithRange(EvCoords.x, EvCoords.y, EvCoords.z + 0.3, R, G, B, 2.0, 0.3)
 							DrawFloatingLabel(EvCoords.x, EvCoords.y, EvCoords.z + 0.65, TypeInfo.Icon, "#" .. Index .. " " .. (TypeInfo.Label or "Evidência"), Distance)
 						else
 							DrawMarker(28, EvCoords.x, EvCoords.y, EvCoords.z + 0.05, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.1, 0.1, R, G, B, 140, false, false, 2, false, nil, nil, false)
 						end
 
-						if Distance < Config.CollectDistance and IsFlashlightOut() then
+						if Distance < Config.CollectDistance and IsFlashlightOut() and not (IsNuiBusy and IsNuiBusy()) then
 							if not SceneOverlayActive then
 								DrawText3D(EvCoords.x, EvCoords.y, EvCoords.z + 0.45, (TypeInfo.Icon or "📋") .. " ~y~[E]~w~ " .. (TypeInfo.Label or "Evidência"))
 							end
@@ -276,11 +286,10 @@ AddEventHandler("iml-evidencias:RemoveMarker", function(MarkerId)
 end)
 
 RegisterNetEvent("iml-evidencias:PlaceMarker")
-AddEventHandler("iml-evidencias:PlaceMarker", function()
-	if not IsCivil then return end
+AddEventHandler("iml-evidencias:PlaceMarker", function(FromItemUse)
 	local Ped = PlayerPedId()
 	local Coords = GetEntityCoords(Ped)
-	TriggerServerEvent("iml-evidencias:PlaceMarker", { x = Coords.x, y = Coords.y, z = Coords.z - 0.95 })
+	TriggerServerEvent("iml-evidencias:PlaceMarker", { x = Coords.x, y = Coords.y, z = Coords.z - 0.95 }, FromItemUse == true)
 end)
 
 CreateThread(function()
@@ -294,71 +303,6 @@ CreateThread(function()
 					if #(PedCoords - MCoords) < 40.0 then
 						Sleep = 0
 						DrawText3D(MCoords.x, MCoords.y, MCoords.z + 0.55, "~y~EVIDÊNCIA #" .. (Marker.number or "?"))
-					end
-				end
-			end
-		end
-		Wait(Sleep)
-	end
-end)
-
------------------------------------------------------------------------------------------------------------------------------------------
--- FITA POLICIAL (PROP 3D)
------------------------------------------------------------------------------------------------------------------------------------------
-function SpawnTapeProp(Segment)
-	if not Segment or not Segment.start or TapeProps[Segment.id] then return end
-	local Model = Config.SceneProps and Config.SceneProps.Tape or `prop_barrier_work06`
-	if not LoadModel(Model) then return end
-
-	local Mid = vector3(
-		(Segment.start.x + Segment.finish.x) / 2,
-		(Segment.start.y + Segment.finish.y) / 2,
-		(Segment.start.z + Segment.finish.z) / 2
-	)
-
-	local Obj = CreateObject(Model, Mid.x, Mid.y, Mid.z, false, false, false)
-	if DoesEntityExist(Obj) then
-		local Heading = math.deg(math.atan(Segment.finish.x - Segment.start.x, Segment.finish.y - Segment.start.y))
-		SetEntityHeading(Obj, Heading)
-		PlaceObjectOnGroundProperly(Obj)
-		FreezeEntityPosition(Obj, true)
-		SetEntityCollision(Obj, false, false)
-		TapeProps[Segment.id] = Obj
-	end
-	SetModelAsNoLongerNeeded(Model)
-end
-
-RegisterNetEvent("iml-evidencias:PlaceTape")
-AddEventHandler("iml-evidencias:PlaceTape", function()
-	if not IsCivil then return end
-	local Ped = PlayerPedId()
-	local Coords = GetEntityCoords(Ped)
-	TriggerServerEvent("iml-evidencias:PlaceTape", { x = Coords.x, y = Coords.y, z = Coords.z }, GetEntityHeading(Ped))
-end)
-
-RegisterNetEvent("iml-evidencias:SyncTape")
-AddEventHandler("iml-evidencias:SyncTape", function(Segment)
-	if Segment and Segment.id then
-		SceneTape[Segment.id] = Segment
-		SpawnTapeProp(Segment)
-	end
-end)
-
-CreateThread(function()
-	while true do
-		local Sleep = 1000
-		if IsCivil then
-			local PedCoords = GetEntityCoords(PlayerPedId())
-			for _, Segment in pairs(SceneTape) do
-				if Segment.start and Segment.finish then
-					local Mid = vector3(
-						(Segment.start.x + Segment.finish.x) / 2,
-						(Segment.start.y + Segment.finish.y) / 2,
-						(Segment.start.z + Segment.finish.z) / 2
-					)
-					if #(PedCoords - Mid) < 50.0 then
-						Sleep = 0
-						DrawLine(Segment.start.x, Segment.start.y, Segment.start.z + 0.5, Segment.finish.x, Segment.finish.y, Segment.finish.z + 0.5, 255, 220, 0, 160)
 					end
 				end
 			end
@@ -382,18 +326,11 @@ CreateThread(function()
 			for Id, Marker in pairs(SceneMarkers) do
 				if not MarkerProps[Id] then SpawnMarkerProp(Marker) end
 			end
-			for Id, Segment in pairs(SceneTape) do
-				if not TapeProps[Id] then SpawnTapeProp(Segment) end
-			end
 		else
 			for Id in pairs(EvidenceProps) do RemoveEvidenceProp(Id) end
 			for Id, Obj in pairs(MarkerProps) do
 				if DoesEntityExist(Obj) then DeleteEntity(Obj) end
 				MarkerProps[Id] = nil
-			end
-			for Id, Obj in pairs(TapeProps) do
-				if DoesEntityExist(Obj) then DeleteEntity(Obj) end
-				TapeProps[Id] = nil
 			end
 		end
 	end

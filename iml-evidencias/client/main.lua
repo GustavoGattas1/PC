@@ -21,6 +21,7 @@ Tunnel.bindInterface("iml-evidencias", ClientIML)
 -----------------------------------------------------------------------------------------------------------------------------------------
 SceneEvidence = {}
 SceneCorpses = {}
+SceneMarkers = SceneMarkers or {}
 WearingGloves = false
 NuiOpen = false
 IsCivil = false
@@ -89,13 +90,6 @@ function LoadSceneData()
 			SceneMarkers[Marker.id] = Marker
 		end
 	end
-
-	local Tape = vSERVER.RequestTape()
-	if Tape then
-		for _, Segment in ipairs(Tape) do
-			SceneTape[Segment.id] = Segment
-		end
-	end
 end
 
 RegisterNetEvent("iml-evidencias:RefreshAccess")
@@ -147,7 +141,12 @@ end)
 
 RegisterNetEvent("iml-evidencias:RemoveEvidence")
 AddEventHandler("iml-evidencias:RemoveEvidence", function(EvidenceId)
-	SceneEvidence[EvidenceId] = nil
+	if RemoveEvidenceLocal then
+		RemoveEvidenceLocal(EvidenceId)
+	else
+		SceneEvidence[EvidenceId] = nil
+		if RemoveEvidenceProp then RemoveEvidenceProp(EvidenceId) end
+	end
 end)
 
 RegisterNetEvent("iml-evidencias:SyncCorpse")
@@ -196,24 +195,6 @@ AddEventHandler("iml-evidencias:ToggleGloves", function()
 end)
 
 -----------------------------------------------------------------------------------------------------------------------------------------
--- USAR SACO MORTUÁRIO (item)
------------------------------------------------------------------------------------------------------------------------------------------
-RegisterNetEvent("iml-evidencias:UseBodyBag")
-AddEventHandler("iml-evidencias:UseBodyBag", function()
-	if not IsCivil then
-		IMLNotify("negado", Config.Lang.NotAuthorized)
-		return
-	end
-
-	local TargetSource = GetClosestCorpsePlayer and GetClosestCorpsePlayer()
-	if TargetSource then
-		TriggerServerEvent("iml-evidencias:CollectBody", TargetSource)
-	else
-		IMLNotify("negado", Config.Lang.NoCorpse)
-	end
-end)
-
------------------------------------------------------------------------------------------------------------------------------------------
 -- MARCADORES DO IML
 -----------------------------------------------------------------------------------------------------------------------------------------
 CreateThread(function()
@@ -227,7 +208,6 @@ CreateThread(function()
 		for _, Loc in ipairs(Config.Locations.Ballistics or {}) do AllLocations[#AllLocations + 1] = { data = Loc, action = "lab" } end
 		for _, Loc in ipairs(Config.Locations.Autopsy) do AllLocations[#AllLocations + 1] = { data = Loc, action = "autopsy" } end
 		for _, Loc in ipairs(Config.Locations.Locker) do AllLocations[#AllLocations + 1] = { data = Loc, action = "locker" } end
-		for _, Loc in ipairs(Config.Locations.BodyDrop) do AllLocations[#AllLocations + 1] = { data = Loc, action = "bodydrop" } end
 
 		for _, Entry in ipairs(AllLocations) do
 			if not IsCivil then break end
@@ -244,8 +224,7 @@ CreateThread(function()
 					local ActionText = {
 						lab = "~r~[E]~w~ Analisar Evidências",
 						autopsy = "~r~[E]~w~ Realizar Autópsia",
-						locker = "~r~[E]~w~ Armário de Evidências",
-						bodydrop = "~r~[E]~w~ Entregar Corpo"
+						locker = "~r~[E]~w~ Armário de Evidências"
 					}
 
 					DrawText3D(Loc.Coords.x, Loc.Coords.y, Loc.Coords.z, ActionText[Entry.action] or "~r~[E]~w~ Interagir")
@@ -262,52 +241,56 @@ CreateThread(function()
 end)
 
 function HandleLocationAction(Action)
+	if IsNuiBusy and IsNuiBusy() then
+		IMLNotify("important", Config.Lang.PanelBusy)
+		return
+	end
+
 	if Action == "lab" then OpenLabMenu()
 	elseif Action == "autopsy" then OpenAutopsyMenu()
 	elseif Action == "locker" then OpenLockerMenu()
-	elseif Action == "bodydrop" then OpenBodyDropMenu()
 	end
 end
 
 function OpenLabMenu()
+	if not IsCivil then
+		IMLNotify("negado", Config.Lang.NotAuthorized)
+		return
+	end
+
 	local Evidence = vSERVER.GetMyEvidence()
 	if not Evidence or #Evidence == 0 then
 		IMLNotify("important", Config.Lang.NoEvidence)
 		return
 	end
-	SetNuiFocus(true, true)
-	NuiOpen = true
-	SendNUIMessage({ action = "openLab", evidence = Evidence })
+	OpenNuiPanel({ action = "openLab", evidence = Evidence }, { replace = false })
 end
 
 function OpenAutopsyMenu()
+	if not IsCivil then
+		IMLNotify("negado", Config.Lang.NotAuthorized)
+		return
+	end
+
 	local Bodies = vSERVER.GetPendingBodies()
-	SetNuiFocus(true, true)
-	NuiOpen = true
-	SendNUIMessage({ action = "openAutopsy", bodies = Bodies })
+	OpenNuiPanel({ action = "openAutopsy", bodies = Bodies }, { replace = false })
 end
 
 function OpenLockerMenu()
-	local Evidence = vSERVER.GetMyEvidence()
-	SetNuiFocus(true, true)
-	NuiOpen = true
-	SendNUIMessage({ action = "openLocker", evidence = Evidence })
-end
+	if not IsCivil then
+		IMLNotify("negado", Config.Lang.NotAuthorized)
+		return
+	end
 
-function OpenBodyDropMenu()
-	local Bodies = vSERVER.GetMyBodies()
-	SetNuiFocus(true, true)
-	NuiOpen = true
-	SendNUIMessage({ action = "openBodyDrop", bodies = Bodies })
+	local Evidence = vSERVER.GetMyEvidence()
+	OpenNuiPanel({ action = "openLocker", evidence = Evidence }, { replace = false })
 end
 
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- NUI CALLBACKS
 -----------------------------------------------------------------------------------------------------------------------------------------
 RegisterNUICallback("close", function(_, cb)
-	SetNuiFocus(false, false)
-	NuiOpen = false
-	if RemoveTabletProp then RemoveTabletProp() end
+	CloseNuiPanel(true)
 	cb("ok")
 end)
 
@@ -315,8 +298,6 @@ RegisterNUICallback("analyze", function(Data, cb)
 	if Data and Data.evidence_id then
 		TriggerServerEvent("iml-evidencias:AnalyzeEvidence", Data.evidence_id)
 	end
-	SetNuiFocus(false, false)
-	NuiOpen = false
 	cb("ok")
 end)
 
@@ -324,32 +305,12 @@ RegisterNUICallback("autopsy", function(Data, cb)
 	if Data and Data.body_id then
 		TriggerServerEvent("iml-evidencias:PerformAutopsy", Data.body_id)
 	end
-	SetNuiFocus(false, false)
-	NuiOpen = false
-	cb("ok")
-end)
-
-RegisterNUICallback("deliverBody", function(Data, cb)
-	if Data and Data.body_id then
-		TriggerServerEvent("iml-evidencias:DeliverBody", Data.body_id)
-	end
-	SetNuiFocus(false, false)
-	NuiOpen = false
 	cb("ok")
 end)
 
 RegisterNetEvent("iml-evidencias:OpenReport")
 AddEventHandler("iml-evidencias:OpenReport", function(Report, Title)
-	SetNuiFocus(true, true)
-	NuiOpen = true
-	SendNUIMessage({ action = "openReport", report = Report, title = Title })
-end)
-
-RegisterNetEvent("iml-evidencias:BodyCollected")
-AddEventHandler("iml-evidencias:BodyCollected", function()
-	local Ped = PlayerPedId()
-	SetEntityVisible(Ped, false, false)
-	SetEntityCollision(Ped, false, false)
+	OpenNuiPanel({ action = "openReport", report = Report, title = Title or "Laudo Pericial" })
 end)
 
 function DrawText3D(x, y, z, text)

@@ -1,38 +1,25 @@
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- MINIGAMES DE COLETA
 -----------------------------------------------------------------------------------------------------------------------------------------
-local MinigameActive = false
-local MinigameCallback = nil
+MinigameCallback = nil
 
 function StartMinigame(Type, Callback)
-	if MinigameActive then return end
-	MinigameActive = true
+	if MinigameCallback or (IsNuiBusy and IsNuiBusy() and not Collecting) then return end
 	MinigameCallback = Callback
 
 	SetNuiFocus(true, true)
 	SendNUIMessage({ action = "startMinigame", type = Type })
 end
 
-RegisterNUICallback("minigameResult", function(Data, cb)
-	SetNuiFocus(false, false)
-	MinigameActive = false
-
-	if MinigameCallback then
-		MinigameCallback(Data and Data.success == true)
-		MinigameCallback = nil
-	end
-
-	cb("ok")
-end)
-
 RegisterNUICallback("minigameCancel", function(_, cb)
-	SetNuiFocus(false, false)
-	MinigameActive = false
-
-	if MinigameCallback then
-		MinigameCallback(false)
-		MinigameCallback = nil
+	if not Collecting then
+		SetNuiFocus(false, false)
 	end
-
+	if MinigameCallback then
+		local Callback = MinigameCallback
+		MinigameCallback = nil
+		Callback(false)
+	end
+	SendNUIMessage({ action = "finishCollectionUi" })
 	cb("ok")
 end)
