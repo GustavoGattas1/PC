@@ -1,69 +1,71 @@
-# IML / Evidências — Creative Uncharted
+# IML Evidências — Sistema Forense Avançado
 
-Sistema de perícia forense alinhado à base **Creative Uncharted** (referência: `helicrash`).
+Sistema completo de perícia e evidências para **Creative Uncharted** (FiveM).
 
-## Permissões
+## Funcionalidades
 
-- Grupo: **`Civil`**
-- Precisa estar **em serviço** (`vRP.HasService`) — `Config.RequireService = true`
-- Evidências visíveis **somente para Civil em serviço**
-- **Lanterna** (`WEAPON_FLASHLIGHT`) obrigatória para ver e coletar
-
-## Padrões da base (confirmados pelo helicrash)
-
-| Item | Padrão da sua base |
-|------|-------------------|
-| Utils | `@vrp/lib/Utils.lua` |
-| Notify | `TriggerClientEvent("Notify", source, Titulo, Msg, Cor, Tempo)` |
-| Passport | `vRP.Passport(source)` |
-| Grupo | `vRP.HasGroup(Passport, "Civil")` |
-| Serviço | `vRP.HasService(Passport, "Civil")` |
-| Nome | `vRP.FullName(Passport)` |
-| Disconnect | `AddEventHandler("Disconnect", function(Passport, source)` |
-| Itens | Cadastrar em `@vrp/config/Item.lua` |
-| State bags | `LocalPlayer.state.Death` |
+- Cápsulas, projéteis impactados e marcas em veículos (props 3D por calibre)
+- Teste GSR (kit + scanner portátil)
+- Sangue, poças de sangue e swab em cadáveres
+- Rastros de pneu (derrapagem/burnout)
+- DNA e impressões digitais
+- Overlay de investigação (`/cena` ou tecla **M**)
+- Minigames de coleta (swab, saco, molde)
+- Marcadores numerados e fita policial
+- Tablet forense com arquivo de casos
+- Painel 3D do corpo com região do tiro
+- Estado térmico do corpo (Quente / Morno / Frio / Gelado)
+- Laudos imprimíveis
 
 ## Instalação
 
-1. Execute `sql/install.sql` no MariaDB
-2. Copie `iml-evidencias` para `resources/[scripts]/`
-3. Cadastre os 7 itens em `@vrp/config/Item.lua` (veja `items_reference.lua`)
-4. Ajuste `Config.Locations` com coords do IML da cidade
-5. No `server.cfg`:
-```cfg
-ensure vrp
-ensure iml-evidencias
-```
+1. Copie `iml-evidencias/` para `resources/`
+2. Execute `sql/install.sql` no banco
+3. Cadastre os itens em `@vrp/config/Item.lua` — veja `items_reference.lua`
+4. Adicione ao `server.cfg`: `ensure iml-evidencias`
 
 ## Itens obrigatórios
 
-| Item | Função |
-|------|--------|
-| `kitpericia` | Coletar evidências / periciar |
-| `saco-evidencia` | Armazenar evidência |
-| `swab-sangue` | Sangue do cadáver |
-| `kit-gsr` | Resíduo de pólvora |
-| `saco-cadaver` | Transportar corpo |
-| `laudo-pericial` | Laudo gerado |
-| `luvas-latex` | Evitar digitais (opcional) |
+| Item | Uso |
+|------|-----|
+| `kitpericia` / `tablet-forense` | Tablet forense |
+| `luvas-latex` | Evitar digitais |
+| `saco-cadaver` | Acondicionar corpo |
+| `saco-evidencia` | Receber evidências coletadas |
+| `swab-sangue` | Coletar sangue do cadáver |
+| `kit-gsr` | Coleta GSR em suspeito |
+| `scanner-gsr` | Scanner portátil GSR |
+| `laudo-pericial` | Ver laudos |
+| `marcador-evidencia` | Marcador numerado |
+| `fita-policial` | Isolar perímetro |
+
+## Permissões
+
+- Grupo: **Civil** (em serviço se `Config.RequireService = true`)
+- Lanterna (`WEAPON_FLASHLIGHT`) obrigatória para ver/coletar evidências
 
 ## Comandos
 
 | Comando | Ação |
 |---------|------|
-| `/periciar` | Perícia preliminar do cadáver |
-| `/coletarsangue` | Swab de sangue |
-| `/coletarcorpo` | Acondicionar corpo |
+| `/cena` ou **M** | Overlay de cena do crime |
+| `/luvas` | Equipar/remover luvas |
+| `/tabletforense` | Abrir tablet |
+| `/periciar` | Periciar cadáver próximo |
+| `/coletarcorpo` | Coletar corpo (precisa saco) |
+| `/coletarsangue` | Swab no cadáver |
 | `/coletargsr` | Coletar GSR do suspeito |
 
-## Teclas no cadáver (com lanterna)
+## Perícia em local de tiro
 
-- `E` — Periciar
-- `G` — Coletar sangue
-- `H` — Acondicionar corpo
+Ao periciar um cadáver com arma de fogo, abre o **painel 3D** mostrando onde o projétil atingiu (braço, perna, tórax, etc.) e o **estado térmico** do corpo em vez da hora do óbito.
 
-## O que ainda precisa confirmar na sua base
+## Exports (Item.lua)
 
-1. Nome exato do grupo Civil (`Civil` ou outro?)
-2. Se a lanterna é `WEAPON_FLASHLIGHT` ou item diferente
-3. Coordenadas do IML em `config.lua`
+```lua
+exports["iml-evidencias"]:UseLuvas(source)
+exports["iml-evidencias"]:UseBodyBag(source)
+exports["iml-evidencias"]:UseTablet(source)
+exports["iml-evidencias"]:UseGsrScanner(source)
+exports["iml-evidencias"]:UseLaudo(source)
+```

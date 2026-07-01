@@ -5,6 +5,8 @@ local Tunnel = module("vrp","lib/Tunnel")
 local Proxy = module("vrp","lib/Proxy")
 vRP = Proxy.getInterface("vRP")
 
+IML = IML or {}
+
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- DATABASE PREPARES
 -----------------------------------------------------------------------------------------------------------------------------------------
@@ -76,6 +78,13 @@ vRP.Prepare("iml/InsertBodyFull", [[
 	INSERT INTO iml_bodies (body_id, victim_passport, victim_name, cause, killer_passport, weapon_hash, weapon_serial, ammo_type, metadata, collected_by, created_at)
 	VALUES (@body_id, @victim_passport, @victim_name, @cause, @killer_passport, @weapon_hash, @weapon_serial, @ammo_type, @metadata, @collected_by, NOW())
 ]])
+
+vRP.Prepare("iml/InsertCase", [[
+	INSERT INTO iml_cases (case_id, title, notes, author_passport, status, created_at)
+	VALUES (@case_id, @title, @notes, @author_passport, @status, NOW())
+]])
+
+vRP.Prepare("iml/GetCases", "SELECT * FROM iml_cases ORDER BY created_at DESC LIMIT 50")
 
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- HELPERS

@@ -7,7 +7,7 @@ local LastWeapon = nil
 local LastBone = nil
 local IsDead = false
 local WeaponSerials = {}
-local LastShotCoords = nil
+local LastShotAt = 0
 
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- SERIAL DA ARMA
@@ -19,7 +19,7 @@ end)
 
 CreateThread(function()
 	while true do
-		Wait(2000)
+		Wait(2500)
 		local Ped = PlayerPedId()
 		local Weapon = GetSelectedPedWeapon(Ped)
 
@@ -33,30 +33,35 @@ end)
 -- RASTREAR DANO RECEBIDO
 -----------------------------------------------------------------------------------------------------------------------------------------
 AddEventHandler("gameEventTriggered", function(Event, Args)
-	if Event ~= "CEventNetworkEntityDamage" then return end
+	if Event == "CEventNetworkEntityDamage" then
+		local Victim = Args[1]
+		local Attacker = Args[2]
+		local VictimDied = Args[6] == 1
+		local WeaponHash = Args[7]
+		local BoneHit = Args[8]
 
-	local Victim = Args[1]
-	local Attacker = Args[2]
-	local VictimDied = Args[6] == 1
-	local WeaponHash = Args[7]
-	local BoneHit = Args[8]
+		if Victim ~= PlayerPedId() then return end
 
-	if Victim ~= PlayerPedId() then return end
+		if Attacker and Attacker ~= 0 and Attacker ~= Victim then
+			LastDamager = Attacker
+		end
 
-	if Attacker and Attacker ~= 0 and Attacker ~= Victim then
-		LastDamager = Attacker
-	end
+		if WeaponHash and WeaponHash ~= 0 then
+			LastWeapon = WeaponHash
+		end
 
-	if WeaponHash and WeaponHash ~= 0 then
-		LastWeapon = WeaponHash
-	end
+		if BoneHit and BoneHit ~= 0 then
+			LastBone = BoneHit
+		end
 
-	if BoneHit and BoneHit ~= 0 then
-		LastBone = BoneHit
-	end
-
-	if VictimDied or GetEntityHealth(Victim) <= 100 then
-		HandlePlayerDeath()
+		if VictimDied or GetEntityHealth(Victim) <= 100 then
+			HandlePlayerDeath()
+		end
+	elseif Event == "CEventGunShot" then
+		local Shooter = Args[1]
+		if Shooter == PlayerPedId() then
+			HandlePlayerShot()
+		end
 	end
 end)
 
@@ -99,6 +104,7 @@ function HandlePlayerDeath()
 	local KillerSource = nil
 	local Distance = 0
 	local Headshot = false
+	local BoneLabel = GetBoneLabel(LastBone or 0)
 
 	if LastBone == 31086 then
 		Headshot = true
@@ -119,7 +125,8 @@ function HandlePlayerDeath()
 	TriggerServerEvent("iml-evidencias:PlayerDied", {
 		killer_source = KillerSource,
 		weapon_hash = WeaponHash,
-		bone_hit = GetBoneLabel(LastBone or 0),
+		bone_hit = BoneLabel,
+		bone_zone = GetBoneZone(BoneLabel),
 		distance = RoundNumber(Distance, 1),
 		headshot = Headshot,
 		coords = { x = Coords.x, y = Coords.y, z = Coords.z }
@@ -135,85 +142,106 @@ end
 -----------------------------------------------------------------------------------------------------------------------------------------
 CreateThread(function()
 	while true do
-		local Sleep = 1000
 		local Ped = PlayerPedId()
+		local Sleep = 250
 
-		if IsPedShooting(Ped) then
+		if HasPedJustFiredWeapon(Ped) or IsPedShooting(Ped) then
 			Sleep = 0
-			local Weapon = GetSelectedPedWeapon(Ped)
-			local Serial = WeaponSerials[Weapon]
-			local Coords = GetOffsetFromEntityInWorldCoords(Ped, 0.0, 0.5, -0.9)
-
-			if math.random(100) <= Config.Chances.Casing then
-				TriggerServerEvent("iml-evidencias:CreateEvidence", {
-					type = "casing",
-					weapon_hash = Weapon,
-					weapon_serial = Serial,
-					coords = { x = Coords.x, y = Coords.y, z = Coords.z },
-					heading = GetEntityHeading(Ped)
-				})
-			end
-
-			if math.random(100) <= Config.Chances.Magazine then
-				local MagCoords = GetOffsetFromEntityInWorldCoords(Ped, 0.3, 0.3, -0.9)
-				TriggerServerEvent("iml-evidencias:CreateEvidence", {
-					type = "magazine",
-					weapon_hash = Weapon,
-					weapon_serial = Serial,
-					coords = { x = MagCoords.x, y = MagCoords.y, z = MagCoords.z }
-				})
-			end
-
-			if math.random(100) <= Config.Chances.GSR then
-				TriggerServerEvent("iml-evidencias:CreateEvidence", {
-					type = "gsr",
-					weapon_hash = Weapon,
-					weapon_serial = Serial
-				})
-			end
-
-			-- Projétil impactado (raycast)
-			if math.random(100) <= Config.Chances.BulletImpact then
-				local Hit = GetBulletImpactCoords(Ped)
-				if Hit then
-					TriggerServerEvent("iml-evidencias:CreateEvidence", {
-						type = "bullet",
-						weapon_hash = Weapon,
-						weapon_serial = Serial,
-						coords = { x = Hit.x, y = Hit.y, z = Hit.z }
-					})
-
-					if Hit.entity and Hit.entity ~= 0 and IsEntityAVehicle(Hit.entity) then
-						if math.random(100) <= Config.Chances.VehicleBullet then
-							local VehCoords = GetEntityCoords(Hit.entity)
-							TriggerServerEvent("iml-evidencias:CreateEvidence", {
-								type = "vehicle_bullet",
-								weapon_hash = Weapon,
-								weapon_serial = Serial,
-								coords = { x = VehCoords.x, y = VehCoords.y, z = VehCoords.z },
-								vehicle = VehToNet(Hit.entity)
-							})
-						end
-					end
-				end
-			end
+			HandlePlayerShot()
 		end
 
 		Wait(Sleep)
 	end
 end)
 
-function GetBulletImpactCoords(Ped)
-	local CamCoords = GetGameplayCamCoord()
+function HandlePlayerShot()
+	local Now = GetGameTimer()
+	if (Now - LastShotAt) < 60 then return end
+	LastShotAt = Now
+
+	local Ped = PlayerPedId()
+	local Weapon = GetSelectedPedWeapon(Ped)
+	if Weapon == `WEAPON_UNARMED` or not IsFirearm(Weapon) then return end
+
+	local Serial = WeaponSerials[Weapon]
+	local Ammo = GetAmmoInfo(Weapon)
+	local RightHand = GetPedBoneCoords(Ped, 57005, 0.15, 0.0, 0.0)
+	local CasingCoords = GetOffsetFromEntityInWorldCoords(Ped, 0.35, 0.15, -0.85)
+
+	if math.random(100) <= Config.Chances.Casing then
+		TriggerServerEvent("iml-evidencias:CreateEvidence", {
+			type = "casing",
+			weapon_hash = Weapon,
+			weapon_serial = Serial,
+			coords = { x = CasingCoords.x, y = CasingCoords.y, z = CasingCoords.z },
+			heading = GetEntityHeading(Ped) + math.random(-40, 40),
+			metadata = { caliber = Ammo.Type, ammo_label = Ammo.Label, prop_model = Ammo.CasingModel }
+		})
+	end
+
+	if math.random(100) <= Config.Chances.Magazine and math.random(100) <= 8 then
+		local MagCoords = GetOffsetFromEntityInWorldCoords(Ped, 0.5, 0.2, -0.9)
+		TriggerServerEvent("iml-evidencias:CreateEvidence", {
+			type = "magazine",
+			weapon_hash = Weapon,
+			weapon_serial = Serial,
+			coords = { x = MagCoords.x, y = MagCoords.y, z = MagCoords.z },
+			metadata = { caliber = Ammo.Type, ammo_label = Ammo.Label }
+		})
+	end
+
+	if math.random(100) <= Config.Chances.GSR then
+		TriggerServerEvent("iml-evidencias:CreateEvidence", {
+			type = "gsr",
+			weapon_hash = Weapon,
+			weapon_serial = Serial
+		})
+	end
+
+	if math.random(100) <= Config.Chances.BulletImpact then
+		local Hit = GetLastBulletImpact(Ped, RightHand)
+		if Hit then
+			TriggerServerEvent("iml-evidencias:CreateEvidence", {
+				type = "bullet",
+				weapon_hash = Weapon,
+				weapon_serial = Serial,
+				coords = { x = Hit.x, y = Hit.y, z = Hit.z },
+				metadata = { caliber = Ammo.Type, ammo_label = Ammo.Label }
+			})
+
+			if Hit.entity and Hit.entity ~= 0 and IsEntityAVehicle(Hit.entity) then
+				if math.random(100) <= Config.Chances.VehicleBullet then
+					local VehCoords = GetEntityCoords(Hit.entity)
+					TriggerServerEvent("iml-evidencias:CreateEvidence", {
+						type = "vehicle_bullet",
+						weapon_hash = Weapon,
+						weapon_serial = Serial,
+						coords = { x = VehCoords.x, y = VehCoords.y, z = VehCoords.z },
+						vehicle = VehToNet(Hit.entity),
+						metadata = { caliber = Ammo.Type }
+					})
+				end
+			end
+		end
+	end
+end
+
+function GetLastBulletImpact(Ped, StartCoords)
+	local HasImpact, ImpactX, ImpactY, ImpactZ = GetPedLastWeaponImpactCoord(Ped)
+	if HasImpact then
+		return { x = ImpactX, y = ImpactY, z = ImpactZ, entity = 0 }
+	end
+
 	local CamRot = GetGameplayCamRot(2)
 	local Direction = RotationToDirection(CamRot)
+	local Start = StartCoords or GetPedBoneCoords(Ped, 57005, 0.0, 0.0, 0.0)
 	local Dest = vector3(
-		CamCoords.x + Direction.x * 200.0,
-		CamCoords.y + Direction.y * 200.0,
-		CamCoords.z + Direction.z * 200.0
+		Start.x + Direction.x * 250.0,
+		Start.y + Direction.y * 250.0,
+		Start.z + Direction.z * 250.0
 	)
 
-	local Ray = StartShapeTestRay(CamCoords.x, CamCoords.y, CamCoords.z, Dest.x, Dest.y, Dest.z, -1, Ped, 0)
+	local Ray = StartShapeTestRay(Start.x, Start.y, Start.z, Dest.x, Dest.y, Dest.z, -1, Ped, 0)
 	local _, Hit, HitCoords, _, Entity = GetShapeTestResult(Ray)
 
 	if Hit == 1 then
@@ -234,7 +262,7 @@ end
 -----------------------------------------------------------------------------------------------------------------------------------------
 CreateThread(function()
 	while true do
-		Wait(400)
+		Wait(350)
 		local Ped = PlayerPedId()
 		local Health = GetEntityHealth(Ped)
 
@@ -244,6 +272,14 @@ CreateThread(function()
 				TriggerServerEvent("iml-evidencias:CreateEvidence", {
 					type = "blood",
 					coords = { x = Coords.x, y = Coords.y, z = Coords.z - 0.95 }
+				})
+			end
+
+			if math.random(100) <= Config.Chances.DnaDrop then
+				local Coords = GetEntityCoords(Ped)
+				TriggerServerEvent("iml-evidencias:CreateEvidence", {
+					type = "dna",
+					coords = { x = Coords.x + math.random(-30, 30) / 100, y = Coords.y + math.random(-30, 30) / 100, z = Coords.z - 0.95 }
 				})
 			end
 		end

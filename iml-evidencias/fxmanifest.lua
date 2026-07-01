@@ -4,8 +4,8 @@ lua54 "yes"
 
 name "iml-evidencias"
 author "Creative Uncharted"
-description "Sistema completo de IML e evidências forenses"
-version "1.1.0"
+description "Sistema avançado de IML e evidências forenses"
+version "2.0.0"
 
 shared_scripts {
 	"@vrp/config/Item.lua",
@@ -19,7 +19,11 @@ client_scripts {
 	"@vrp/lib/Utils.lua",
 	"client/main.lua",
 	"client/death.lua",
-	"client/forensics.lua"
+	"client/scene.lua",
+	"client/minigames.lua",
+	"client/vehicles.lua",
+	"client/forensics.lua",
+	"client/tablet.lua"
 }
 
 server_scripts {
@@ -27,6 +31,8 @@ server_scripts {
 	"server/database.lua",
 	"server/weapons.lua",
 	"server/death.lua",
+	"server/cases.lua",
+	"server/items.lua",
 	"server/main.lua"
 }
 
@@ -39,3 +45,12 @@ files {
 }
 
 dependency "vrp"
+
+exports {
+	"UseItem",
+	"UseLuvas",
+	"UseBodyBag",
+	"UseTablet",
+	"UseGsrScanner",
+	"UseLaudo"
+}

@@ -114,3 +114,15 @@ CREATE TABLE IF NOT EXISTS `iml_death_records` (
 	KEY `victim_passport` (`victim_passport`),
 	KEY `killer_passport` (`killer_passport`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `iml_cases` (
+	`id` INT(11) NOT NULL AUTO_INCREMENT,
+	`case_id` VARCHAR(64) NOT NULL,
+	`title` VARCHAR(128) NOT NULL,
+	`notes` TEXT DEFAULT NULL,
+	`author_passport` INT(11) NOT NULL,
+	`status` VARCHAR(32) DEFAULT 'aberto',
+	`created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+	PRIMARY KEY (`id`),
+	UNIQUE KEY `case_id` (`case_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

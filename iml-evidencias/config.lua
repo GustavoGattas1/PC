@@ -5,17 +5,14 @@ Config = {}
 
 Config.Debug = false
 
--- Grupo com permissão (apenas Polícia Civil)
 Config.Groups = {
 	Civil = { "Civil" }
 }
 
--- true = só vê/coleta em serviço (padrão Creative / scripts de polícia)
 Config.RequireService = true
 
 -----------------------------------------------------------------------------------------------------------------------------------------
--- NOTIFY (padrão da base — igual helicrash)
--- TriggerClientEvent("Notify", source, Titulo, Mensagem, Cor, Tempo)
+-- NOTIFY
 -----------------------------------------------------------------------------------------------------------------------------------------
 Config.Notify = {
 	success = { Title = "Sucesso", Color = "verde" },
@@ -35,7 +32,12 @@ Config.Items = {
 	GsrKit = "kit-gsr",
 	Laudo = "laudo-pericial",
 	DnaReport = "relatorio-dna",
-	BulletReport = "relatorio-balistica"
+	BulletReport = "relatorio-balistica",
+	ForensicTablet = "tablet-forense",
+	GsrScanner = "scanner-gsr",
+	EvidenceMarker = "marcador-evidencia",
+	PoliceTape = "fita-policial",
+	TireMold = "molde-pneu"
 }
 
 -----------------------------------------------------------------------------------------------------------------------------------------
@@ -45,27 +47,81 @@ Config.Chances = {
 	Blood = 90,
 	BloodPool = 100,
 	Fingerprint = 75,
-	Casing = 95,
-	Magazine = 45,
-	BulletImpact = 80,
-	GSR = 85,
-	VehicleBullet = 70
+	Casing = 98,
+	Magazine = 35,
+	BulletImpact = 90,
+	GSR = 90,
+	VehicleBullet = 75,
+	TireTrack = 80,
+	DnaDrop = 40
 }
 
 Config.EvidenceExpire = 7200
 Config.CorpseExpire = 3600
-Config.EvidenceCooldown = 2000
 Config.CollectDistance = 2.5
 Config.CorpseDistance = 3.0
-Config.MaxSceneEvidence = 300
+Config.MaxSceneEvidence = 400
+Config.MaxMarkers = 25
+Config.MaxTapeSegments = 40
+
+Config.EvidenceCooldown = {
+	default = 400,
+	casing = 80,
+	magazine = 800,
+	bullet = 200,
+	bullet_fragment = 200,
+	vehicle_bullet = 300,
+	blood = 600,
+	blood_pool = 0,
+	fingerprint = 1500,
+	tire_track = 1200,
+	gsr = 0
+}
 
 -----------------------------------------------------------------------------------------------------------------------------------------
--- LANTERNA (obrigatória para ver e coletar evidências)
+-- TEMPERATURA CORPORAL (segundos desde o óbito)
+-----------------------------------------------------------------------------------------------------------------------------------------
+Config.BodyTemperature = {
+	{ MaxSeconds = 300, Label = "Quente", Color = "#e74c3c", Description = "Corpo ainda quente — óbito muito recente" },
+	{ MaxSeconds = 1800, Label = "Morno", Color = "#f39c12", Description = "Corpo em resfriamento — óbito recente" },
+	{ MaxSeconds = 7200, Label = "Frio", Color = "#3498db", Description = "Corpo frio — óbito há algum tempo" },
+	{ MaxSeconds = 999999, Label = "Gelado", Color = "#5dade2", Description = "Rigor mortis avançado — corpo gelado" }
+}
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- LANTERNA
 -----------------------------------------------------------------------------------------------------------------------------------------
 Config.Flashlight = {
 	Weapon = `WEAPON_FLASHLIGHT`,
 	RequireAiming = false,
-	DrawDistance = 25.0
+	DrawDistance = 30.0
+}
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- OVERLAY DE CENA DO CRIME
+-----------------------------------------------------------------------------------------------------------------------------------------
+Config.SceneOverlay = {
+	Enabled = true,
+	Key = 244, -- M
+	Command = "cena",
+	DrawDistance = 45.0,
+	ShowIcons = true,
+	ShowProps = true
+}
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- PROPS 3D
+-----------------------------------------------------------------------------------------------------------------------------------------
+Config.Props = {
+	casing = { Model = `w_pi_singleshot_shell`, Scale = 1.0 },
+	magazine = { Model = `w_pi_singleshot_shell`, Scale = 1.2 },
+	bullet = { Model = `w_pi_flaregun_shell`, Scale = 0.8 },
+	bullet_fragment = { Model = `w_pi_flaregun_shell`, Scale = 0.6 },
+	blood = { Model = `p_bloodsplat_s`, Scale = 0.5 },
+	blood_pool = { Model = `p_bloodsplat_s`, Scale = 1.2 },
+	fingerprint = { Model = `prop_cs_r_business_card`, Scale = 0.3 },
+	tire_track = { Model = `prop_roadcone02a`, Scale = 0.3 },
+	vehicle_bullet = { Model = `prop_cs_cardbox_01`, Scale = 0.2 }
 }
 
 -----------------------------------------------------------------------------------------------------------------------------------------
@@ -111,16 +167,18 @@ Config.Marker = {
 -- TIPOS DE EVIDÊNCIA
 -----------------------------------------------------------------------------------------------------------------------------------------
 Config.EvidenceTypes = {
-	blood = { Label = "Amostra de Sangue", Icon = "🩸", Color = "#c0392b" },
-	blood_pool = { Label = "Poça de Sangue", Icon = "🩸", Color = "#922b21" },
+	blood = { Label = "Amostra de Sangue", Icon = "🩸", Color = "#c0392b", Minigame = "swab" },
+	blood_pool = { Label = "Poça de Sangue", Icon = "🩸", Color = "#922b21", Minigame = "swab" },
 	blood_swab = { Label = "Swab de Sangue (Cadáver)", Icon = "🧪", Color = "#c0392b" },
-	fingerprint = { Label = "Impressão Digital", Icon = "👆", Color = "#8e44ad" },
-	casing = { Label = "Cápsula de Projétil", Icon = "🔫", Color = "#d4ac0d" },
-	magazine = { Label = "Pente Abandonado", Icon = "📦", Color = "#2c3e50" },
-	bullet = { Label = "Projétil Impactado", Icon = "💥", Color = "#e67e22" },
-	bullet_fragment = { Label = "Fragmento de Projétil", Icon = "💥", Color = "#ca6f1e" },
+	fingerprint = { Label = "Impressão Digital", Icon = "👆", Color = "#8e44ad", Minigame = "pickup" },
+	dna = { Label = "Amostra de DNA", Icon = "🧬", Color = "#9b59b6", Minigame = "swab" },
+	casing = { Label = "Cápsula de Projétil", Icon = "🔫", Color = "#d4ac0d", Minigame = "bag" },
+	magazine = { Label = "Pente Abandonado", Icon = "📦", Color = "#2c3e50", Minigame = "bag" },
+	bullet = { Label = "Projétil Impactado", Icon = "💥", Color = "#e67e22", Minigame = "bag" },
+	bullet_fragment = { Label = "Fragmento de Projétil", Icon = "💥", Color = "#ca6f1e", Minigame = "bag" },
 	gsr = { Label = "Resíduo de Pólvora (GSR)", Icon = "🧤", Color = "#566573" },
-	vehicle_bullet = { Label = "Marca de Tiro em Veículo", Icon = "🚗", Color = "#1a5276" }
+	vehicle_bullet = { Label = "Marca de Tiro em Veículo", Icon = "🚗", Color = "#1a5276", Minigame = "pickup" },
+	tire_track = { Label = "Rastro de Pneu", Icon = "🛞", Color = "#566573", Minigame = "mold" }
 }
 
 -----------------------------------------------------------------------------------------------------------------------------------------
@@ -157,34 +215,34 @@ Config.Weapons = {
 }
 
 -----------------------------------------------------------------------------------------------------------------------------------------
--- MUNIÇÃO / CALIBRE POR ARMA
+-- MUNIÇÃO / CALIBRE
 -----------------------------------------------------------------------------------------------------------------------------------------
 Config.AmmoTypes = {
-	[`WEAPON_PISTOL`] = { Type = "9mm", Label = "9x19mm Parabellum", Category = "Pistola" },
-	[`WEAPON_COMBATPISTOL`] = { Type = "9mm", Label = "9x19mm Parabellum", Category = "Pistola" },
-	[`WEAPON_APPISTOL`] = { Type = "9mm", Label = "9x19mm AP", Category = "Pistola" },
-	[`WEAPON_PISTOL50`] = { Type = ".50", Label = ".50 AE", Category = "Pistola" },
-	[`WEAPON_SNSPISTOL`] = { Type = ".22", Label = ".22 LR", Category = "Pistola" },
-	[`WEAPON_HEAVYPISTOL`] = { Type = ".45", Label = ".45 ACP", Category = "Pistola" },
-	[`WEAPON_VINTAGEPISTOL`] = { Type = "9mm", Label = "9x19mm Vintage", Category = "Pistola" },
-	[`WEAPON_MICROSMG`] = { Type = "9mm", Label = "9x19mm SMG", Category = "Submetralhadora" },
-	[`WEAPON_SMG`] = { Type = "9mm", Label = "9x19mm SMG", Category = "Submetralhadora" },
-	[`WEAPON_ASSAULTSMG`] = { Type = "9mm", Label = "9x19mm Assault SMG", Category = "Submetralhadora" },
-	[`WEAPON_MACHINEPISTOL`] = { Type = "9mm", Label = "9x19mm Machine Pistol", Category = "Submetralhadora" },
-	[`WEAPON_ASSAULTRIFLE`] = { Type = "5.56", Label = "5.56x45mm NATO", Category = "Rifle" },
-	[`WEAPON_CARBINERIFLE`] = { Type = "5.56", Label = "5.56x45mm NATO", Category = "Rifle" },
-	[`WEAPON_ADVANCEDRIFLE`] = { Type = "5.56", Label = "5.56x45mm NATO", Category = "Rifle" },
-	[`WEAPON_SPECIALCARBINE`] = { Type = "5.56", Label = "5.56x45mm NATO", Category = "Rifle" },
-	[`WEAPON_BULLPUPRIFLE`] = { Type = "5.56", Label = "5.56x45mm NATO", Category = "Rifle" },
-	[`WEAPON_PUMPSHOTGUN`] = { Type = "12ga", Label = "Calibre 12", Category = "Shotgun" },
-	[`WEAPON_SAWNOFFSHOTGUN`] = { Type = "12ga", Label = "Calibre 12", Category = "Shotgun" },
-	[`WEAPON_ASSAULTSHOTGUN`] = { Type = "12ga", Label = "Calibre 12", Category = "Shotgun" },
-	[`WEAPON_SNIPERRIFLE`] = { Type = ".308", Label = ".308 Winchester", Category = "Precisão" },
-	[`WEAPON_HEAVYSNIPER`] = { Type = ".50", Label = ".50 BMG", Category = "Precisão" }
+	[`WEAPON_PISTOL`] = { Type = "9mm", Label = "9x19mm Parabellum", Category = "Pistola", CasingModel = `w_pi_singleshot_shell` },
+	[`WEAPON_COMBATPISTOL`] = { Type = "9mm", Label = "9x19mm Parabellum", Category = "Pistola", CasingModel = `w_pi_singleshot_shell` },
+	[`WEAPON_APPISTOL`] = { Type = "9mm", Label = "9x19mm AP", Category = "Pistola", CasingModel = `w_pi_singleshot_shell` },
+	[`WEAPON_PISTOL50`] = { Type = ".50", Label = ".50 AE", Category = "Pistola", CasingModel = `w_pi_singleshot_shell` },
+	[`WEAPON_SNSPISTOL`] = { Type = ".22", Label = ".22 LR", Category = "Pistola", CasingModel = `w_pi_singleshot_shell` },
+	[`WEAPON_HEAVYPISTOL`] = { Type = ".45", Label = ".45 ACP", Category = "Pistola", CasingModel = `w_pi_singleshot_shell` },
+	[`WEAPON_VINTAGEPISTOL`] = { Type = "9mm", Label = "9x19mm Vintage", Category = "Pistola", CasingModel = `w_pi_singleshot_shell` },
+	[`WEAPON_MICROSMG`] = { Type = "9mm", Label = "9x19mm SMG", Category = "Submetralhadora", CasingModel = `w_pi_singleshot_shell` },
+	[`WEAPON_SMG`] = { Type = "9mm", Label = "9x19mm SMG", Category = "Submetralhadora", CasingModel = `w_pi_singleshot_shell` },
+	[`WEAPON_ASSAULTSMG`] = { Type = "9mm", Label = "9x19mm Assault SMG", Category = "Submetralhadora", CasingModel = `w_pi_singleshot_shell` },
+	[`WEAPON_MACHINEPISTOL`] = { Type = "9mm", Label = "9x19mm Machine Pistol", Category = "Submetralhadora", CasingModel = `w_pi_singleshot_shell` },
+	[`WEAPON_ASSAULTRIFLE`] = { Type = "5.56", Label = "5.56x45mm NATO", Category = "Rifle", CasingModel = `w_pi_flaregun_shell` },
+	[`WEAPON_CARBINERIFLE`] = { Type = "5.56", Label = "5.56x45mm NATO", Category = "Rifle", CasingModel = `w_pi_flaregun_shell` },
+	[`WEAPON_ADVANCEDRIFLE`] = { Type = "5.56", Label = "5.56x45mm NATO", Category = "Rifle", CasingModel = `w_pi_flaregun_shell` },
+	[`WEAPON_SPECIALCARBINE`] = { Type = "5.56", Label = "5.56x45mm NATO", Category = "Rifle", CasingModel = `w_pi_flaregun_shell` },
+	[`WEAPON_BULLPUPRIFLE`] = { Type = "5.56", Label = "5.56x45mm NATO", Category = "Rifle", CasingModel = `w_pi_flaregun_shell` },
+	[`WEAPON_PUMPSHOTGUN`] = { Type = "12ga", Label = "Calibre 12", Category = "Shotgun", CasingModel = `w_pi_flaregun_shell` },
+	[`WEAPON_SAWNOFFSHOTGUN`] = { Type = "12ga", Label = "Calibre 12", Category = "Shotgun", CasingModel = `w_pi_flaregun_shell` },
+	[`WEAPON_ASSAULTSHOTGUN`] = { Type = "12ga", Label = "Calibre 12", Category = "Shotgun", CasingModel = `w_pi_flaregun_shell` },
+	[`WEAPON_SNIPERRIFLE`] = { Type = ".308", Label = ".308 Winchester", Category = "Precisão", CasingModel = `w_pi_flaregun_shell` },
+	[`WEAPON_HEAVYSNIPER`] = { Type = ".50", Label = ".50 BMG", Category = "Precisão", CasingModel = `w_pi_flaregun_shell` }
 }
 
 -----------------------------------------------------------------------------------------------------------------------------------------
--- CAUSA DA MORTE POR TIPO DE ARMA
+-- CAUSA DA MORTE
 -----------------------------------------------------------------------------------------------------------------------------------------
 Config.DeathCauses = {
 	Firearm = "Hemorragia interna por projétil de arma de fogo",
@@ -204,7 +262,7 @@ Config.MeleeWeapons = {
 }
 
 -----------------------------------------------------------------------------------------------------------------------------------------
--- OSSOS / REGIÃO DO IMPACTO
+-- OSSOS / REGIÃO DO IMPACTO (painel 3D)
 -----------------------------------------------------------------------------------------------------------------------------------------
 Config.BoneLabels = {
 	[31086] = "Cabeça",
@@ -212,10 +270,30 @@ Config.BoneLabels = {
 	[24818] = "Tórax",
 	[24817] = "Abdômen",
 	[11816] = "Pelve",
-	[57005] = "Mão Direita",
-	[18905] = "Mão Esquerda",
+	[57005] = "Braço Direito",
+	[18905] = "Braço Esquerdo",
+	[40269] = "Braço Direito",
+	[45509] = "Braço Esquerdo",
 	[36864] = "Perna Direita",
-	[63931] = "Perna Esquerda"
+	[63931] = "Perna Esquerda",
+	[51826] = "Perna Direita",
+	[58271] = "Perna Esquerda",
+	[28422] = "Mão Direita",
+	[60309] = "Mão Esquerda"
+}
+
+Config.BoneZones = {
+	["Cabeça"] = "head",
+	["Pescoço"] = "neck",
+	["Tórax"] = "chest",
+	["Abdômen"] = "abdomen",
+	["Pelve"] = "pelvis",
+	["Braço Direito"] = "arm_right",
+	["Braço Esquerdo"] = "arm_left",
+	["Mão Direita"] = "hand_right",
+	["Mão Esquerda"] = "hand_left",
+	["Perna Direita"] = "leg_right",
+	["Perna Esquerda"] = "leg_left"
 }
 
 -----------------------------------------------------------------------------------------------------------------------------------------
@@ -247,5 +325,17 @@ Config.Lang = {
 	BloodSwabCollected = "Amostra de sangue do cadáver coletada.",
 	NoCorpse = "Nenhum cadáver encontrado nas proximidades.",
 	CorpseAlreadyBagged = "Este corpo já foi acondicionado.",
-	GsrCollected = "Amostra GSR coletada das mãos do suspeito."
+	GsrCollected = "Amostra GSR coletada das mãos do suspeito.",
+	GsrPositive = "GSR POSITIVO — disparo recente detectado.",
+	GsrNegative = "GSR NEGATIVO — sem resíduo de pólvora.",
+	OverlayOn = "Overlay de investigação ativado.",
+	OverlayOff = "Overlay de investigação desativado.",
+	MarkerPlaced = "Marcador de evidência posicionado.",
+	TapePlaced = "Fita policial instalada.",
+	MinigameFailed = "Coleta falhou — tente novamente.",
+	CaseArchived = "Caso arquivado com sucesso.",
+	ReportPrinted = "Laudo impresso no prancheta.",
+	NeedBodyBag = "Você precisa de um saco mortuário.",
+	NeedTablet = "Você precisa do tablet forense.",
+	NeedScanner = "Você precisa do scanner GSR portátil."
 }
