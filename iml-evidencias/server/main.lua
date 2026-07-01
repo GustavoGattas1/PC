@@ -45,6 +45,14 @@ function IML_ValidateFlashlight(Source)
 	return Active == true
 end
 
+function IML.CanCollectGround()
+	local Passport = vRP.Passport(source)
+	if not Passport or not IML.CanCollect(Passport) then
+		return false
+	end
+	return vRP.ItemAmount(Passport, Config.Items.ForensicKit) >= 1
+end
+
 local function CheckCooldown(Source, Key, Time)
 	if not Time or Time <= 0 then return true end
 
@@ -230,17 +238,20 @@ AddEventHandler("iml-evidencias:CollectEvidence", function(EvidenceId)
 
 	if vRP.ItemAmount(Passport, Config.Items.ForensicKit) < 1 then
 		IML_Notify(Source, "negado", Config.Lang.NeedKit)
+		TriggerClientEvent("iml-evidencias:CollectFailed", Source)
 		return
 	end
 
 	if not IML_ValidateFlashlight(Source) then
 		IML_Notify(Source, "negado", Config.Lang.NeedFlashlight)
+		TriggerClientEvent("iml-evidencias:CollectFailed", Source)
 		return
 	end
 
 	local Evidence = SceneEvidence[EvidenceId]
 	if not Evidence or Evidence.collected then
 		IML_Notify(Source, "negado", Config.Lang.AlreadyCollected)
+		TriggerClientEvent("iml-evidencias:CollectFailed", Source)
 		return
 	end
 

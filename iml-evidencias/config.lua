@@ -131,12 +131,10 @@ Config.SceneOverlay = {
 -----------------------------------------------------------------------------------------------------------------------------------------
 Config.Collection = {
 	UseProgress = true,
-	ProgressDuration = 3500,
+	ProgressDuration = 2500,
 	UseMinigameAfter = true,
-	AnimDict = "amb@medic@standing@kneel@base",
-	AnimName = "base",
-	AnimDictBag = "anim@scripted@freemode@postertag@collect_can@male@",
-	AnimNameBag = "collect_can_male"
+	AnimDict = "random@domestic",
+	AnimName = "pickup_low"
 }
 
 -----------------------------------------------------------------------------------------------------------------------------------------

@@ -43,6 +43,8 @@ let currentBodyExam = null;
 let mgAnim = null;
 let mgCallback = null;
 let progressAnim = null;
+let nuiPanelOpen = false;
+let collectionUiActive = false;
 
 function post(endpoint, data = {}) {
 	return fetch(`https://iml-evidencias/${endpoint}`, {
@@ -59,10 +61,24 @@ function hideAllViews() {
 function showApp() {
 	app.classList.remove("hidden");
 	mainPanel.classList.remove("hidden");
+	nuiPanelOpen = true;
 	reportDate.textContent = new Date().toLocaleString("pt-BR");
 }
 
+function hideCollectionUi() {
+	collectionUiActive = false;
+	minigameOverlay.classList.add("hidden");
+	progressOverlay.classList.add("hidden");
+	if (!nuiPanelOpen) {
+		app.classList.add("hidden");
+	}
+	mainPanel.classList.remove("hidden");
+	mainPanel.classList.remove("panel-tablet");
+}
+
 function closeApp() {
+	nuiPanelOpen = false;
+	collectionUiActive = false;
 	app.classList.add("hidden");
 	minigameOverlay.classList.add("hidden");
 	progressOverlay.classList.add("hidden");
@@ -85,7 +101,15 @@ function findingsList(items) {
 
 document.getElementById("btn-close").addEventListener("click", closeApp);
 document.addEventListener("keydown", (e) => {
-	if (e.key === "Escape") closeApp();
+	if (e.key === "Escape") {
+		if (collectionUiActive) {
+			post("progressCancel");
+			post("minigameCancel");
+			hideCollectionUi();
+			return;
+		}
+		closeApp();
+	}
 	if (mgAnim && e.code === "Space") {
 		e.preventDefault();
 		checkMinigame();
@@ -321,6 +345,8 @@ function startMinigame(type) {
 	const hints = { swab: "Estabilize o swab no sangue", bag: "Lacre o saco de evidência", mold: "Pressione o molde no rastro", pickup: "Colete com precisão" };
 	document.getElementById("minigame-title").textContent = "Coleta Forense";
 	document.getElementById("minigame-hint").textContent = hints[type] || "Pressione ESPAÇO no momento certo";
+	collectionUiActive = true;
+	app.classList.remove("hidden");
 	minigameOverlay.classList.remove("hidden");
 	mainPanel.classList.add("hidden");
 
@@ -338,7 +364,6 @@ function startMinigame(type) {
 		const success = pos >= 38 && pos <= 62;
 		stopMinigame();
 		minigameOverlay.classList.add("hidden");
-		mainPanel.classList.remove("hidden");
 		post("minigameResult", { success });
 	};
 }
@@ -366,6 +391,8 @@ function startProgress(label, duration) {
 	circle.style.strokeDashoffset = circumference;
 	labelEl.textContent = label || "Coletando evidência...";
 	pct.textContent = "0%";
+	collectionUiActive = true;
+	app.classList.remove("hidden");
 	progressOverlay.classList.remove("hidden");
 	mainPanel.classList.add("hidden");
 
@@ -379,7 +406,6 @@ function startProgress(label, duration) {
 		if (progress >= 1) {
 			stopProgress();
 			progressOverlay.classList.add("hidden");
-			mainPanel.classList.remove("hidden");
 			post("progressComplete");
 		}
 	}, 30);
@@ -411,6 +437,18 @@ window.addEventListener("message", (event) => {
 		panelSubtitle.textContent = "Analisando suspeito...";
 		views.gsr.classList.remove("hidden");
 		document.getElementById("gsr-result").innerHTML = '<div class="gsr-scanning"><div class="radar"></div><p>Escaneando resíduo de pólvora...</p></div>';
+		return;
+	}
+
+	if (data.action === "finishCollectionUi") {
+		hideCollectionUi();
+		return;
+	}
+
+	if (data.action === "cancelCollection") {
+		hideCollectionUi();
+		stopMinigame();
+		stopProgress();
 		return;
 	}
 

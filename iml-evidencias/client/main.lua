@@ -21,6 +21,8 @@ Tunnel.bindInterface("iml-evidencias", ClientIML)
 -----------------------------------------------------------------------------------------------------------------------------------------
 SceneEvidence = {}
 SceneCorpses = {}
+SceneMarkers = SceneMarkers or {}
+SceneTape = SceneTape or {}
 WearingGloves = false
 NuiOpen = false
 IsCivil = false
@@ -270,6 +272,11 @@ function HandleLocationAction(Action)
 end
 
 function OpenLabMenu()
+	if not IsCivil then
+		IMLNotify("negado", Config.Lang.NotAuthorized)
+		return
+	end
+
 	local Evidence = vSERVER.GetMyEvidence()
 	if not Evidence or #Evidence == 0 then
 		IMLNotify("important", Config.Lang.NoEvidence)
@@ -281,6 +288,11 @@ function OpenLabMenu()
 end
 
 function OpenAutopsyMenu()
+	if not IsCivil then
+		IMLNotify("negado", Config.Lang.NotAuthorized)
+		return
+	end
+
 	local Bodies = vSERVER.GetPendingBodies()
 	SetNuiFocus(true, true)
 	NuiOpen = true
@@ -288,6 +300,11 @@ function OpenAutopsyMenu()
 end
 
 function OpenLockerMenu()
+	if not IsCivil then
+		IMLNotify("negado", Config.Lang.NotAuthorized)
+		return
+	end
+
 	local Evidence = vSERVER.GetMyEvidence()
 	SetNuiFocus(true, true)
 	NuiOpen = true
@@ -295,6 +312,11 @@ function OpenLockerMenu()
 end
 
 function OpenBodyDropMenu()
+	if not IsCivil then
+		IMLNotify("negado", Config.Lang.NotAuthorized)
+		return
+	end
+
 	local Bodies = vSERVER.GetMyBodies()
 	SetNuiFocus(true, true)
 	NuiOpen = true
@@ -315,8 +337,6 @@ RegisterNUICallback("analyze", function(Data, cb)
 	if Data and Data.evidence_id then
 		TriggerServerEvent("iml-evidencias:AnalyzeEvidence", Data.evidence_id)
 	end
-	SetNuiFocus(false, false)
-	NuiOpen = false
 	cb("ok")
 end)
 
@@ -324,8 +344,6 @@ RegisterNUICallback("autopsy", function(Data, cb)
 	if Data and Data.body_id then
 		TriggerServerEvent("iml-evidencias:PerformAutopsy", Data.body_id)
 	end
-	SetNuiFocus(false, false)
-	NuiOpen = false
 	cb("ok")
 end)
 
@@ -335,6 +353,7 @@ RegisterNUICallback("deliverBody", function(Data, cb)
 	end
 	SetNuiFocus(false, false)
 	NuiOpen = false
+	if RemoveTabletProp then RemoveTabletProp() end
 	cb("ok")
 end)
 
@@ -342,7 +361,7 @@ RegisterNetEvent("iml-evidencias:OpenReport")
 AddEventHandler("iml-evidencias:OpenReport", function(Report, Title)
 	SetNuiFocus(true, true)
 	NuiOpen = true
-	SendNUIMessage({ action = "openReport", report = Report, title = Title })
+	SendNUIMessage({ action = "openReport", report = Report, title = Title or "Laudo Pericial" })
 end)
 
 RegisterNetEvent("iml-evidencias:BodyCollected")

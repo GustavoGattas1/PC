@@ -44,7 +44,19 @@ Sistema completo de perícia e evidências para **Creative Uncharted** (FiveM).
 - Grupo: **Civil** (em serviço se `Config.RequireService = true`)
 - Lanterna (`WEAPON_FLASHLIGHT`) obrigatória para ver/coletar evidências
 
-## Comandos
+## Coletar evidência no chão
+
+1. Grupo **Civil** em serviço
+2. **Lanterna** (`WEAPON_FLASHLIGHT`) na mão
+3. Item **kitpericia** no inventário
+4. Aproxime-se da evidência e pressione **E**
+5. Barra de progresso → minigame → evidência vai para o saco
+
+## Abrir / fechar painel
+
+- **Tablet**: item `kitpericia` ou `tablet-forense` (via export no Item.lua)
+- **Fechar**: botão X ou tecla **ESC**
+- Comandos: `/tabletforense`, `/cena` (overlay)
 
 | Comando | Ação |
 |---------|------|

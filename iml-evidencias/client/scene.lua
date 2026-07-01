@@ -210,13 +210,13 @@ CreateThread(function()
 							local RingSize = 0.35 * Pulse
 							DrawMarker(25, EvCoords.x, EvCoords.y, EvCoords.z + 0.02, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, RingSize, RingSize, 0.08, R, G, B, 120, false, false, 2, false, nil, nil, false)
 							DrawMarker(32, EvCoords.x, EvCoords.y, EvCoords.z + 0.55, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.2, 0.2, 0.2, R, G, B, 200, true, false, 2, true, nil, nil, false)
-							DrawLightWithRange(EvCoords.x, EvCoords.y, EvCoords.z + 0.3, R, G, B, 2.5, 0.4)
+							DrawLightWithRange(EvCoords.x, EvCoords.y, EvCoords.z + 0.3, R, G, B, 2.0, 0.3)
 							DrawFloatingLabel(EvCoords.x, EvCoords.y, EvCoords.z + 0.65, TypeInfo.Icon, "#" .. Index .. " " .. (TypeInfo.Label or "Evidência"), Distance)
 						else
 							DrawMarker(28, EvCoords.x, EvCoords.y, EvCoords.z + 0.05, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.1, 0.1, R, G, B, 140, false, false, 2, false, nil, nil, false)
 						end
 
-						if Distance < Config.CollectDistance and IsFlashlightOut() then
+						if Distance < Config.CollectDistance and IsFlashlightOut() and not Collecting and not NuiOpen then
 							if not SceneOverlayActive then
 								DrawText3D(EvCoords.x, EvCoords.y, EvCoords.z + 0.45, (TypeInfo.Icon or "📋") .. " ~y~[E]~w~ " .. (TypeInfo.Label or "Evidência"))
 							end

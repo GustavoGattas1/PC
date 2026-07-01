@@ -232,9 +232,9 @@ function HandlePlayerShot()
 end
 
 function GetLastBulletImpact(Ped, StartCoords)
-	local HasImpact, ImpactX, ImpactY, ImpactZ = GetPedLastWeaponImpactCoord(Ped)
-	if HasImpact then
-		return { x = ImpactX, y = ImpactY, z = ImpactZ, entity = 0 }
+	local HasImpact, Impact = GetPedLastWeaponImpactCoord(Ped)
+	if HasImpact and Impact then
+		return { x = Impact.x, y = Impact.y, z = Impact.z, entity = 0 }
 	end
 
 	local CamRot = GetGameplayCamRot(2)

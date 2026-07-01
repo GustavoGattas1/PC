@@ -55,7 +55,6 @@ local ItemHandlers = {
 			IML_Notify(Source, "negado", Config.Lang.NotAuthorized)
 			return
 		end
-		SceneOverlayActive = nil
 		TriggerClientEvent("iml-evidencias:OpenTablet", Source)
 	end
 }
@@ -107,7 +106,9 @@ exports("UseBodyBag", function(Source)
 end)
 
 exports("UseTablet", function(Source)
-	return HandleItemUse(Source, Config.Items.ForensicTablet)
+	if HandleItemUse(Source, Config.Items.ForensicTablet) then return true end
+	if HandleItemUse(Source, Config.Items.ForensicKit) then return true end
+	return false
 end)
 
 exports("UseGsrScanner", function(Source)
