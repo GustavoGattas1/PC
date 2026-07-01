@@ -22,38 +22,6 @@ function GetClosestCorpsePlayer()
 	return ClosestPlayer
 end
 
------------------------------------------------------------------------------------------------------------------------------------------
--- COLETAR GSR DE SUSPEITO
------------------------------------------------------------------------------------------------------------------------------------------
-RegisterCommand("coletargsr", function()
-	if not IsCivil then
-		IMLNotify("negado", Config.Lang.NotAuthorized)
-		return
-	end
-
-	local Ped = PlayerPedId()
-	local PedCoords = GetEntityCoords(Ped)
-	local ClosestPlayer = nil
-	local ClosestDist = 2.5
-
-	for _, Player in ipairs(GetActivePlayers()) do
-		local TargetPed = GetPlayerPed(Player)
-		if TargetPed ~= Ped then
-			local Dist = #(PedCoords - GetEntityCoords(TargetPed))
-			if Dist < ClosestDist then
-				ClosestDist = Dist
-				ClosestPlayer = GetPlayerServerId(Player)
-			end
-		end
-	end
-
-	if ClosestPlayer then
-		TriggerServerEvent("iml-evidencias:CollectGSR", ClosestPlayer)
-	else
-		IMLNotify("negado", "Nenhum suspeito próximo.")
-	end
-end)
-
 RegisterCommand("periciar", function()
 	local TargetSource = GetClosestCorpsePlayer()
 	if TargetSource then

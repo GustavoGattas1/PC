@@ -28,12 +28,10 @@ Config.Items = {
 	EvidenceBag = "sacoevidencia",
 	LatexGloves = "luvaslatex",
 	BloodSwab = "swabsangue",
-	GsrKit = "kitgsr",
 	Laudo = "laudopericial",
 	DnaReport = "relatoriodna",
 	BulletReport = "relatoriobalistica",
 	ForensicTablet = "tabletforense",
-	GsrScanner = "scannergsr",
 	EvidenceMarker = "marcadorevidencia",
 	TireMold = "moldepneu"
 }
@@ -48,7 +46,6 @@ Config.Chances = {
 	Casing = 98,
 	Magazine = 35,
 	BulletImpact = 90,
-	GSR = 90,
 	VehicleBullet = 75,
 	TireTrack = 80,
 	DnaDrop = 40
@@ -78,8 +75,7 @@ Config.EvidenceCooldown = {
 	blood = 600,
 	blood_pool = 0,
 	fingerprint = 1500,
-	tire_track = 1200,
-	gsr = 0
+	tire_track = 1200
 }
 
 -----------------------------------------------------------------------------------------------------------------------------------------
@@ -218,7 +214,6 @@ Config.EvidenceTypes = {
 	magazine = { Label = "Pente Abandonado", Icon = "📦", Color = "#2c3e50", Minigame = "bag" },
 	bullet = { Label = "Projétil Impactado", Icon = "💥", Color = "#e67e22", Minigame = "bag" },
 	bullet_fragment = { Label = "Fragmento de Projétil", Icon = "💥", Color = "#ca6f1e", Minigame = "bag" },
-	gsr = { Label = "Resíduo de Pólvora (GSR)", Icon = "🧤", Color = "#566573" },
 	vehicle_bullet = { Label = "Marca de Tiro em Veículo", Icon = "🚗", Color = "#1a5276", Minigame = "pickup" },
 	tire_track = { Label = "Rastro de Pneu", Icon = "🛞", Color = "#566573", Minigame = "mold" }
 }
@@ -357,16 +352,12 @@ Config.Lang = {
 	FingerprintNoMatch = "Digital não encontrada na base de dados.",
 	BallisticMatch = "Arma: %s | Calibre: %s | Serial: %s",
 	BallisticOwner = "Registro balístico vinculado a: %s (Passaporte #%s)",
-	GsrMatch = "Resíduo de pólvora compatível com disparo recente de %s",
 	Cooldown = "Aguarde antes de realizar outra ação.",
 	AlreadyCollected = "Esta evidência já foi coletada.",
 	SceneFull = "Limite de evidências na cena atingido.",
 	CorpseExamined = "Perícia preliminar do corpo concluída.",
 	BloodSwabCollected = "Amostra de sangue do cadáver coletada.",
 	NoCorpse = "Nenhum cadáver encontrado nas proximidades.",
-	GsrCollected = "Amostra GSR coletada das mãos do suspeito.",
-	GsrPositive = "GSR POSITIVO — disparo recente detectado.",
-	GsrNegative = "GSR NEGATIVO — sem resíduo de pólvora.",
 	OverlayOn = "Overlay de investigação ativado.",
 	OverlayOff = "Overlay de investigação desativado.",
 	MarkerPlaced = "Marcador de evidência posicionado.",
@@ -377,7 +368,6 @@ Config.Lang = {
 	CaseArchived = "Caso arquivado com sucesso.",
 	ReportPrinted = "Laudo impresso no prancheta.",
 	NeedTablet = "Você precisa do tablet forense.",
-	NeedScanner = "Você precisa do scanner GSR portátil.",
 	PanelBusy = "Feche o painel aberto antes de abrir outro.",
 	ItemNotRecognized = "Item forense não configurado no IML."
 }

@@ -12,14 +12,13 @@ const views = {
 	locker: document.getElementById("view-locker"),
 	report: document.getElementById("view-report"),
 	tablet: document.getElementById("view-tablet"),
-	bodyDiagram: document.getElementById("view-body-diagram"),
-	gsr: document.getElementById("view-gsr")
+	bodyDiagram: document.getElementById("view-body-diagram")
 };
 
 const evidenceIcons = {
 	blood: "🩸", blood_pool: "🩸", blood_swab: "🧪", fingerprint: "👆", dna: "🧬",
 	casing: "🔫", magazine: "📦", bullet: "💥", bullet_fragment: "💥",
-	gsr: "🧤", vehicle_bullet: "🚗", tire_track: "🛞", autopsy: "⚕", corpse_exam: "⚰"
+	vehicle_bullet: "🚗", tire_track: "🛞", autopsy: "⚕", corpse_exam: "⚰"
 };
 
 const zoneLabels = {
@@ -148,7 +147,6 @@ document.getElementById("btn-refresh-scene").addEventListener("click", () => pos
 
 document.getElementById("btn-overlay").addEventListener("click", () => post("toggleOverlay"));
 document.getElementById("btn-marker").addEventListener("click", () => { post("placeMarker"); closeApp(); });
-document.getElementById("btn-gsr-scan").addEventListener("click", () => { post("scanNearbyGsr"); closeApp(); });
 
 const minigameThemes = {
 	swab: { icon: "🩸", badge: "SANGUE", className: "theme-swab" },
@@ -763,20 +761,6 @@ function renderBodyDiagram(exam) {
 	`;
 }
 
-function renderGsrScanner(result) {
-	const el = document.getElementById("gsr-result");
-	const positive = result?.positive;
-	el.innerHTML = `
-		<div class="gsr-display ${positive ? "positive" : "negative"}">
-			<div class="gsr-icon">${positive ? "⚠" : "✓"}</div>
-			<h3>${positive ? "GSR POSITIVO" : "GSR NEGATIVO"}</h3>
-			<p>${result?.message || ""}</p>
-			${result?.suspect ? `<p>Suspeito: <strong>${result.suspect.Name}</strong> (#${result.suspect.Passport})</p>` : ""}
-			${result?.weapon ? `<p>Arma: <strong>${result.weapon}</strong></p>` : ""}
-		</div>
-	`;
-}
-
 function renderSceneScan(scene) {
 	const el = document.getElementById("scene-scan-list");
 	el.innerHTML = "";
@@ -871,16 +855,6 @@ window.addEventListener("message", (event) => {
 		return;
 	}
 
-	if (data.action === "startGsrScan") {
-		hideAllViews();
-		showApp();
-		panelTitle.textContent = "Scanner GSR";
-		panelSubtitle.textContent = "Analisando suspeito...";
-		views.gsr.classList.remove("hidden");
-		document.getElementById("gsr-result").innerHTML = '<div class="gsr-scanning"><div class="radar"></div><p>Escaneando resíduo de pólvora...</p></div>';
-		return;
-	}
-
 	if (data.action === "finishCollectionUi") {
 		hideCollectionUi();
 		return;
@@ -935,12 +909,6 @@ window.addEventListener("message", (event) => {
 			panelSubtitle.textContent = "Análise do impacto balístico";
 			views.bodyDiagram.classList.remove("hidden");
 			renderBodyDiagram(data.exam);
-			break;
-		case "openGsrScanner":
-			panelTitle.textContent = "Scanner GSR";
-			panelSubtitle.textContent = "Detecção de pólvora";
-			views.gsr.classList.remove("hidden");
-			renderGsrScanner(data.result);
 			break;
 	}
 });

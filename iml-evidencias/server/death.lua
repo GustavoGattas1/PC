@@ -255,19 +255,6 @@ function IML_AnalyzeEvidence(ItemData)
 			Result.message = Config.Lang.FingerprintNoMatch
 		end
 
-	elseif ItemData.type == "gsr" then
-		local WeaponName = GetWeaponLabel(ItemData.weapon_hash)
-		local Ammo = GetAmmoInfo(ItemData.weapon_hash)
-		Result.match = true
-		Result.weapon = WeaponName
-		Result.ammo_label = Ammo.Label
-		Result.message = string.format(Config.Lang.GsrMatch, WeaponName)
-		if ItemData.passport then
-			local Identity = IML_GetIdentity(ItemData.passport)
-			Result.identity = Identity
-			Result.message = Result.message .. " — Suspeito: " .. Identity.Name .. " (#" .. ItemData.passport .. ")"
-		end
-
 	elseif ItemData.type == "casing" or ItemData.type == "magazine" or ItemData.type == "bullet" or ItemData.type == "bullet_fragment" or ItemData.type == "vehicle_bullet" then
 		Result = IML_BuildBallisticResult(ItemData.weapon_hash, ItemData.weapon_serial)
 

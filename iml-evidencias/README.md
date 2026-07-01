@@ -5,7 +5,6 @@ Sistema completo de perícia e evidências para **Creative Uncharted** (FiveM).
 ## Funcionalidades
 
 - Cápsulas, projéteis impactados e marcas em veículos (props 3D por calibre)
-- Teste GSR (kit + scanner portátil)
 - Sangue, poças de sangue e swab em cadáveres
 - Rastros de pneu (derrapagem/burnout)
 - DNA e impressões digitais
@@ -23,7 +22,7 @@ Sistema completo de perícia e evidências para **Creative Uncharted** (FiveM).
 1. Copie `iml-evidencias/` para `resources/`
 2. Execute `sql/install.sql` no banco
 3. Cadastre os itens em `@vrp/config/Item.lua` — veja `items_reference.lua`
-4. Adicione ao `server.cfg`: `ensure iml-evidencias` (depois do `vrp`)
+4. Adicione ao `server.cfg`: `ensure iml-evidencias` (depois do `vrp` e do `target`)
 
 ## Itens obrigatórios
 
@@ -33,8 +32,6 @@ Sistema completo de perícia e evidências para **Creative Uncharted** (FiveM).
 | `luvaslatex` | Evitar digitais |
 | `sacoevidencia` | Receber evidências coletadas |
 | `swabsangue` | Coletar sangue do cadáver |
-| `kitgsr` | Coleta GSR em suspeito |
-| `scannergsr` | Scanner portátil GSR |
 | `laudopericial` | Ver laudos |
 | `marcadorevidencia` | Marcador numerado |
 
@@ -69,6 +66,8 @@ Aponte o **olhinho (target)** no cadáver com a lanterna equipada:
 - **Periciar Cadáver** — exame preliminar / painel balístico
 - **Coletar Sangue (Swab)** — amostra do cadáver (requer `swabsangue`)
 
+O target registra opções em **peds** e **players** (cadáveres mortos são detectados como ped).
+
 ## Abrir / fechar painel
 
 - **Tablet**: item `kitpericia` ou `tabletforense` (via export no Item.lua)
@@ -83,7 +82,6 @@ Aponte o **olhinho (target)** no cadáver com a lanterna equipada:
 | `/tabletforense` | Abrir tablet |
 | `/periciar` | Periciar cadáver próximo |
 | `/coletarsangue` | Swab no cadáver |
-| `/coletargsr` | Coletar GSR do suspeito |
 
 ## Perícia em local de tiro
 
@@ -104,7 +102,6 @@ Exports individuais (opcional):
 ```lua
 exports["iml-evidencias"]:UseLuvas(source)
 exports["iml-evidencias"]:UseTablet(source)
-exports["iml-evidencias"]:UseGsrScanner(source)
 exports["iml-evidencias"]:UseLaudo(source)
 exports["iml-evidencias"]:UseMarcador(source)
 ```

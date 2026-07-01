@@ -1,5 +1,5 @@
 -----------------------------------------------------------------------------------------------------------------------------------------
--- TABLET FORENSE E SCANNER GSR (estilo Pluto Dev)
+-- TABLET FORENSE
 -----------------------------------------------------------------------------------------------------------------------------------------
 local TabletProp = nil
 
@@ -86,54 +86,6 @@ AddEventHandler("iml-evidencias:OpenTablet", function()
 	AttachTabletProp()
 end)
 
-RegisterNetEvent("iml-evidencias:OpenGsrScanner")
-AddEventHandler("iml-evidencias:OpenGsrScanner", function()
-	if not IsCivil then
-		IMLNotify("negado", Config.Lang.NotAuthorized)
-		return
-	end
-
-	if IsNuiBusy() then
-		IMLNotify("important", Config.Lang.PanelBusy)
-		return
-	end
-
-	local Ped = PlayerPedId()
-	local PedCoords = GetEntityCoords(Ped)
-	local ClosestPlayer = nil
-	local ClosestDist = 3.0
-
-	for _, Player in ipairs(GetActivePlayers()) do
-		local TargetPed = GetPlayerPed(Player)
-		if TargetPed ~= Ped then
-			local Dist = #(PedCoords - GetEntityCoords(TargetPed))
-			if Dist < ClosestDist then
-				ClosestDist = Dist
-				ClosestPlayer = GetPlayerServerId(Player)
-			end
-		end
-	end
-
-	if not ClosestPlayer then
-		IMLNotify("negado", "Nenhum suspeito próximo para escanear.")
-		return
-	end
-
-	if not OpenNuiPanel({ action = "startGsrScan" }, { replace = false }) then
-		return
-	end
-
-	TaskStartScenarioInPlace(Ped, "WORLD_HUMAN_STAND_MOBILE", 0, true)
-	Wait(2500)
-	vSERVER.ScanGSR(ClosestPlayer)
-	ClearPedTasks(Ped)
-end)
-
-RegisterNetEvent("iml-evidencias:GsrScanResult")
-AddEventHandler("iml-evidencias:GsrScanResult", function(Result)
-	OpenNuiPanel({ action = "openGsrScanner", result = Result })
-end)
-
 RegisterNetEvent("iml-evidencias:OpenBodyDiagram")
 AddEventHandler("iml-evidencias:OpenBodyDiagram", function(Exam)
 	OpenNuiPanel({ action = "openBodyDiagram", exam = Exam })
@@ -171,11 +123,6 @@ end)
 RegisterNUICallback("placeMarker", function(_, cb)
 	TriggerEvent("iml-evidencias:PlaceMarker", false)
 	closeTablet(cb)
-end)
-
-RegisterNUICallback("scanNearbyGsr", function(_, cb)
-	closeTablet(cb)
-	TriggerEvent("iml-evidencias:OpenGsrScanner")
 end)
 
 RegisterNUICallback("refreshScene", function(_, cb)

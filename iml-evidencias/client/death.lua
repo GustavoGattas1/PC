@@ -138,7 +138,7 @@ function HandlePlayerDeath()
 end
 
 -----------------------------------------------------------------------------------------------------------------------------------------
--- TIROS: CÁPSULAS, PROJÉTEIS, GSR
+-- TIROS: CÁPSULAS E PROJÉTEIS
 -- Detecção: CEventGunShot (gameEventTriggered) + IsPedShooting no loop
 -----------------------------------------------------------------------------------------------------------------------------------------
 CreateThread(function()
@@ -191,14 +191,6 @@ function HandlePlayerShot()
 			weapon_serial = Serial,
 			coords = MagCoords,
 			metadata = { caliber = Ammo.Type, ammo_label = Ammo.Label }
-		})
-	end
-
-	if math.random(100) <= Config.Chances.GSR then
-		TriggerServerEvent("iml-evidencias:CreateEvidence", {
-			type = "gsr",
-			weapon_hash = Weapon,
-			weapon_serial = Serial
 		})
 	end
 
