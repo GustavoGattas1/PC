@@ -9,7 +9,7 @@ vRPclient = Tunnel.getInterface("vRP")
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- TUNNEL
 -----------------------------------------------------------------------------------------------------------------------------------------
-IML = {}
+IML = IML or {}
 Tunnel.bindInterface("iml-evidencias", IML)
 vCLIENT = Tunnel.getInterface("iml-evidencias")
 
@@ -18,7 +18,7 @@ vCLIENT = Tunnel.getInterface("iml-evidencias")
 -----------------------------------------------------------------------------------------------------------------------------------------
 local PlayerCooldowns = {}
 local CollectedBodies = {}
-local PlayerGSR = {}
+PlayerGSR = {}
 
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- PERMISSÕES
@@ -46,6 +46,8 @@ function IML_ValidateFlashlight(Source)
 end
 
 local function CheckCooldown(Source, Key, Time)
+	if not Time or Time <= 0 then return true end
+
 	local Now = GetGameTimer()
 	if PlayerCooldowns[Source] and PlayerCooldowns[Source][Key] and (Now - PlayerCooldowns[Source][Key]) < Time then
 		return false
@@ -88,7 +90,7 @@ AddEventHandler("iml-evidencias:CreateEvidence", function(Data)
 	local Passport = vRP.Passport(Source)
 	if not Passport or not Data or not Data.type then return end
 
-	if not CheckCooldown(Source, "create_" .. Data.type, Config.EvidenceCooldown) then return end
+	if not CheckCooldown(Source, "create_" .. Data.type, GetEvidenceCooldown(Data.type)) then return end
 
 	local Count = 0
 	for _ in pairs(SceneEvidence) do Count = Count + 1 end
@@ -152,6 +154,7 @@ AddEventHandler("iml-evidencias:PlayerDied", function(Data)
 		weapon_serial = WeaponSerial,
 		cause_of_death = GetDeathCause(Data.weapon_hash),
 		bone_hit = Data.bone_hit,
+		bone_zone = Data.bone_zone,
 		distance = Data.distance,
 		headshot = Data.headshot,
 		coords = Data.coords
@@ -402,7 +405,12 @@ AddEventHandler("iml-evidencias:ExamineCorpse", function(TargetSource)
 		vRP.Query("iml/UpdateDeathExamined", { record_id = Record.record_id })
 	end
 
-	TriggerClientEvent("iml-evidencias:OpenReport", Source, Exam, "Perícia Preliminar do Cadáver")
+	if IsGunshotDeath(Record.weapon_hash) then
+		TriggerClientEvent("iml-evidencias:OpenBodyDiagram", Source, Exam)
+	else
+		TriggerClientEvent("iml-evidencias:OpenReport", Source, Exam, "Perícia Preliminar do Cadáver")
+	end
+
 	IML_Notify(Source, "success", Config.Lang.CorpseExamined)
 end)
 
@@ -638,7 +646,10 @@ AddEventHandler("iml-evidencias:ViewReport", function(ReportId)
 	local Source = source
 	local Passport = vRP.Passport(Source)
 	if not Passport then return end
+	IML_OpenLatestReport(Source, Passport, ReportId)
+end)
 
+function IML_OpenLatestReport(Source, Passport, ReportId)
 	local LaudoData = vRP.UserData(Passport, "iml_laudos") or {}
 	if type(LaudoData) == "string" then LaudoData = json.decode(LaudoData) or {} end
 
@@ -654,8 +665,9 @@ AddEventHandler("iml-evidencias:ViewReport", function(ReportId)
 	end
 
 	if not Report then
-		for _, Data in pairs(LaudoData) do
+		for Id, Data in pairs(LaudoData) do
 			Report = Data
+			ReportId = Id
 			break
 		end
 	end
@@ -665,7 +677,7 @@ AddEventHandler("iml-evidencias:ViewReport", function(ReportId)
 	else
 		IML_Notify(Source, "negado", "Laudo não encontrado.")
 	end
-end)
+end
 
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- TUNNEL GETTERS

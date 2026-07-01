@@ -49,7 +49,7 @@ CreateThread(function()
 						DrawMarker(20, TargetCoords.x, TargetCoords.y, TargetCoords.z + 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.3, 0.3, 0.3, 200, 30, 30, 120, false, false, 2, false, nil, nil, false)
 
 						if Dist < Config.CorpseDistance then
-							DrawText3D(TargetCoords.x, TargetCoords.y, TargetCoords.z + 0.5, "~y~[Lanterna]~w~ ~r~[E]~w~ Periciar  ~r~[G]~w~ Sangue  ~r~[H]~w~ Corpo")
+							DrawText3D(TargetCoords.x, TargetCoords.y, TargetCoords.z + 0.5, "~y~[Lanterna]~w~ ~r~[E]~w~ Periciar  ~r~[G]~w~ Sangue  ~r~[H]~w~ Saco")
 
 							local TargetSource = GetPlayerServerId(Player)
 
@@ -78,6 +78,11 @@ end)
 -- COLETAR GSR DE SUSPEITO
 -----------------------------------------------------------------------------------------------------------------------------------------
 RegisterCommand("coletargsr", function()
+	if not IsCivil then
+		IMLNotify("negado", Config.Lang.NotAuthorized)
+		return
+	end
+
 	local Ped = PlayerPedId()
 	local PedCoords = GetEntityCoords(Ped)
 	local ClosestPlayer = nil
@@ -101,9 +106,6 @@ RegisterCommand("coletargsr", function()
 	end
 end)
 
------------------------------------------------------------------------------------------------------------------------------------------
--- COMANDO COLETAR CORPO
------------------------------------------------------------------------------------------------------------------------------------------
 RegisterCommand("coletarcorpo", function()
 	local TargetSource = GetClosestCorpsePlayer()
 	if TargetSource then
@@ -129,4 +131,12 @@ RegisterCommand("coletarsangue", function()
 	else
 		IMLNotify("negado", Config.Lang.NoCorpse)
 	end
+end)
+
+RegisterCommand("luvas", function()
+	TriggerEvent("iml-evidencias:ToggleGloves")
+end)
+
+RegisterCommand("tabletforense", function()
+	TriggerEvent("iml-evidencias:OpenTablet")
 end)

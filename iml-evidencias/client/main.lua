@@ -53,39 +53,55 @@ CreateThread(function()
 		IsCivil = Civil
 
 		if Civil and not WasCivil then
-			local Scene = vSERVER.RequestScene()
-			if Scene then
-				for _, Evidence in ipairs(Scene) do
-					SceneEvidence[Evidence.id] = Evidence
-				end
-			end
-
-			local Corpses = vSERVER.RequestCorpses()
-			if Corpses then
-				for _, Corpse in ipairs(Corpses) do
-					if Corpse.victim_passport then
-						SceneCorpses[Corpse.victim_passport] = Corpse
-					end
-				end
-			end
+			LoadSceneData()
 		elseif not Civil and WasCivil then
 			SceneEvidence = {}
 			SceneCorpses = {}
+			for Id in pairs(EvidenceProps or {}) do
+				if RemoveEvidenceProp then RemoveEvidenceProp(Id) end
+			end
 		end
 
 		WasCivil = Civil
 	end
 end)
 
------------------------------------------------------------------------------------------------------------------------------------------
--- ATUALIZAR AO ENTRAR/SAIR DE SERVIÇO
------------------------------------------------------------------------------------------------------------------------------------------
+function LoadSceneData()
+	local Scene = vSERVER.RequestScene()
+	if Scene then
+		for _, Evidence in ipairs(Scene) do
+			SceneEvidence[Evidence.id] = Evidence
+		end
+	end
+
+	local Corpses = vSERVER.RequestCorpses()
+	if Corpses then
+		for _, Corpse in ipairs(Corpses) do
+			if Corpse.victim_passport then
+				SceneCorpses[Corpse.victim_passport] = Corpse
+			end
+		end
+	end
+
+	local Markers = vSERVER.RequestMarkers()
+	if Markers then
+		for _, Marker in ipairs(Markers) do
+			SceneMarkers[Marker.id] = Marker
+		end
+	end
+
+	local Tape = vSERVER.RequestTape()
+	if Tape then
+		for _, Segment in ipairs(Tape) do
+			SceneTape[Segment.id] = Segment
+		end
+	end
+end
+
 RegisterNetEvent("iml-evidencias:RefreshAccess")
 AddEventHandler("iml-evidencias:RefreshAccess", function()
-	local Civil = vSERVER.IsCivil()
-	IsCivil = Civil
-
-	if not Civil then
+	IsCivil = vSERVER.IsCivil()
+	if not IsCivil then
 		SceneEvidence = {}
 		SceneCorpses = {}
 	end
@@ -111,35 +127,15 @@ CreateThread(function()
 	EndTextCommandSetBlipName(Blip)
 end)
 
------------------------------------------------------------------------------------------------------------------------------------------
--- CARREGAR CENA AO ENTRAR
------------------------------------------------------------------------------------------------------------------------------------------
 RegisterNetEvent("vRP:Active")
 AddEventHandler("vRP:Active", function()
 	Wait(5000)
 	IsCivil = vSERVER.IsCivil()
-
-	if not IsCivil then return end
-
-	local Scene = vSERVER.RequestScene()
-	if Scene then
-		for _, Evidence in ipairs(Scene) do
-			SceneEvidence[Evidence.id] = Evidence
-		end
-	end
-
-	local Corpses = vSERVER.RequestCorpses()
-	if Corpses then
-		for _, Corpse in ipairs(Corpses) do
-			if Corpse.victim_passport then
-				SceneCorpses[Corpse.victim_passport] = Corpse
-			end
-		end
-	end
+	if IsCivil then LoadSceneData() end
 end)
 
 -----------------------------------------------------------------------------------------------------------------------------------------
--- SINCRONIZAÇÃO DE EVIDÊNCIAS
+-- SINCRONIZAÇÃO
 -----------------------------------------------------------------------------------------------------------------------------------------
 RegisterNetEvent("iml-evidencias:SyncEvidence")
 AddEventHandler("iml-evidencias:SyncEvidence", function(Evidence)
@@ -200,56 +196,20 @@ AddEventHandler("iml-evidencias:ToggleGloves", function()
 end)
 
 -----------------------------------------------------------------------------------------------------------------------------------------
--- DESENHAR EVIDÊNCIAS NA CENA
+-- USAR SACO MORTUÁRIO (item)
 -----------------------------------------------------------------------------------------------------------------------------------------
-CreateThread(function()
-	while true do
-		local Sleep = 1000
+RegisterNetEvent("iml-evidencias:UseBodyBag")
+AddEventHandler("iml-evidencias:UseBodyBag", function()
+	if not IsCivil then
+		IMLNotify("negado", Config.Lang.NotAuthorized)
+		return
+	end
 
-		if not IsCivil or not IsFlashlightOut() then
-			Wait(Sleep)
-		else
-			local Ped = PlayerPedId()
-			local PedCoords = GetEntityCoords(Ped)
-			local DrawDistance = Config.Flashlight.DrawDistance or 25.0
-
-			for Id, Evidence in pairs(SceneEvidence) do
-				if Evidence.coords and not Evidence.collected then
-					local EvCoords = vector3(Evidence.coords.x, Evidence.coords.y, Evidence.coords.z)
-					local Distance = #(PedCoords - EvCoords)
-					local TypeInfo = Config.EvidenceTypes[Evidence.type]
-
-					if Distance < DrawDistance then
-						Sleep = 0
-						local R, G, B = 200, 30, 30
-
-						if Evidence.type == "blood" or Evidence.type == "blood_pool" then
-							R, G, B = 180, 20, 20
-						elseif Evidence.type == "casing" then
-							R, G, B = 212, 172, 13
-						elseif Evidence.type == "bullet" or Evidence.type == "bullet_fragment" then
-							R, G, B = 230, 126, 34
-						elseif Evidence.type == "fingerprint" then
-							R, G, B = 142, 68, 173
-						elseif Evidence.type == "vehicle_bullet" then
-							R, G, B = 26, 82, 118
-						end
-
-						DrawMarker(28, EvCoords.x, EvCoords.y, EvCoords.z + 0.05, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.14, 0.14, 0.14, R, G, B, 150, false, false, 2, false, nil, nil, false)
-
-						if Distance < Config.CollectDistance then
-							DrawText3D(EvCoords.x, EvCoords.y, EvCoords.z + 0.3, "~y~[Lanterna]~w~ ~r~[E]~w~ Coletar " .. (TypeInfo and TypeInfo.Label or "Evidência"))
-
-							if IsControlJustPressed(0, 38) and IsFlashlightOut() then
-								TriggerServerEvent("iml-evidencias:CollectEvidence", Id)
-							end
-						end
-					end
-				end
-			end
-
-			Wait(Sleep)
-		end
+	local TargetSource = GetClosestCorpsePlayer and GetClosestCorpsePlayer()
+	if TargetSource then
+		TriggerServerEvent("iml-evidencias:CollectBody", TargetSource)
+	else
+		IMLNotify("negado", Config.Lang.NoCorpse)
 	end
 end)
 
@@ -391,9 +351,6 @@ AddEventHandler("iml-evidencias:BodyCollected", function()
 	SetEntityCollision(Ped, false, false)
 end)
 
------------------------------------------------------------------------------------------------------------------------------------------
--- DRAW TEXT 3D
------------------------------------------------------------------------------------------------------------------------------------------
 function DrawText3D(x, y, z, text)
 	local OnScreen, _x, _y = World3dToScreen2d(x, y, z)
 	if OnScreen then

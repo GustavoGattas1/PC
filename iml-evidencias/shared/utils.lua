@@ -13,8 +13,8 @@ function GetWeaponLabel(Hash)
 end
 
 function GetAmmoInfo(Hash)
-	if not Hash then return { Type = "?", Label = "Desconhecido", Category = "?" } end
-	return Config.AmmoTypes[Hash] or { Type = "?", Label = "Munição não catalogada", Category = "?" }
+	if not Hash then return { Type = "?", Label = "Desconhecido", Category = "?", CasingModel = nil } end
+	return Config.AmmoTypes[Hash] or { Type = "?", Label = "Munição não catalogada", Category = "?", CasingModel = nil }
 end
 
 function GetDeathCause(WeaponHash)
@@ -44,6 +44,26 @@ end
 
 function GetBoneLabel(BoneId)
 	return Config.BoneLabels[BoneId] or "Região não identificada"
+end
+
+function GetBoneZone(BoneLabel)
+	if not BoneLabel then return "unknown" end
+	return Config.BoneZones[BoneLabel] or "unknown"
+end
+
+function GetBodyTemperature(DeathTimestamp)
+	if not DeathTimestamp then
+		return { Label = "Desconhecido", Color = "#95a5a6", Description = "Temperatura corporal indeterminada" }
+	end
+
+	local Elapsed = os.time() - DeathTimestamp
+	for _, Stage in ipairs(Config.BodyTemperature) do
+		if Elapsed <= Stage.MaxSeconds then
+			return Stage
+		end
+	end
+
+	return Config.BodyTemperature[#Config.BodyTemperature]
 end
 
 function GenerateSerial()
@@ -82,4 +102,17 @@ end
 function RoundNumber(Number, Decimals)
 	local Mult = 10 ^ (Decimals or 1)
 	return math.floor(Number * Mult + 0.5) / Mult
+end
+
+function GetEvidenceCooldown(Type)
+	if Config.EvidenceCooldown and Config.EvidenceCooldown[Type] then
+		return Config.EvidenceCooldown[Type]
+	end
+	return Config.EvidenceCooldown and Config.EvidenceCooldown.default or 400
+end
+
+function IsGunshotDeath(WeaponHash)
+	if not WeaponHash or WeaponHash == 0 then return false end
+	local Ammo = GetAmmoInfo(WeaponHash)
+	return Ammo.Category == "Pistola" or Ammo.Category == "Submetralhadora" or Ammo.Category == "Rifle" or Ammo.Category == "Shotgun" or Ammo.Category == "Precisão"
 end

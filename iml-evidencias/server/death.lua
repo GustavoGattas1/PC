@@ -28,6 +28,7 @@ function IML_RegisterDeath(Data)
 		ammo_label = Ammo.Label,
 		cause_of_death = Data.cause_of_death or GetDeathCause(WeaponHash),
 		bone_hit = Data.bone_hit or "Não identificado",
+		bone_zone = Data.bone_zone or GetBoneZone(Data.bone_hit),
 		distance = Data.distance or 0,
 		headshot = Data.headshot or false,
 		coords = Data.coords,
@@ -96,6 +97,8 @@ function IML_BuildCorpseExam(Record)
 	local KillerIdentity = Record.killer_passport and IML_GetIdentity(Record.killer_passport) or nil
 	local WeaponName = GetWeaponLabel(Record.weapon_hash)
 	local AmmoLabel = Record.ammo_label or GetAmmoInfo(Record.weapon_hash).Label
+	local Temperature = GetBodyTemperature(Record.time_of_death_raw)
+	local BoneZone = Record.bone_zone or GetBoneZone(Record.bone_hit)
 
 	return {
 		type = "corpse_exam",
@@ -109,16 +112,22 @@ function IML_BuildCorpseExam(Record)
 		ammo_label = AmmoLabel,
 		cause_of_death = Record.cause_of_death,
 		bone_hit = Record.bone_hit,
+		bone_zone = BoneZone,
+		body_temperature = Temperature.Label,
+		body_temperature_color = Temperature.Color,
+		body_temperature_desc = Temperature.Description,
 		distance = RoundNumber(Record.distance or 0, 1),
 		headshot = Record.headshot,
-		time_of_death = Record.time_of_death or FormatTimestamp(),
-		findings = IML_BuildExamFindings(Record, WeaponName, AmmoLabel, KillerIdentity)
+		is_gunshot = IsGunshotDeath(Record.weapon_hash),
+		findings = IML_BuildExamFindings(Record, WeaponName, AmmoLabel, KillerIdentity, Temperature)
 	}
 end
 
-function IML_BuildExamFindings(Record, WeaponName, AmmoLabel, KillerIdentity)
+function IML_BuildExamFindings(Record, WeaponName, AmmoLabel, KillerIdentity, Temperature)
+	Temperature = Temperature or GetBodyTemperature(Record.time_of_death_raw)
+
 	local Findings = {
-		"Hora provável do óbito: " .. (Record.time_of_death or "Desconhecida"),
+		"Estado térmico do corpo: " .. Temperature.Label .. " — " .. Temperature.Description,
 		"Causa provável: " .. (Record.cause_of_death or "Indeterminada"),
 		"Região do impacto: " .. (Record.bone_hit or "Não identificada")
 	}
@@ -261,6 +270,27 @@ function IML_AnalyzeEvidence(ItemData)
 
 	elseif ItemData.type == "casing" or ItemData.type == "magazine" or ItemData.type == "bullet" or ItemData.type == "bullet_fragment" or ItemData.type == "vehicle_bullet" then
 		Result = IML_BuildBallisticResult(ItemData.weapon_hash, ItemData.weapon_serial)
+
+	elseif ItemData.type == "dna" then
+		local TargetPassport = ItemData.passport
+		local Dna = TargetPassport and vRP.Query("iml/GetDna", { passport = TargetPassport })
+		if Dna and Dna[1] then
+			local Identity = IML_GetIdentity(TargetPassport)
+			Result.match = true
+			Result.message = string.format(Config.Lang.DnaMatch, Identity.Name, TargetPassport)
+			Result.dna_code = Dna[1].dna_code
+			Result.identity = Identity
+		else
+			Result.match = false
+			Result.message = Config.Lang.DnaNoMatch
+		end
+
+	elseif ItemData.type == "tire_track" then
+		Result.match = true
+		Result.message = "Rastro de pneu preservado. Padrão compatível com aceleração frenética ou derrapagem."
+		if ItemData.metadata then
+			Result.message = Result.message .. " Velocidade estimada: " .. (ItemData.metadata.speed or "?") .. " km/h"
+		end
 	end
 
 	return Result, TypeInfo

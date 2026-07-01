@@ -8,7 +8,7 @@
 </head>
 <body>
 	<div id="app" class="hidden">
-		<div class="panel">
+		<div class="panel" id="main-panel">
 			<header class="panel-header">
 				<div class="logo">
 					<span class="logo-icon">⚕</span>
@@ -21,38 +21,81 @@
 			</header>
 
 			<main class="panel-body">
-				<!-- Laboratório -->
 				<section id="view-lab" class="view hidden">
 					<h2>Evidências para Análise</h2>
 					<div id="evidence-list" class="card-list"></div>
 				</section>
 
-				<!-- Autópsia -->
 				<section id="view-autopsy" class="view hidden">
 					<h2>Corpos Aguardando Autópsia</h2>
 					<div id="body-list" class="card-list"></div>
 				</section>
 
-				<!-- Armário -->
 				<section id="view-locker" class="view hidden">
 					<h2>Armário de Evidências</h2>
 					<div id="locker-list" class="card-list"></div>
 				</section>
 
-				<!-- Entrega de corpos -->
 				<section id="view-bodydrop" class="view hidden">
 					<h2>Entrega de Corpos</h2>
 					<p class="hint">Selecione o corpo acondicionado para entregar ao IML.</p>
 					<div id="bodydrop-list" class="card-list"></div>
 				</section>
 
-				<!-- Laudo -->
 				<section id="view-report" class="view hidden">
 					<div class="report-header">
 						<h2 id="report-title">Laudo Pericial</h2>
 						<span class="report-badge" id="report-badge">OFICIAL</span>
 					</div>
 					<div id="report-content" class="report-content"></div>
+					<button class="btn-action" id="btn-print" style="margin-top:1rem;width:100%">Imprimir Laudo</button>
+				</section>
+
+				<section id="view-tablet" class="view hidden">
+					<div class="tablet-tabs">
+						<button class="tab-btn active" data-tab="evidence">Evidências</button>
+						<button class="tab-btn" data-tab="cases">Arquivo</button>
+						<button class="tab-btn" data-tab="tools">Ferramentas</button>
+					</div>
+					<div id="tablet-evidence" class="tablet-tab"></div>
+					<div id="tablet-cases" class="tablet-tab hidden"></div>
+					<div id="tablet-tools" class="tablet-tab hidden">
+						<div class="tool-grid">
+							<button class="tool-btn" id="btn-overlay">Overlay de Cena</button>
+							<button class="tool-btn" id="btn-marker">Marcador</button>
+							<button class="tool-btn" id="btn-tape">Fita Policial</button>
+							<button class="tool-btn" id="btn-gsr-scan">Scanner GSR</button>
+						</div>
+					</div>
+				</section>
+
+				<section id="view-body-diagram" class="view hidden">
+					<h2>Perícia Balística — Local do Impacto</h2>
+					<div class="body-exam-layout">
+						<div class="body-diagram" id="body-diagram">
+							<svg viewBox="0 0 200 400" class="body-svg">
+								<ellipse class="body-part" data-zone="head" cx="100" cy="35" rx="28" ry="32"/>
+								<rect class="body-part" data-zone="neck" x="88" y="65" width="24" height="18" rx="4"/>
+								<rect class="body-part" data-zone="chest" x="65" y="83" width="70" height="55" rx="8"/>
+								<rect class="body-part" data-zone="abdomen" x="68" y="138" width="64" height="50" rx="6"/>
+								<rect class="body-part" data-zone="pelvis" x="72" y="188" width="56" height="35" rx="6"/>
+								<rect class="body-part" data-zone="arm_left" x="30" y="88" width="28" height="70" rx="6" transform="rotate(15 44 123)"/>
+								<rect class="body-part" data-zone="arm_right" x="142" y="88" width="28" height="70" rx="6" transform="rotate(-15 156 123)"/>
+								<rect class="body-part" data-zone="hand_left" x="18" y="155" width="22" height="28" rx="4"/>
+								<rect class="body-part" data-zone="hand_right" x="160" y="155" width="22" height="28" rx="4"/>
+								<rect class="body-part" data-zone="leg_left" x="72" y="223" width="26" height="90" rx="6"/>
+								<rect class="body-part" data-zone="leg_right" x="102" y="223" width="26" height="90" rx="6"/>
+								<circle class="impact-marker hidden" id="impact-marker" cx="100" cy="110" r="12"/>
+							</svg>
+						</div>
+						<div class="body-info" id="body-info"></div>
+					</div>
+					<button class="btn-action" id="btn-body-full-report" style="margin-top:1rem;width:100%">Ver Laudo Completo</button>
+				</section>
+
+				<section id="view-gsr" class="view hidden">
+					<h2>Scanner GSR Portátil</h2>
+					<div id="gsr-result" class="gsr-scanner"></div>
 				</section>
 			</main>
 
@@ -60,6 +103,15 @@
 				<span>IML - Departamento de Criminalística</span>
 				<span id="report-date"></span>
 			</footer>
+		</div>
+
+		<div id="minigame-overlay" class="hidden">
+			<div class="minigame-panel">
+				<h3 id="minigame-title">Coleta de Evidência</h3>
+				<p id="minigame-hint">Pressione ESPAÇO no momento certo</p>
+				<div class="minigame-bar"><div class="minigame-target"></div><div class="minigame-cursor" id="mg-cursor"></div></div>
+				<button class="btn-action" id="mg-action">COLETAR [ESPAÇO]</button>
+			</div>
 		</div>
 	</div>
 

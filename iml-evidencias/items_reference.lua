@@ -1,6 +1,6 @@
 --[[
-	ITENS — cadastrar em @vrp/config/Item.lua (mesmo padrão do helicrash/shared)
-	Exemplo de estrutura da sua base:
+	ITENS — cadastrar em @vrp/config/Item.lua
+	Creative Uncharted — copie os blocos abaixo e ajuste Execute conforme sua base.
 ]]
 
 --[[
@@ -9,55 +9,80 @@
 		["Name"] = "Kit de Perícia",
 		["Type"] = "Usável",
 		["Weight"] = 1.5,
-		["Economy"] = 2500,
-		["Description"] = "Kit forense para coleta de evidências na cena do crime."
+		["Execute"] = function(source, Passport, Amount, Slot, Full, Item, Split)
+			exports["iml-evidencias"]:UseTablet(source)
+		end
 	},
-	["saco-evidencia"] = {
-		["Index"] = "saco-evidencia",
-		["Name"] = "Saco de Evidência",
-		["Type"] = "Comum",
-		["Weight"] = 0.3,
-		["Description"] = "Saco lacrado com material probatório."
+	["tablet-forense"] = {
+		["Index"] = "tablet-forense",
+		["Name"] = "Tablet Forense",
+		["Type"] = "Usável",
+		["Weight"] = 0.8,
+		["Execute"] = function(source, Passport, Amount, Slot, Full, Item, Split)
+			exports["iml-evidencias"]:UseTablet(source)
+		end
 	},
 	["luvas-latex"] = {
 		["Index"] = "luvas-latex",
 		["Name"] = "Luvas de Látex",
 		["Type"] = "Usável",
 		["Weight"] = 0.1,
-		["Description"] = "Evita deixar impressões digitais."
-	},
-	["swab-sangue"] = {
-		["Index"] = "swab-sangue",
-		["Name"] = "Swab de Sangue",
-		["Type"] = "Comum",
-		["Weight"] = 0.1,
-		["Description"] = "Coleta de sangue em cadáveres."
-	},
-	["kit-gsr"] = {
-		["Index"] = "kit-gsr",
-		["Name"] = "Kit GSR",
-		["Type"] = "Comum",
-		["Weight"] = 0.5,
-		["Description"] = "Coleta de resíduo de pólvora."
+		["Execute"] = function(source, Passport, Amount, Slot, Full, Item, Split)
+			exports["iml-evidencias"]:UseLuvas(source)
+		end
 	},
 	["saco-cadaver"] = {
 		["Index"] = "saco-cadaver",
 		["Name"] = "Saco Mortuário",
-		["Type"] = "Comum",
+		["Type"] = "Usável",
 		["Weight"] = 2.0,
-		["Description"] = "Transporte de corpos ao IML."
+		["Execute"] = function(source, Passport, Amount, Slot, Full, Item, Split)
+			exports["iml-evidencias"]:UseBodyBag(source)
+		end
+	},
+	["scanner-gsr"] = {
+		["Index"] = "scanner-gsr",
+		["Name"] = "Scanner GSR",
+		["Type"] = "Usável",
+		["Weight"] = 0.5,
+		["Execute"] = function(source, Passport, Amount, Slot, Full, Item, Split)
+			exports["iml-evidencias"]:UseGsrScanner(source)
+		end
 	},
 	["laudo-pericial"] = {
 		["Index"] = "laudo-pericial",
 		["Name"] = "Laudo Pericial",
 		["Type"] = "Usável",
 		["Weight"] = 0.1,
-		["Description"] = "Documento oficial de perícia."
+		["Execute"] = function(source, Passport, Amount, Slot, Full, Item, Split)
+			exports["iml-evidencias"]:UseLaudo(source)
+		end
+	},
+	["marcador-evidencia"] = {
+		["Index"] = "marcador-evidencia",
+		["Name"] = "Marcador de Evidência",
+		["Type"] = "Usável",
+		["Weight"] = 0.3,
+		["Execute"] = function(source, Passport, Amount, Slot, Full, Item, Split)
+			exports["iml-evidencias"]:UseItem(source, "marcador-evidencia")
+		end
+	},
+	["fita-policial"] = {
+		["Index"] = "fita-policial",
+		["Name"] = "Fita Policial",
+		["Type"] = "Usável",
+		["Weight"] = 0.2,
+		["Execute"] = function(source, Passport, Amount, Slot, Full, Item, Split)
+			exports["iml-evidencias"]:UseItem(source, "fita-policial")
+		end
 	},
 ]]
 
--- Usar luvas (no sistema de itens usáveis da base):
--- TriggerClientEvent("iml-evidencias:ToggleGloves", source)
+-- Alternativa via evento (se sua base usar):
+-- TriggerServerEvent("iml-evidencias:UseItem", "luvas-latex")
 
--- Usar laudo:
--- TriggerServerEvent("iml-evidencias:ViewReport")
+-- Comandos de fallback no jogo:
+-- /luvas — equipar/remover luvas
+-- /cena ou M — overlay de investigação
+-- /tabletforense — abrir tablet
+-- /coletarcorpo — coletar corpo com saco mortuário
