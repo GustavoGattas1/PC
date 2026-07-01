@@ -277,6 +277,200 @@ body {
 	color: rgba(255, 255, 255, 0.3);
 }
 
+/* Tablet layout estilo Pluto Dev */
+.panel-tablet {
+	width: 52rem;
+	max-width: 95vw;
+}
+
+.tablet-layout {
+	display: flex;
+	gap: 1rem;
+	min-height: 22rem;
+}
+
+.tablet-sidebar {
+	display: flex;
+	flex-direction: column;
+	gap: 0.35rem;
+	min-width: 8.5rem;
+}
+
+.sidebar-btn {
+	background: rgba(255, 255, 255, 0.04);
+	border: 1px solid rgba(255, 255, 255, 0.06);
+	color: rgba(255, 255, 255, 0.55);
+	padding: 0.65rem 0.75rem;
+	border-radius: 0.4rem;
+	cursor: pointer;
+	font-size: 0.75rem;
+	text-align: left;
+	transition: all 0.2s;
+}
+
+.sidebar-btn.active,
+.sidebar-btn:hover {
+	background: rgba(52, 152, 219, 0.2);
+	border-color: rgba(52, 152, 219, 0.4);
+	color: #fff;
+}
+
+.tablet-content {
+	flex: 1;
+	overflow-y: auto;
+	max-height: 24rem;
+}
+
+.tab-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 0.75rem;
+}
+
+.tab-header h3 {
+	font-size: 0.85rem;
+	color: rgba(255, 255, 255, 0.7);
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+}
+
+.btn-small {
+	background: rgba(52, 152, 219, 0.25);
+	border: 1px solid rgba(52, 152, 219, 0.4);
+	color: #fff;
+	font-size: 0.7rem;
+	padding: 0.35rem 0.65rem;
+	border-radius: 0.3rem;
+	cursor: pointer;
+}
+
+.scene-scan-list {
+	display: flex;
+	flex-direction: column;
+	gap: 0.45rem;
+}
+
+.scene-item {
+	display: flex;
+	align-items: center;
+	gap: 0.6rem;
+	background: rgba(0, 0, 0, 0.2);
+	border-left: 3px solid;
+	padding: 0.6rem 0.75rem;
+	border-radius: 0.35rem;
+}
+
+.scene-num {
+	font-size: 0.7rem;
+	color: rgba(255, 255, 255, 0.4);
+	min-width: 1.5rem;
+}
+
+.scene-icon { font-size: 1.2rem; }
+
+.scene-info {
+	display: flex;
+	flex-direction: column;
+}
+
+.scene-info strong {
+	font-size: 0.8rem;
+	color: #fff;
+}
+
+.scene-info span {
+	font-size: 0.7rem;
+	color: rgba(255, 255, 255, 0.45);
+}
+
+/* Progress overlay */
+#progress-overlay {
+	position: fixed;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(0, 0, 0, 0.65);
+	z-index: 110;
+}
+
+.progress-panel {
+	text-align: center;
+}
+
+.progress-ring {
+	position: relative;
+	width: 7rem;
+	height: 7rem;
+	margin: 0 auto 1rem;
+}
+
+.progress-ring svg {
+	width: 100%;
+	height: 100%;
+	transform: rotate(-90deg);
+}
+
+.progress-bg {
+	fill: none;
+	stroke: rgba(255, 255, 255, 0.1);
+	stroke-width: 6;
+}
+
+.progress-fill {
+	fill: none;
+	stroke: #3498db;
+	stroke-width: 6;
+	stroke-linecap: round;
+	transition: stroke-dashoffset 0.05s linear;
+}
+
+#progress-pct {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 1.1rem;
+	font-weight: 700;
+	color: #fff;
+}
+
+#progress-label {
+	font-size: 0.85rem;
+	color: rgba(255, 255, 255, 0.7);
+}
+
+/* GSR radar */
+.gsr-scanning {
+	text-align: center;
+	padding: 2rem;
+}
+
+.radar {
+	width: 8rem;
+	height: 8rem;
+	margin: 0 auto 1rem;
+	border: 2px solid rgba(52, 152, 219, 0.4);
+	border-radius: 50%;
+	position: relative;
+	animation: radar-pulse 1.5s infinite;
+}
+
+.radar::after {
+	content: "";
+	position: absolute;
+	inset: 20%;
+	border: 1px solid rgba(52, 152, 219, 0.3);
+	border-radius: 50%;
+}
+
+@keyframes radar-pulse {
+	0%, 100% { box-shadow: 0 0 0 0 rgba(52, 152, 219, 0.4); }
+	50% { box-shadow: 0 0 0 1.5rem rgba(52, 152, 219, 0); }
+}
+
 /* Tablet */
 .tablet-tabs {
 	display: flex;
