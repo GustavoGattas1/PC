@@ -36,32 +36,6 @@ function IML.GetMyReports()
 	return List
 end
 
-function IML.ScanGSR(TargetSource)
-	local Source = source
-	local Passport = vRP.Passport(Source)
-	local TargetPassport = vRP.Passport(TargetSource)
-	if not Passport or not TargetPassport then return end
-
-	if not IML.CanCollect(Passport) then
-		IML_Notify(Source, "negado", Config.Lang.NotAuthorized)
-		return
-	end
-
-	local GsrData = PlayerGSR[TargetPassport]
-	local Positive = GsrData and (os.time() - GsrData.timestamp) <= 1800
-	local Identity = IML_GetIdentity(TargetPassport)
-	local WeaponName = Positive and GetWeaponLabel(GsrData.weapon_hash) or nil
-
-	local Result = {
-		positive = Positive,
-		suspect = Identity,
-		weapon = WeaponName,
-		message = Positive and Config.Lang.GsrPositive or Config.Lang.GsrNegative
-	}
-
-	TriggerClientEvent("iml-evidencias:GsrScanResult", Source, Result)
-end
-
 RegisterNetEvent("iml-evidencias:PlaceMarker")
 AddEventHandler("iml-evidencias:PlaceMarker", function(Coords, FromItemUse)
 	local Source = source

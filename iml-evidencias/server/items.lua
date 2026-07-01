@@ -5,9 +5,7 @@ local ItemAliases = {
 	["luvas-latex"] = "luvaslatex",
 	["marcador-evidencia"] = "marcadorevidencia",
 	["laudo-pericial"] = "laudopericial",
-	["scanner-gsr"] = "scannergsr",
 	["swab-sangue"] = "swabsangue",
-	["kit-gsr"] = "kitgsr",
 	["molde-pneu"] = "moldepneu",
 	["tablet-forense"] = "tabletforense",
 	["saco-evidencia"] = "sacoevidencia"
@@ -54,14 +52,6 @@ local ItemHandlers = {
 			return
 		end
 		TriggerClientEvent("iml-evidencias:OpenTablet", Source)
-	end,
-
-	[Config.Items.GsrScanner] = function(Source, Passport)
-		if not IML.CanCollect(Passport) then
-			IML_Notify(Source, "negado", Config.Lang.NotAuthorized)
-			return
-		end
-		TriggerClientEvent("iml-evidencias:OpenGsrScanner", Source)
 	end,
 
 	[Config.Items.EvidenceMarker] = function(Source, Passport)
@@ -153,10 +143,6 @@ exports("UseTablet", function(Source)
 	if HandleItemUse(Source, Config.Items.ForensicTablet) then return true end
 	if HandleItemUse(Source, Config.Items.ForensicKit) then return true end
 	return false
-end)
-
-exports("UseGsrScanner", function(Source)
-	return HandleItemUse(Source, Config.Items.GsrScanner)
 end)
 
 exports("UseLaudo", function(Source)

@@ -5,7 +5,7 @@ lua54 "yes"
 name "iml-evidencias"
 author "Creative Uncharted"
 description "Sistema avançado de IML e evidências forenses"
-version "2.2.0"
+version "2.2.1"
 
 shared_scripts {
 	"@vrp/config/Item.lua",
@@ -53,7 +53,6 @@ server_exports {
 	"UseItem",
 	"UseLuvas",
 	"UseTablet",
-	"UseGsrScanner",
 	"UseLaudo",
 	"UseMarcador"
 }
@@ -62,6 +61,5 @@ exports {
 	"UseItem",
 	"UseLuvas",
 	"UseTablet",
-	"UseGsrScanner",
 	"UseLaudo"
 }

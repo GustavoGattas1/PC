@@ -39,16 +39,6 @@
 		end
 	},
 
-	["scannergsr"] = {
-		Index = "scannergsr",
-		Name = "Scanner GSR",
-		Type = "Usável",
-		Weight = 0.5,
-		Execute = function(source, Passport, Amount, Slot, Full, Item, Split)
-			exports["iml-evidencias"]:UseItem(source, Item or Full or "scannergsr")
-		end
-	},
-
 	["laudopericial"] = {
 		Index = "laudopericial",
 		Name = "Laudo Pericial",
@@ -82,13 +72,6 @@
 		Name = "Swab de Sangue",
 		Type = "Comum",
 		Weight = 0.1
-	},
-
-	["kitgsr"] = {
-		Index = "kitgsr",
-		Name = "Kit GSR",
-		Type = "Comum",
-		Weight = 0.3
 	},
 
 	["moldepneu"] = {

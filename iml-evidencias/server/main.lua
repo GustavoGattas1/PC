@@ -17,7 +17,6 @@ vCLIENT = Tunnel.getInterface("iml-evidencias")
 -- STATE
 -----------------------------------------------------------------------------------------------------------------------------------------
 local PlayerCooldowns = {}
-PlayerGSR = {}
 
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- PERMISSÕES
@@ -111,16 +110,6 @@ AddEventHandler("iml-evidencias:CreateEvidence", function(Data)
 
 	if Data.weapon_hash and not Data.weapon_serial then
 		Data.weapon_serial = IML_GetOrCreateWeaponSerial(Passport, Data.weapon_hash)
-	end
-
-	-- GSR fica no jogador, não na cena
-	if Data.type == "gsr" then
-		PlayerGSR[Passport] = {
-			weapon_hash = Data.weapon_hash,
-			weapon_serial = Data.weapon_serial,
-			timestamp = os.time()
-		}
-		return
 	end
 
 	IML_CreateSceneEvidence(Data)
@@ -325,59 +314,6 @@ AddEventHandler("iml-evidencias:CollectBloodSwab", function(TargetSource)
 	StoreEvidenceBag(Passport, EvidenceId, ItemData)
 
 	IML_Notify(Source, "success", Config.Lang.BloodSwabCollected)
-end)
-
------------------------------------------------------------------------------------------------------------------------------------------
--- COLETAR GSR DE SUSPEITO
------------------------------------------------------------------------------------------------------------------------------------------
-RegisterNetEvent("iml-evidencias:CollectGSR")
-AddEventHandler("iml-evidencias:CollectGSR", function(TargetSource)
-	local Source = source
-	local Passport = vRP.Passport(Source)
-	local TargetPassport = vRP.Passport(TargetSource)
-
-	if not Passport or not TargetPassport then return end
-
-	if not IML.CanCollect(Passport) then
-		IML_Notify(Source, "negado", Config.Lang.NotAuthorized)
-		return
-	end
-
-	if vRP.ItemAmount(Passport, Config.Items.GsrKit) < 1 then
-		IML_Notify(Source, "negado", "Você precisa de um Kit GSR.")
-		return
-	end
-
-	if not IML_ValidateFlashlight(Source) then
-		IML_Notify(Source, "negado", Config.Lang.NeedFlashlight)
-		return
-	end
-
-	local GsrData = PlayerGSR[TargetPassport]
-	if not GsrData or (os.time() - GsrData.timestamp) > 1800 then
-		IML_Notify(Source, "negado", "Nenhum resíduo de pólvora detectado.")
-		return
-	end
-
-	vRP.TakeItem(Passport, Config.Items.GsrKit, 1, true)
-
-	local EvidenceId = IML_GenerateId("GSR")
-	local ItemData = {
-		evidence_id = EvidenceId,
-		type = "gsr",
-		label = Config.EvidenceTypes.gsr.Label,
-		passport = TargetPassport,
-		weapon_hash = GsrData.weapon_hash,
-		weapon_serial = GsrData.weapon_serial,
-		collected_by = Passport,
-		collected_at = FormatTimestamp()
-	}
-
-	vRP.GenerateItem(Passport, Config.Items.EvidenceBag, 1, true)
-	StoreEvidenceBag(Passport, EvidenceId, ItemData)
-	PlayerGSR[TargetPassport] = nil
-
-	IML_Notify(Source, "success", Config.Lang.GsrCollected)
 end)
 
 -----------------------------------------------------------------------------------------------------------------------------------------
