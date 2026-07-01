@@ -136,11 +136,13 @@ end)
 
 RegisterNetEvent("iml-evidencias:PrintReport")
 AddEventHandler("iml-evidencias:PrintReport", function()
-	local Ped = PlayerPedId()
-	TaskStartScenarioInPlace(Ped, "WORLD_HUMAN_CLIPBOARD", 0, true)
-	Wait(3000)
-	ClearPedTasks(Ped)
-	IMLNotify("success", Config.Lang.ReportPrinted, 4000)
+	CreateThread(function()
+		local Ped = PlayerPedId()
+		TaskStartScenarioInPlace(Ped, "WORLD_HUMAN_CLIPBOARD", 0, true)
+		Wait(3000)
+		ClearPedTasks(Ped)
+		IMLNotify("success", Config.Lang.ReportPrinted, 4000)
+	end)
 end)
 
 RegisterNUICallback("archiveCase", function(Data, cb)
@@ -152,9 +154,6 @@ end)
 
 RegisterNUICallback("printReport", function(Data, cb)
 	TriggerServerEvent("iml-evidencias:PrintReport", Data and Data.report_id)
-	SetNuiFocus(false, false)
-	NuiOpen = false
-	RemoveTabletProp()
 	cb("ok")
 end)
 

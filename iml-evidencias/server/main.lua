@@ -455,6 +455,7 @@ AddEventHandler("iml-evidencias:AnalyzeEvidence", function(EvidenceId)
 
 	local ReportId = IML_GenerateId("RPT")
 	local ReportContent = {
+		report_id = ReportId,
 		evidence_id = EvidenceId,
 		type = ItemData.type,
 		label = TypeInfo.Label or "Evidência",

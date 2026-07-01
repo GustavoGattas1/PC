@@ -117,7 +117,9 @@ document.addEventListener("keydown", (e) => {
 });
 
 document.getElementById("btn-print").addEventListener("click", () => {
-	post("printReport", { report_id: currentReport?.evidence_id });
+	const reportId = currentReport?.report_id || currentReport?.evidence_id;
+	closeApp();
+	post("printReport", { report_id: reportId });
 });
 
 document.getElementById("btn-body-full-report").addEventListener("click", () => {
