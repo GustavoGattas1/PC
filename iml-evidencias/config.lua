@@ -79,6 +79,19 @@ Config.EvidenceCooldown = {
 }
 
 -----------------------------------------------------------------------------------------------------------------------------------------
+-- ESPAÇAMENTO ENTRE EVIDÊNCIAS (evitar empilhar no mesmo ponto)
+-----------------------------------------------------------------------------------------------------------------------------------------
+Config.EvidenceSpread = {
+	MinDistance = 1.0,
+	Casing = { Min = 0.6, Max = 1.8 },
+	Blood = { Min = 0.5, Max = 2.0 },
+	Bullet = { Min = 0.3, Max = 1.2 },
+	TireTrack = { Min = 1.5, Max = 3.5 },
+	Dna = { Min = 0.4, Max = 1.5 },
+	Default = { Min = 0.5, Max = 1.5 }
+}
+
+-----------------------------------------------------------------------------------------------------------------------------------------
 -- TEMPERATURA CORPORAL (segundos desde o óbito)
 -----------------------------------------------------------------------------------------------------------------------------------------
 Config.BodyTemperature = {
@@ -102,11 +115,42 @@ Config.Flashlight = {
 -----------------------------------------------------------------------------------------------------------------------------------------
 Config.SceneOverlay = {
 	Enabled = true,
-	Key = 244, -- M
+	Key = 244,
 	Command = "cena",
-	DrawDistance = 45.0,
+	DrawDistance = 50.0,
 	ShowIcons = true,
-	ShowProps = true
+	ShowProps = true,
+	ShowHud = true,
+	ShowBallisticsTrace = true,
+	TraceDistance = 25.0,
+	PulseSpeed = 2.0
+}
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- COLETA (animação + progresso estilo Pluto Dev)
+-----------------------------------------------------------------------------------------------------------------------------------------
+Config.Collection = {
+	UseProgress = true,
+	ProgressDuration = 3500,
+	UseMinigameAfter = true,
+	AnimDict = "amb@medic@standing@kneel@base",
+	AnimName = "base",
+	AnimDictBag = "anim@scripted@freemode@postertag@collect_can@male@",
+	AnimNameBag = "collect_can_male"
+}
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- TABLET / PROPS DE CENA
+-----------------------------------------------------------------------------------------------------------------------------------------
+Config.Tablet = {
+	Prop = `prop_cs_tablet`,
+	AnimDict = "amb@code_human_in_bus_passenger_idles@female@tablet@base",
+	AnimName = "base"
+}
+
+Config.SceneProps = {
+	Marker = `prop_roadcone02a`,
+	Tape = `prop_barrier_work06`
 }
 
 -----------------------------------------------------------------------------------------------------------------------------------------

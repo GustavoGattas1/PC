@@ -313,7 +313,7 @@ function IML_CreateSceneEvidence(Data)
 		passport = Data.passport,
 		weapon_hash = Data.weapon_hash,
 		weapon_serial = WeaponSerial,
-		coords = Data.coords,
+		coords = ResolveEvidenceCoords(Data.coords, Data.type, SceneEvidence),
 		heading = Data.heading or 0.0,
 		vehicle = Data.vehicle,
 		collected = false,

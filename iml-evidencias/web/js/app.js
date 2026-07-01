@@ -4,6 +4,7 @@ const panelSubtitle = document.getElementById("panel-subtitle");
 const reportDate = document.getElementById("report-date");
 const mainPanel = document.getElementById("main-panel");
 const minigameOverlay = document.getElementById("minigame-overlay");
+const progressOverlay = document.getElementById("progress-overlay");
 
 const views = {
 	lab: document.getElementById("view-lab"),
@@ -41,6 +42,7 @@ let currentReport = null;
 let currentBodyExam = null;
 let mgAnim = null;
 let mgCallback = null;
+let progressAnim = null;
 
 function post(endpoint, data = {}) {
 	return fetch(`https://iml-evidencias/${endpoint}`, {
@@ -63,8 +65,11 @@ function showApp() {
 function closeApp() {
 	app.classList.add("hidden");
 	minigameOverlay.classList.add("hidden");
+	progressOverlay.classList.add("hidden");
+	mainPanel.classList.remove("panel-tablet");
 	hideAllViews();
 	stopMinigame();
+	stopProgress();
 	post("close");
 }
 
@@ -99,17 +104,18 @@ document.getElementById("btn-body-full-report").addEventListener("click", () => 
 	}
 });
 
-document.querySelectorAll(".tab-btn").forEach(btn => {
-	btn.addEventListener("click", () => {
-		document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-		btn.classList.add("active");
-		document.querySelectorAll(".tablet-tab").forEach(t => t.classList.add("hidden"));
-		const tab = btn.dataset.tab;
-		if (tab === "evidence") document.getElementById("tablet-evidence").classList.remove("hidden");
-		if (tab === "cases") document.getElementById("tablet-cases").classList.remove("hidden");
-		if (tab === "tools") document.getElementById("tablet-tools").classList.remove("hidden");
-	});
+function switchTabletTab(tab) {
+	document.querySelectorAll(".sidebar-btn").forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
+	document.querySelectorAll(".tablet-content .tablet-tab").forEach(t => t.classList.add("hidden"));
+	const el = document.getElementById("tablet-" + tab);
+	if (el) el.classList.remove("hidden");
+}
+
+document.querySelectorAll(".sidebar-btn").forEach(btn => {
+	btn.addEventListener("click", () => switchTabletTab(btn.dataset.tab));
 });
+
+document.getElementById("btn-refresh-scene").addEventListener("click", () => post("refreshScene"));
 
 document.getElementById("btn-overlay").addEventListener("click", () => post("toggleOverlay"));
 document.getElementById("btn-marker").addEventListener("click", () => { post("placeMarker"); closeApp(); });
@@ -270,7 +276,30 @@ function renderGsrScanner(result) {
 	`;
 }
 
+function renderSceneScan(scene) {
+	const el = document.getElementById("scene-scan-list");
+	el.innerHTML = "";
+	if (!scene || !scene.length) {
+		el.innerHTML = '<div class="empty-state">Nenhuma evidência detectada na área.<br>Ative o overlay (M) para investigar.</div>';
+		return;
+	}
+	scene.forEach((item, i) => {
+		const row = document.createElement("div");
+		row.className = "scene-item";
+		row.style.borderLeftColor = item.color || "#e74c3c";
+		row.innerHTML = `
+			<span class="scene-num">#${i + 1}</span>
+			<span class="scene-icon">${item.icon || "📋"}</span>
+			<div class="scene-info">
+				<strong>${item.label}</strong>
+				<span>${item.distance}m${item.caliber ? " • " + item.caliber : ""}</span>
+			</div>`;
+		el.appendChild(row);
+	});
+}
+
 function renderTablet(data) {
+	renderSceneScan(data.scene);
 	renderEvidenceList(document.getElementById("tablet-evidence"), data.evidence, "Analisar", (item) => post("analyze", { evidence_id: item.evidence_id }));
 
 	const casesEl = document.getElementById("tablet-cases");
@@ -285,6 +314,7 @@ function renderTablet(data) {
 			casesEl.appendChild(card);
 		});
 	}
+	switchTabletTab("scene");
 }
 
 function startMinigame(type) {
@@ -322,12 +352,65 @@ function stopMinigame() {
 	mgCallback = null;
 }
 
+function stopProgress() {
+	if (progressAnim) { clearInterval(progressAnim); progressAnim = null; }
+}
+
+function startProgress(label, duration) {
+	const circle = document.getElementById("progress-circle");
+	const pct = document.getElementById("progress-pct");
+	const labelEl = document.getElementById("progress-label");
+	const circumference = 2 * Math.PI * 42;
+
+	circle.style.strokeDasharray = circumference;
+	circle.style.strokeDashoffset = circumference;
+	labelEl.textContent = label || "Coletando evidência...";
+	pct.textContent = "0%";
+	progressOverlay.classList.remove("hidden");
+	mainPanel.classList.add("hidden");
+
+	const start = Date.now();
+	stopProgress();
+	progressAnim = setInterval(() => {
+		const elapsed = Date.now() - start;
+		const progress = Math.min(elapsed / duration, 1);
+		circle.style.strokeDashoffset = circumference * (1 - progress);
+		pct.textContent = Math.floor(progress * 100) + "%";
+		if (progress >= 1) {
+			stopProgress();
+			progressOverlay.classList.add("hidden");
+			mainPanel.classList.remove("hidden");
+			post("progressComplete");
+		}
+	}, 30);
+}
+
 window.addEventListener("message", (event) => {
 	const data = event.data;
 	if (!data || !data.action) return;
 
 	if (data.action === "startMinigame") {
 		startMinigame(data.type);
+		return;
+	}
+
+	if (data.action === "startProgress") {
+		startProgress(data.label, data.duration || 3000);
+		return;
+	}
+
+	if (data.action === "updateScene") {
+		renderSceneScan(data.scene);
+		return;
+	}
+
+	if (data.action === "startGsrScan") {
+		hideAllViews();
+		showApp();
+		panelTitle.textContent = "Scanner GSR";
+		panelSubtitle.textContent = "Analisando suspeito...";
+		views.gsr.classList.remove("hidden");
+		document.getElementById("gsr-result").innerHTML = '<div class="gsr-scanning"><div class="radar"></div><p>Escaneando resíduo de pólvora...</p></div>';
 		return;
 	}
 
@@ -363,7 +446,8 @@ window.addEventListener("message", (event) => {
 			break;
 		case "openTablet":
 			panelTitle.textContent = "Tablet Forense";
-			panelSubtitle.textContent = "Central de investigação";
+			panelSubtitle.textContent = "Sistema de Investigação Criminal";
+			mainPanel.classList.add("panel-tablet");
 			views.tablet.classList.remove("hidden");
 			renderTablet(data);
 			break;

@@ -116,3 +116,86 @@ function IsGunshotDeath(WeaponHash)
 	local Ammo = GetAmmoInfo(WeaponHash)
 	return Ammo.Category == "Pistola" or Ammo.Category == "Submetralhadora" or Ammo.Category == "Rifle" or Ammo.Category == "Shotgun" or Ammo.Category == "Precisão"
 end
+
+function GetSpreadRange(EvidenceType)
+	local Spread = Config.EvidenceSpread or {}
+	if EvidenceType == "casing" or EvidenceType == "magazine" then
+		return Spread.Casing or Spread.Default or { Min = 0.6, Max = 1.8 }
+	elseif EvidenceType == "blood" or EvidenceType == "blood_pool" or EvidenceType == "blood_swab" then
+		return Spread.Blood or Spread.Default or { Min = 0.5, Max = 2.0 }
+	elseif EvidenceType == "bullet" or EvidenceType == "bullet_fragment" or EvidenceType == "vehicle_bullet" then
+		return Spread.Bullet or Spread.Default or { Min = 0.3, Max = 1.2 }
+	elseif EvidenceType == "tire_track" then
+		return Spread.TireTrack or Spread.Default or { Min = 1.5, Max = 3.5 }
+	elseif EvidenceType == "dna" then
+		return Spread.Dna or Spread.Default or { Min = 0.4, Max = 1.5 }
+	end
+	return Spread.Default or { Min = 0.5, Max = 1.5 }
+end
+
+function SpreadCoords(Coords, EvidenceType, Heading)
+	if not Coords then return Coords end
+
+	local Range = GetSpreadRange(EvidenceType)
+	local MinR = Range.Min or 0.5
+	local MaxR = Range.Max or 1.5
+	local Radius = MinR + math.random() * (MaxR - MinR)
+	local Angle = math.random() * math.pi * 2
+
+	if Heading and (EvidenceType == "casing" or EvidenceType == "magazine") then
+		local Rad = math.rad(Heading)
+		Angle = Rad + math.pi * 0.5 + math.random(-40, 40) / 100
+		Radius = MinR + math.random() * (MaxR - MinR)
+	end
+
+	return {
+		x = Coords.x + math.cos(Angle) * Radius,
+		y = Coords.y + math.sin(Angle) * Radius,
+		z = Coords.z
+	}
+end
+
+function CoordsDistance2D(A, B)
+	if not A or not B then return 999.0 end
+	local Dx = (A.x or 0) - (B.x or 0)
+	local Dy = (A.y or 0) - (B.y or 0)
+	return math.sqrt(Dx * Dx + Dy * Dy)
+end
+
+function ResolveEvidenceCoords(Coords, EvidenceType, ExistingList)
+	if not Coords then return Coords end
+
+	local Spread = Config.EvidenceSpread or {}
+	local MinDist = Spread.MinDistance or 1.0
+	local Range = GetSpreadRange(EvidenceType)
+	local Result = SpreadCoords(Coords, EvidenceType)
+
+	if not ExistingList then return Result end
+
+	for Attempt = 1, 20 do
+		local TooClose = false
+
+		for _, Evidence in pairs(ExistingList) do
+			if Evidence.coords and not Evidence.collected then
+				if CoordsDistance2D(Result, Evidence.coords) < MinDist then
+					TooClose = true
+					break
+				end
+			end
+		end
+
+		if not TooClose then
+			return Result
+		end
+
+		local Push = MinDist + math.random() * (Range.Max or 1.5)
+		local Angle = math.random() * math.pi * 2
+		Result = {
+			x = Coords.x + math.cos(Angle) * Push,
+			y = Coords.y + math.sin(Angle) * Push,
+			z = Coords.z
+		}
+	end
+
+	return Result
+end

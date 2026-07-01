@@ -19,9 +19,10 @@ CreateThread(function()
 				if (Burnout or (Braking and LastSpeed > 50.0)) and math.random(100) <= Config.Chances.TireTrack then
 					local Coords = GetEntityCoords(Vehicle)
 					local Heading = GetEntityHeading(Vehicle)
+					local TrackCoords = SpreadCoords({ x = Coords.x, y = Coords.y, z = Coords.z - 0.95 }, "tire_track", Heading)
 					TriggerServerEvent("iml-evidencias:CreateEvidence", {
 						type = "tire_track",
-						coords = { x = Coords.x, y = Coords.y, z = Coords.z - 0.95 },
+						coords = TrackCoords,
 						heading = Heading,
 						vehicle = VehToNet(Vehicle),
 						metadata = { speed = RoundNumber(Speed, 1), burnout = Burnout }

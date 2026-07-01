@@ -307,6 +307,7 @@ end
 RegisterNUICallback("close", function(_, cb)
 	SetNuiFocus(false, false)
 	NuiOpen = false
+	if RemoveTabletProp then RemoveTabletProp() end
 	cb("ok")
 end)
 

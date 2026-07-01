@@ -139,13 +139,14 @@ end
 
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- TIROS: CÁPSULAS, PROJÉTEIS, GSR
+-- Detecção: CEventGunShot (gameEventTriggered) + IsPedShooting no loop
 -----------------------------------------------------------------------------------------------------------------------------------------
 CreateThread(function()
 	while true do
 		local Ped = PlayerPedId()
-		local Sleep = 250
+		local Sleep = 200
 
-		if HasPedJustFiredWeapon(Ped) or IsPedShooting(Ped) then
+		if IsPedShooting(Ped) then
 			Sleep = 0
 			HandlePlayerShot()
 		end
@@ -166,26 +167,29 @@ function HandlePlayerShot()
 	local Serial = WeaponSerials[Weapon]
 	local Ammo = GetAmmoInfo(Weapon)
 	local RightHand = GetPedBoneCoords(Ped, 57005, 0.15, 0.0, 0.0)
-	local CasingCoords = GetOffsetFromEntityInWorldCoords(Ped, 0.35, 0.15, -0.85)
+	local PedCoords = GetEntityCoords(Ped)
+	local Heading = GetEntityHeading(Ped)
+	local CasingBase = { x = PedCoords.x, y = PedCoords.y, z = PedCoords.z - 0.9 }
+	local CasingCoords = SpreadCoords(CasingBase, "casing", Heading)
 
 	if math.random(100) <= Config.Chances.Casing then
 		TriggerServerEvent("iml-evidencias:CreateEvidence", {
 			type = "casing",
 			weapon_hash = Weapon,
 			weapon_serial = Serial,
-			coords = { x = CasingCoords.x, y = CasingCoords.y, z = CasingCoords.z },
-			heading = GetEntityHeading(Ped) + math.random(-40, 40),
+			coords = CasingCoords,
+			heading = Heading + math.random(-40, 40),
 			metadata = { caliber = Ammo.Type, ammo_label = Ammo.Label, prop_model = Ammo.CasingModel }
 		})
 	end
 
 	if math.random(100) <= Config.Chances.Magazine and math.random(100) <= 8 then
-		local MagCoords = GetOffsetFromEntityInWorldCoords(Ped, 0.5, 0.2, -0.9)
+		local MagCoords = SpreadCoords(CasingBase, "magazine", Heading + 45)
 		TriggerServerEvent("iml-evidencias:CreateEvidence", {
 			type = "magazine",
 			weapon_hash = Weapon,
 			weapon_serial = Serial,
-			coords = { x = MagCoords.x, y = MagCoords.y, z = MagCoords.z },
+			coords = MagCoords,
 			metadata = { caliber = Ammo.Type, ammo_label = Ammo.Label }
 		})
 	end
@@ -201,11 +205,12 @@ function HandlePlayerShot()
 	if math.random(100) <= Config.Chances.BulletImpact then
 		local Hit = GetLastBulletImpact(Ped, RightHand)
 		if Hit then
+			local BulletCoords = SpreadCoords({ x = Hit.x, y = Hit.y, z = Hit.z }, "bullet")
 			TriggerServerEvent("iml-evidencias:CreateEvidence", {
 				type = "bullet",
 				weapon_hash = Weapon,
 				weapon_serial = Serial,
-				coords = { x = Hit.x, y = Hit.y, z = Hit.z },
+				coords = BulletCoords,
 				metadata = { caliber = Ammo.Type, ammo_label = Ammo.Label }
 			})
 
@@ -269,17 +274,19 @@ CreateThread(function()
 		if Health < LastHealth and Health > 100 then
 			if math.random(100) <= Config.Chances.Blood then
 				local Coords = GetEntityCoords(Ped)
+				local BloodCoords = SpreadCoords({ x = Coords.x, y = Coords.y, z = Coords.z - 0.95 }, "blood")
 				TriggerServerEvent("iml-evidencias:CreateEvidence", {
 					type = "blood",
-					coords = { x = Coords.x, y = Coords.y, z = Coords.z - 0.95 }
+					coords = BloodCoords
 				})
 			end
 
 			if math.random(100) <= Config.Chances.DnaDrop then
 				local Coords = GetEntityCoords(Ped)
+				local DnaCoords = SpreadCoords({ x = Coords.x, y = Coords.y, z = Coords.z - 0.95 }, "dna")
 				TriggerServerEvent("iml-evidencias:CreateEvidence", {
 					type = "dna",
-					coords = { x = Coords.x + math.random(-30, 30) / 100, y = Coords.y + math.random(-30, 30) / 100, z = Coords.z - 0.95 }
+					coords = DnaCoords
 				})
 			end
 		end

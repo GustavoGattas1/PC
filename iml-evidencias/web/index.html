@@ -52,19 +52,31 @@
 				</section>
 
 				<section id="view-tablet" class="view hidden">
-					<div class="tablet-tabs">
-						<button class="tab-btn active" data-tab="evidence">Evidências</button>
-						<button class="tab-btn" data-tab="cases">Arquivo</button>
-						<button class="tab-btn" data-tab="tools">Ferramentas</button>
-					</div>
-					<div id="tablet-evidence" class="tablet-tab"></div>
-					<div id="tablet-cases" class="tablet-tab hidden"></div>
-					<div id="tablet-tools" class="tablet-tab hidden">
-						<div class="tool-grid">
-							<button class="tool-btn" id="btn-overlay">Overlay de Cena</button>
-							<button class="tool-btn" id="btn-marker">Marcador</button>
-							<button class="tool-btn" id="btn-tape">Fita Policial</button>
-							<button class="tool-btn" id="btn-gsr-scan">Scanner GSR</button>
+					<div class="tablet-layout">
+						<nav class="tablet-sidebar">
+							<button class="sidebar-btn active" data-tab="scene">📍 Cena</button>
+							<button class="sidebar-btn" data-tab="evidence">🔬 Locker</button>
+							<button class="sidebar-btn" data-tab="cases">📁 Casos</button>
+							<button class="sidebar-btn" data-tab="tools">🛠️ Ferramentas</button>
+						</nav>
+						<div class="tablet-content">
+							<div id="tablet-scene" class="tablet-tab">
+								<div class="tab-header">
+									<h3>Varredura da Cena</h3>
+									<button class="btn-small" id="btn-refresh-scene">Atualizar</button>
+								</div>
+								<div id="scene-scan-list" class="scene-scan-list"></div>
+							</div>
+							<div id="tablet-evidence" class="tablet-tab hidden"></div>
+							<div id="tablet-cases" class="tablet-tab hidden"></div>
+							<div id="tablet-tools" class="tablet-tab hidden">
+								<div class="tool-grid">
+									<button class="tool-btn" id="btn-overlay">🔍 Overlay de Cena</button>
+									<button class="tool-btn" id="btn-marker">📌 Marcador</button>
+									<button class="tool-btn" id="btn-tape">🚧 Fita Policial</button>
+									<button class="tool-btn" id="btn-gsr-scan">📡 Scanner GSR</button>
+								</div>
+							</div>
 						</div>
 					</div>
 				</section>
@@ -111,6 +123,16 @@
 				<p id="minigame-hint">Pressione ESPAÇO no momento certo</p>
 				<div class="minigame-bar"><div class="minigame-target"></div><div class="minigame-cursor" id="mg-cursor"></div></div>
 				<button class="btn-action" id="mg-action">COLETAR [ESPAÇO]</button>
+			</div>
+		</div>
+
+		<div id="progress-overlay" class="hidden">
+			<div class="progress-panel">
+				<div class="progress-ring">
+					<svg viewBox="0 0 100 100"><circle class="progress-bg" cx="50" cy="50" r="42"/><circle class="progress-fill" id="progress-circle" cx="50" cy="50" r="42"/></svg>
+					<span id="progress-pct">0%</span>
+				</div>
+				<h3 id="progress-label">Coletando evidência...</h3>
 			</div>
 		</div>
 	</div>
