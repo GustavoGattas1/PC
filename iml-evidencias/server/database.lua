@@ -153,25 +153,12 @@ end
 
 function IML_GetCivilSources()
 	local List = {}
+	local Players = vRP.Players()
 
-	for _, Permission in ipairs(Config.Groups.Civil) do
-		local Services = vRP.NumPermission(Permission)
-		if Services then
-			for Passport, Source in pairs(Services) do
-				if Source and not List[Source] then
-					List[Source] = true
-				end
-			end
-		end
-
-		if not Config.RequireService then
-			local Players = vRP.Players()
-			if Players then
-				for Passport, Source in pairs(Players) do
-					if vRP.HasGroup(Passport, Permission) and Source and not List[Source] then
-						List[Source] = true
-					end
-				end
+	if Players then
+		for Passport, Source in pairs(Players) do
+			if Source and IML_HasGroup(Passport, Config.Groups.Civil) and not List[Source] then
+				List[Source] = true
 			end
 		end
 	end

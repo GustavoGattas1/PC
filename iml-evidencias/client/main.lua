@@ -149,7 +149,12 @@ end)
 
 RegisterNetEvent("iml-evidencias:RemoveEvidence")
 AddEventHandler("iml-evidencias:RemoveEvidence", function(EvidenceId)
-	SceneEvidence[EvidenceId] = nil
+	if RemoveEvidenceLocal then
+		RemoveEvidenceLocal(EvidenceId)
+	else
+		SceneEvidence[EvidenceId] = nil
+		if RemoveEvidenceProp then RemoveEvidenceProp(EvidenceId) end
+	end
 end)
 
 RegisterNetEvent("iml-evidencias:SyncCorpse")

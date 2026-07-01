@@ -22,22 +22,24 @@ Sistema completo de perícia e evidências para **Creative Uncharted** (FiveM).
 1. Copie `iml-evidencias/` para `resources/`
 2. Execute `sql/install.sql` no banco
 3. Cadastre os itens em `@vrp/config/Item.lua` — veja `items_reference.lua`
-4. Adicione ao `server.cfg`: `ensure iml-evidencias`
+4. Adicione ao `server.cfg`: `ensure iml-evidencias` (depois do `vrp`)
 
 ## Itens obrigatórios
 
 | Item | Uso |
 |------|-----|
-| `kitpericia` / `tablet-forense` | Tablet forense |
-| `luvas-latex` | Evitar digitais |
-| `saco-cadaver` | Acondicionar corpo |
-| `saco-evidencia` | Receber evidências coletadas |
-| `swab-sangue` | Coletar sangue do cadáver |
-| `kit-gsr` | Coleta GSR em suspeito |
-| `scanner-gsr` | Scanner portátil GSR |
-| `laudo-pericial` | Ver laudos |
-| `marcador-evidencia` | Marcador numerado |
-| `fita-policial` | Isolar perímetro |
+| `kitpericia` / `tabletforense` | Tablet forense |
+| `luvaslatex` | Evitar digitais |
+| `sacocadaver` | Acondicionar corpo |
+| `sacoevidencia` | Receber evidências coletadas |
+| `swabsangue` | Coletar sangue do cadáver |
+| `kitgsr` | Coleta GSR em suspeito |
+| `scannergsr` | Scanner portátil GSR |
+| `laudopericial` | Ver laudos |
+| `marcadorevidencia` | Marcador numerado |
+| `fitapolicial` | Isolar perímetro |
+
+> **Importante:** os nomes dos itens **não usam hífen** (ex.: `fitapolicial`, não `fita-policial`).
 
 ## Permissões
 
@@ -54,7 +56,9 @@ Sistema completo de perícia e evidências para **Creative Uncharted** (FiveM).
 
 ## Abrir / fechar painel
 
-- **Tablet**: item `kitpericia` ou `tablet-forense` (via export no Item.lua)
+- **Tablet**: item `kitpericia` ou `tabletforense` (via export no Item.lua)
+- **Fita**: item `fitapolicial`
+- **Marcador**: item `marcadorevidencia`
 - **Fechar**: botão X ou tecla **ESC**
 - Comandos: `/tabletforense`, `/cena` (overlay)
 
@@ -73,6 +77,16 @@ Sistema completo de perícia e evidências para **Creative Uncharted** (FiveM).
 Ao periciar um cadáver com arma de fogo, abre o **painel 3D** mostrando onde o projétil atingiu (braço, perna, tórax, etc.) e o **estado térmico** do corpo em vez da hora do óbito.
 
 ## Exports (Item.lua)
+
+Padrão recomendado — um export para todos os itens usáveis:
+
+```lua
+Execute = function(source)
+	exports["iml-evidencias"]:UseItem(source, "fitapolicial")
+end
+```
+
+Exports individuais (opcional):
 
 ```lua
 exports["iml-evidencias"]:UseLuvas(source)

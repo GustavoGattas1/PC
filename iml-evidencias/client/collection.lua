@@ -137,6 +137,13 @@ function StartEvidenceCollection(EvidenceId, Evidence)
 	end)
 end
 
+RegisterNetEvent("iml-evidencias:CollectSuccess")
+AddEventHandler("iml-evidencias:CollectSuccess", function(EvidenceId)
+	if RemoveEvidenceLocal then
+		RemoveEvidenceLocal(EvidenceId)
+	end
+end)
+
 RegisterNetEvent("iml-evidencias:CollectFailed")
 AddEventHandler("iml-evidencias:CollectFailed", function()
 	CancelCollection()

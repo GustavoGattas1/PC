@@ -25,19 +25,19 @@ Config.Notify = {
 -----------------------------------------------------------------------------------------------------------------------------------------
 Config.Items = {
 	ForensicKit = "kitpericia",
-	EvidenceBag = "saco-evidencia",
-	LatexGloves = "luvas-latex",
-	BodyBag = "saco-cadaver",
-	BloodSwab = "swab-sangue",
-	GsrKit = "kit-gsr",
-	Laudo = "laudo-pericial",
-	DnaReport = "relatorio-dna",
-	BulletReport = "relatorio-balistica",
-	ForensicTablet = "tablet-forense",
-	GsrScanner = "scanner-gsr",
-	EvidenceMarker = "marcador-evidencia",
-	PoliceTape = "fita-policial",
-	TireMold = "molde-pneu"
+	EvidenceBag = "sacoevidencia",
+	LatexGloves = "luvaslatex",
+	BodyBag = "sacocadaver",
+	BloodSwab = "swabsangue",
+	GsrKit = "kitgsr",
+	Laudo = "laudopericial",
+	DnaReport = "relatoriodna",
+	BulletReport = "relatoriobalistica",
+	ForensicTablet = "tabletforense",
+	GsrScanner = "scannergsr",
+	EvidenceMarker = "marcadorevidencia",
+	PoliceTape = "fitapolicial",
+	TireMold = "moldepneu"
 }
 
 -----------------------------------------------------------------------------------------------------------------------------------------

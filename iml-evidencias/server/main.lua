@@ -276,6 +276,7 @@ AddEventHandler("iml-evidencias:CollectEvidence", function(EvidenceId)
 	vRP.GenerateItem(Passport, Config.Items.EvidenceBag, 1, true)
 	StoreEvidenceBag(Passport, EvidenceId, ItemData)
 
+	TriggerClientEvent("iml-evidencias:CollectSuccess", Source, EvidenceId)
 	IML_BroadcastCivil("iml-evidencias:RemoveEvidence", EvidenceId)
 	IML_Notify(Source, "success", Config.Lang.EvidenceCollected)
 end)
@@ -650,7 +651,7 @@ AddEventHandler("iml-evidencias:PerformAutopsy", function(BodyId)
 end)
 
 -----------------------------------------------------------------------------------------------------------------------------------------
--- VISUALIZAR LAUDO (item laudo-pericial)
+-- VISUALIZAR LAUDO (item laudopericial)
 -----------------------------------------------------------------------------------------------------------------------------------------
 RegisterNetEvent("iml-evidencias:ViewReport")
 AddEventHandler("iml-evidencias:ViewReport", function(ReportId)

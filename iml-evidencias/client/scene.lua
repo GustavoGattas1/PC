@@ -62,6 +62,14 @@ function RemoveEvidenceProp(EvidenceId)
 	EvidenceProps[EvidenceId] = nil
 end
 
+function RemoveEvidenceLocal(EvidenceId)
+	if SceneEvidence then
+		SceneEvidence[EvidenceId] = nil
+	end
+	RemoveEvidenceProp(EvidenceId)
+	SceneEvidenceIndex[EvidenceId] = nil
+end
+
 RegisterNetEvent("iml-evidencias:SyncEvidence")
 AddEventHandler("iml-evidencias:SyncEvidence", function(Evidence)
 	if Evidence and Evidence.id and Evidence.coords then
@@ -69,10 +77,14 @@ AddEventHandler("iml-evidencias:SyncEvidence", function(Evidence)
 	end
 end)
 
+RegisterNetEvent("iml-evidencias:CollectSuccess")
+AddEventHandler("iml-evidencias:CollectSuccess", function(EvidenceId)
+	RemoveEvidenceLocal(EvidenceId)
+end)
+
 RegisterNetEvent("iml-evidencias:RemoveEvidence")
 AddEventHandler("iml-evidencias:RemoveEvidence", function(EvidenceId)
-	RemoveEvidenceProp(EvidenceId)
-	SceneEvidenceIndex[EvidenceId] = nil
+	RemoveEvidenceLocal(EvidenceId)
 end)
 
 -----------------------------------------------------------------------------------------------------------------------------------------

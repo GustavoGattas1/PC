@@ -80,6 +80,11 @@ AddEventHandler("iml-evidencias:PlaceMarker", function(Coords)
 	local Passport = vRP.Passport(Source)
 	if not Passport or not IML.CanCollect(Passport) then return end
 
+	if vRP.ItemAmount(Passport, Config.Items.EvidenceMarker) < 1 then
+		IML_Notify(Source, "negado", "Você precisa de um marcador de evidência.")
+		return
+	end
+
 	local Count = 0
 	for _ in pairs(SceneMarkers) do Count = Count + 1 end
 	if Count >= Config.MaxMarkers then
@@ -96,6 +101,8 @@ AddEventHandler("iml-evidencias:PlaceMarker", function(Coords)
 		placed_by = Passport,
 		created = os.time()
 	}
+
+	vRP.TakeItem(Passport, Config.Items.EvidenceMarker, 1, true)
 
 	SceneMarkers[MarkerId] = Marker
 	IML_BroadcastCivil("iml-evidencias:SyncMarker", Marker)

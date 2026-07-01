@@ -1,85 +1,135 @@
 --[[
 	ITENS — cadastrar em @vrp/config/Item.lua
-	Creative Uncharted — copie os blocos abaixo e ajuste Execute conforme sua base.
+	Creative Uncharted — copie os blocos abaixo (sem hífen nos nomes).
 ]]
 
 --[[
 	["kitpericia"] = {
-		["Index"] = "kitpericia",
-		["Name"] = "Kit de Perícia",
-		["Type"] = "Usável",
-		["Weight"] = 1.5,
-		["Execute"] = function(source, Passport, Amount, Slot, Full, Item, Split)
-			exports["iml-evidencias"]:UseTablet(source)
+		Index = "kitpericia",
+		Name = "Kit de Perícia",
+		Type = "Usável",
+		Weight = 1.5,
+		Execute = function(source)
+			exports["iml-evidencias"]:UseItem(source, "kitpericia")
 		end
 	},
-	["tablet-forense"] = {
-		["Index"] = "tablet-forense",
-		["Name"] = "Tablet Forense",
-		["Type"] = "Usável",
-		["Weight"] = 0.8,
-		["Execute"] = function(source, Passport, Amount, Slot, Full, Item, Split)
-			exports["iml-evidencias"]:UseTablet(source)
+
+	["tabletforense"] = {
+		Index = "tabletforense",
+		Name = "Tablet Forense",
+		Type = "Usável",
+		Weight = 0.8,
+		Execute = function(source)
+			exports["iml-evidencias"]:UseItem(source, "tabletforense")
 		end
 	},
-	["luvas-latex"] = {
-		["Index"] = "luvas-latex",
-		["Name"] = "Luvas de Látex",
-		["Type"] = "Usável",
-		["Weight"] = 0.1,
-		["Execute"] = function(source, Passport, Amount, Slot, Full, Item, Split)
-			exports["iml-evidencias"]:UseLuvas(source)
+
+	["luvaslatex"] = {
+		Index = "luvaslatex",
+		Name = "Luvas de Látex",
+		Type = "Usável",
+		Weight = 0.1,
+		Execute = function(source)
+			exports["iml-evidencias"]:UseItem(source, "luvaslatex")
 		end
 	},
-	["saco-cadaver"] = {
-		["Index"] = "saco-cadaver",
-		["Name"] = "Saco Mortuário",
-		["Type"] = "Usável",
-		["Weight"] = 2.0,
-		["Execute"] = function(source, Passport, Amount, Slot, Full, Item, Split)
-			exports["iml-evidencias"]:UseBodyBag(source)
+
+	["sacocadaver"] = {
+		Index = "sacocadaver",
+		Name = "Saco Mortuário",
+		Type = "Usável",
+		Weight = 2.0,
+		Execute = function(source)
+			exports["iml-evidencias"]:UseItem(source, "sacocadaver")
 		end
 	},
-	["scanner-gsr"] = {
-		["Index"] = "scanner-gsr",
-		["Name"] = "Scanner GSR",
-		["Type"] = "Usável",
-		["Weight"] = 0.5,
-		["Execute"] = function(source, Passport, Amount, Slot, Full, Item, Split)
-			exports["iml-evidencias"]:UseGsrScanner(source)
+
+	["scannergsr"] = {
+		Index = "scannergsr",
+		Name = "Scanner GSR",
+		Type = "Usável",
+		Weight = 0.5,
+		Execute = function(source)
+			exports["iml-evidencias"]:UseItem(source, "scannergsr")
 		end
 	},
-	["laudo-pericial"] = {
-		["Index"] = "laudo-pericial",
-		["Name"] = "Laudo Pericial",
-		["Type"] = "Usável",
-		["Weight"] = 0.1,
-		["Execute"] = function(source, Passport, Amount, Slot, Full, Item, Split)
-			exports["iml-evidencias"]:UseLaudo(source)
+
+	["laudopericial"] = {
+		Index = "laudopericial",
+		Name = "Laudo Pericial",
+		Type = "Usável",
+		Weight = 0.1,
+		Execute = function(source)
+			exports["iml-evidencias"]:UseItem(source, "laudopericial")
 		end
 	},
-	["marcador-evidencia"] = {
-		["Index"] = "marcador-evidencia",
-		["Name"] = "Marcador de Evidência",
-		["Type"] = "Usável",
-		["Weight"] = 0.3,
-		["Execute"] = function(source, Passport, Amount, Slot, Full, Item, Split)
-			exports["iml-evidencias"]:UseItem(source, "marcador-evidencia")
+
+	["marcadorevidencia"] = {
+		Index = "marcadorevidencia",
+		Name = "Marcador de Evidência",
+		Type = "Usável",
+		Weight = 0.3,
+		Execute = function(source)
+			exports["iml-evidencias"]:UseItem(source, "marcadorevidencia")
 		end
 	},
-	["fita-policial"] = {
-		["Index"] = "fita-policial",
-		["Name"] = "Fita Policial",
-		["Type"] = "Usável",
-		["Weight"] = 0.2,
-		["Execute"] = function(source, Passport, Amount, Slot, Full, Item, Split)
-			exports["iml-evidencias"]:UseItem(source, "fita-policial")
+
+	["fitapolicial"] = {
+		Index = "fitapolicial",
+		Name = "Fita Policial",
+		Type = "Usável",
+		Weight = 0.2,
+		Execute = function(source)
+			exports["iml-evidencias"]:UseItem(source, "fitapolicial")
 		end
+	},
+
+	-- Itens de consumo / resultado (sem Execute)
+	["sacoevidencia"] = {
+		Index = "sacoevidencia",
+		Name = "Saco de Evidência",
+		Type = "Comum",
+		Weight = 0.5
+	},
+
+	["swabsangue"] = {
+		Index = "swabsangue",
+		Name = "Swab de Sangue",
+		Type = "Comum",
+		Weight = 0.1
+	},
+
+	["kitgsr"] = {
+		Index = "kitgsr",
+		Name = "Kit GSR",
+		Type = "Comum",
+		Weight = 0.3
+	},
+
+	["moldepneu"] = {
+		Index = "moldepneu",
+		Name = "Molde de Pneu",
+		Type = "Comum",
+		Weight = 0.4
+	},
+
+	["relatoriodna"] = {
+		Index = "relatoriodna",
+		Name = "Relatório de DNA",
+		Type = "Comum",
+		Weight = 0.1
+	},
+
+	["relatoriobalistica"] = {
+		Index = "relatoriobalistica",
+		Name = "Relatório Balístico",
+		Type = "Comum",
+		Weight = 0.1
 	},
 ]]
 
 -- Alternativa via evento (se sua base usar):
--- TriggerServerEvent("iml-evidencias:UseItem", "luvas-latex")
+-- TriggerServerEvent("iml-evidencias:UseItem", "fitapolicial")
 
 -- Comandos de fallback no jogo:
 -- /luvas — equipar/remover luvas
