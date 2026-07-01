@@ -118,11 +118,14 @@
 		</div>
 
 		<div id="minigame-overlay" class="hidden">
-			<div class="minigame-panel">
+			<div class="minigame-panel minigame-panel-wide">
 				<h3 id="minigame-title">Coleta de Evidência</h3>
-				<p id="minigame-hint">Pressione ESPAÇO no momento certo</p>
-				<div class="minigame-bar"><div class="minigame-target"></div><div class="minigame-cursor" id="mg-cursor"></div></div>
-				<button class="btn-action" id="mg-action">COLETAR [ESPAÇO]</button>
+				<p id="minigame-hint">Siga as instruções na tela</p>
+				<div id="minigame-stage" class="minigame-stage"></div>
+				<div class="minigame-status">
+					<span id="minigame-status-text">0%</span>
+					<div class="minigame-timer-bar"><div id="minigame-timer-fill"></div></div>
+				</div>
 			</div>
 		</div>
 

@@ -52,7 +52,15 @@ Sistema completo de perícia e evidências para **Creative Uncharted** (FiveM).
 2. **Lanterna** (`WEAPON_FLASHLIGHT`) na mão
 3. Item **kitpericia** no inventário
 4. Aproxime-se da evidência e pressione **E**
-5. Barra de progresso → minigame → evidência vai para o saco
+5. Barra de progresso → **minigame interativo** → evidência vai para o saco
+
+### Minigames de coleta
+| Tipo | Minigame |
+|------|----------|
+| Sangue / DNA | Arraste o **cotonete** e limpe as manchas na tela |
+| Cápsulas / projéteis | Arraste a **cápsula** para dentro do **saco de evidência** |
+| Pneu | Arraste o molde até o rastro |
+| Outros | Arraste a pinça até a evidência |
 
 ## Abrir / fechar painel
 
