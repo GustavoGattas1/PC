@@ -12,7 +12,7 @@ function GetClosestCorpsePlayer()
 		local TargetPed = GetPlayerPed(Player)
 		if TargetPed ~= Ped then
 			local Dist = #(PedCoords - GetEntityCoords(TargetPed))
-			local IsDown = IsEntityDead(TargetPed) or GetEntityHealth(TargetPed) <= 100
+			local IsDown = IsEntityDead(TargetPed) or GetEntityHealth(TargetPed) <= 101 or IsPedDeadOrDying(TargetPed, true)
 
 			if IsDown and Dist < ClosestDist then
 				ClosestDist = Dist
@@ -42,7 +42,7 @@ CreateThread(function()
 				if TargetPed ~= Ped then
 					local TargetCoords = GetEntityCoords(TargetPed)
 					local Dist = #(PedCoords - TargetCoords)
-					local IsDown = IsEntityDead(TargetPed) or GetEntityHealth(TargetPed) <= 100
+					local IsDown = IsEntityDead(TargetPed) or GetEntityHealth(TargetPed) <= 101 or IsPedDeadOrDying(TargetPed, true)
 
 					if IsDown and Dist < 8.0 then
 						Sleep = 0

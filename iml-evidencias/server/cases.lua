@@ -75,12 +75,17 @@ function IML.ScanGSR(TargetSource)
 end
 
 RegisterNetEvent("iml-evidencias:PlaceMarker")
-AddEventHandler("iml-evidencias:PlaceMarker", function(Coords)
+AddEventHandler("iml-evidencias:PlaceMarker", function(Coords, FromItemUse)
 	local Source = source
 	local Passport = vRP.Passport(Source)
-	if not Passport or not IML.CanCollect(Passport) then return end
+	if not Passport or not IML.CanCollect(Passport) then
+		if Passport then
+			IML_Notify(Source, "negado", Config.Lang.NotAuthorized)
+		end
+		return
+	end
 
-	if vRP.ItemAmount(Passport, Config.Items.EvidenceMarker) < 1 then
+	if not IML_ConsumeItem(Passport, Config.Items.EvidenceMarker, FromItemUse == true) then
 		IML_Notify(Source, "negado", "Você precisa de um marcador de evidência.")
 		return
 	end
@@ -102,29 +107,33 @@ AddEventHandler("iml-evidencias:PlaceMarker", function(Coords)
 		created = os.time()
 	}
 
-	vRP.TakeItem(Passport, Config.Items.EvidenceMarker, 1, true)
-
 	SceneMarkers[MarkerId] = Marker
 	IML_BroadcastCivil("iml-evidencias:SyncMarker", Marker)
 	IML_Notify(Source, "success", Config.Lang.MarkerPlaced)
 end)
 
 RegisterNetEvent("iml-evidencias:PlaceTape")
-AddEventHandler("iml-evidencias:PlaceTape", function(Coords, Heading)
+AddEventHandler("iml-evidencias:PlaceTape", function(Coords, Heading, FromItemUse)
 	local Source = source
 	local Passport = vRP.Passport(Source)
-	if not Passport or not IML.CanCollect(Passport) then return end
+	if not Passport or not IML.CanCollect(Passport) then
+		if Passport then
+			IML_Notify(Source, "negado", Config.Lang.NotAuthorized)
+		end
+		return
+	end
 
-	if vRP.ItemAmount(Passport, Config.Items.PoliceTape) < 1 then
+	if not IML_ConsumeItem(Passport, Config.Items.PoliceTape, FromItemUse == true) then
 		IML_Notify(Source, "negado", "Você precisa de fita policial.")
 		return
 	end
 
 	local Count = 0
 	for _ in pairs(SceneTape) do Count = Count + 1 end
-	if Count >= Config.MaxTapeSegments then return end
-
-	vRP.TakeItem(Passport, Config.Items.PoliceTape, 1, true)
+	if Count >= Config.MaxTapeSegments then
+		IML_Notify(Source, "negado", "Limite de fita policial atingido.")
+		return
+	end
 
 	local Rad = math.rad(Heading or 0)
 	local Length = 3.5

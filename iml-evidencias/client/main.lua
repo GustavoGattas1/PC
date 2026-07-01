@@ -206,15 +206,10 @@ end)
 -- USAR SACO MORTUÁRIO (item)
 -----------------------------------------------------------------------------------------------------------------------------------------
 RegisterNetEvent("iml-evidencias:UseBodyBag")
-AddEventHandler("iml-evidencias:UseBodyBag", function()
-	if not IsCivil then
-		IMLNotify("negado", Config.Lang.NotAuthorized)
-		return
-	end
-
+AddEventHandler("iml-evidencias:UseBodyBag", function(FromItemUse)
 	local TargetSource = GetClosestCorpsePlayer and GetClosestCorpsePlayer()
 	if TargetSource then
-		TriggerServerEvent("iml-evidencias:CollectBody", TargetSource)
+		TriggerServerEvent("iml-evidencias:CollectBody", TargetSource, FromItemUse == true)
 	else
 		IMLNotify("negado", Config.Lang.NoCorpse)
 	end

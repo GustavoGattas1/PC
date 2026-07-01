@@ -1,6 +1,11 @@
 --[[
 	ITENS — cadastrar em @vrp/config/Item.lua
 	Creative Uncharted — copie os blocos abaixo (sem hífen nos nomes).
+
+	IMPORTANTE:
+	- O inventário Creative geralmente JÁ CONSOME o item ao usar.
+	- Por isso o Execute só chama o export — não use TakeItem no Item.lua.
+	- ensure iml-evidencias DEPOIS do vrp no server.cfg
 ]]
 
 --[[
@@ -9,8 +14,8 @@
 		Name = "Kit de Perícia",
 		Type = "Usável",
 		Weight = 1.5,
-		Execute = function(source)
-			exports["iml-evidencias"]:UseItem(source, "kitpericia")
+		Execute = function(source, Passport, Amount, Slot, Full, Item, Split)
+			exports["iml-evidencias"]:UseItem(source, Item or Full or "kitpericia")
 		end
 	},
 
@@ -19,8 +24,8 @@
 		Name = "Tablet Forense",
 		Type = "Usável",
 		Weight = 0.8,
-		Execute = function(source)
-			exports["iml-evidencias"]:UseItem(source, "tabletforense")
+		Execute = function(source, Passport, Amount, Slot, Full, Item, Split)
+			exports["iml-evidencias"]:UseItem(source, Item or Full or "tabletforense")
 		end
 	},
 
@@ -29,8 +34,8 @@
 		Name = "Luvas de Látex",
 		Type = "Usável",
 		Weight = 0.1,
-		Execute = function(source)
-			exports["iml-evidencias"]:UseItem(source, "luvaslatex")
+		Execute = function(source, Passport, Amount, Slot, Full, Item, Split)
+			exports["iml-evidencias"]:UseItem(source, Item or Full or "luvaslatex")
 		end
 	},
 
@@ -39,8 +44,8 @@
 		Name = "Saco Mortuário",
 		Type = "Usável",
 		Weight = 2.0,
-		Execute = function(source)
-			exports["iml-evidencias"]:UseItem(source, "sacocadaver")
+		Execute = function(source, Passport, Amount, Slot, Full, Item, Split)
+			exports["iml-evidencias"]:UseItem(source, Item or Full or "sacocadaver")
 		end
 	},
 
@@ -49,8 +54,8 @@
 		Name = "Scanner GSR",
 		Type = "Usável",
 		Weight = 0.5,
-		Execute = function(source)
-			exports["iml-evidencias"]:UseItem(source, "scannergsr")
+		Execute = function(source, Passport, Amount, Slot, Full, Item, Split)
+			exports["iml-evidencias"]:UseItem(source, Item or Full or "scannergsr")
 		end
 	},
 
@@ -59,8 +64,8 @@
 		Name = "Laudo Pericial",
 		Type = "Usável",
 		Weight = 0.1,
-		Execute = function(source)
-			exports["iml-evidencias"]:UseItem(source, "laudopericial")
+		Execute = function(source, Passport, Amount, Slot, Full, Item, Split)
+			exports["iml-evidencias"]:UseItem(source, Item or Full or "laudopericial")
 		end
 	},
 
@@ -69,8 +74,8 @@
 		Name = "Marcador de Evidência",
 		Type = "Usável",
 		Weight = 0.3,
-		Execute = function(source)
-			exports["iml-evidencias"]:UseItem(source, "marcadorevidencia")
+		Execute = function(source, Passport, Amount, Slot, Full, Item, Split)
+			exports["iml-evidencias"]:UseItem(source, Item or Full or "marcadorevidencia")
 		end
 	},
 
@@ -79,8 +84,8 @@
 		Name = "Fita Policial",
 		Type = "Usável",
 		Weight = 0.2,
-		Execute = function(source)
-			exports["iml-evidencias"]:UseItem(source, "fitapolicial")
+		Execute = function(source, Passport, Amount, Slot, Full, Item, Split)
+			exports["iml-evidencias"]:UseItem(source, Item or Full or "fitapolicial")
 		end
 	},
 

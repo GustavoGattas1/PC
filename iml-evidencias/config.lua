@@ -382,5 +382,6 @@ Config.Lang = {
 	NeedBodyBag = "Você precisa de um saco mortuário.",
 	NeedTablet = "Você precisa do tablet forense.",
 	NeedScanner = "Você precisa do scanner GSR portátil.",
-	PanelBusy = "Feche o painel aberto antes de abrir outro."
+	PanelBusy = "Feche o painel aberto antes de abrir outro.",
+	ItemNotRecognized = "Item forense não configurado no IML."
 }

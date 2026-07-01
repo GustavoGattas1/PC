@@ -494,7 +494,7 @@ end)
 -- COLETAR CORPO
 -----------------------------------------------------------------------------------------------------------------------------------------
 RegisterNetEvent("iml-evidencias:CollectBody")
-AddEventHandler("iml-evidencias:CollectBody", function(TargetSource)
+AddEventHandler("iml-evidencias:CollectBody", function(TargetSource, FromItemUse)
 	local Source = source
 	local Passport = vRP.Passport(Source)
 	local TargetPassport = vRP.Passport(TargetSource)
@@ -506,12 +506,12 @@ AddEventHandler("iml-evidencias:CollectBody", function(TargetSource)
 		return
 	end
 
-	if vRP.ItemAmount(Passport, Config.Items.BodyBag) < 1 then
-		IML_Notify(Source, "negado", "Você precisa de um saco mortuário.")
+	if not IML_ConsumeItem(Passport, Config.Items.BodyBag, FromItemUse == true) then
+		IML_Notify(Source, "negado", Config.Lang.NeedBodyBag)
 		return
 	end
 
-	if not IML_ValidateFlashlight(Source) then
+	if not FromItemUse and not IML_ValidateFlashlight(Source) then
 		IML_Notify(Source, "negado", Config.Lang.NeedFlashlight)
 		return
 	end
@@ -520,8 +520,6 @@ AddEventHandler("iml-evidencias:CollectBody", function(TargetSource)
 		IML_Notify(Source, "negado", Config.Lang.CorpseAlreadyBagged)
 		return
 	end
-
-	vRP.TakeItem(Passport, Config.Items.BodyBag, 1, true)
 
 	local BodyId = IML_GenerateId("BODY")
 	local Identity = IML_GetIdentity(TargetPassport)

@@ -62,21 +62,24 @@ function closeTablet(cb)
 	cb("ok")
 end
 
+function SafeTunnelCall(Func, Default)
+	local Ok, Result = pcall(Func)
+	if Ok and Result ~= nil then
+		return Result
+	end
+	return Default
+end
+
 RegisterNetEvent("iml-evidencias:OpenTablet")
 AddEventHandler("iml-evidencias:OpenTablet", function()
-	if not IsCivil then
-		IMLNotify("negado", Config.Lang.NotAuthorized)
-		return
-	end
-
 	if not OpenNuiPanel({
 		action = "openTablet",
-		evidence = vSERVER.GetMyEvidence(),
-		cases = vSERVER.GetCases(),
-		reports = vSERVER.GetMyReports(),
+		evidence = SafeTunnelCall(function() return vSERVER.GetMyEvidence() end, {}),
+		cases = SafeTunnelCall(function() return vSERVER.GetCases() end, {}),
+		reports = SafeTunnelCall(function() return vSERVER.GetMyReports() end, {}),
 		scene = BuildLocalSceneScan(),
 		overlay = SceneOverlayActive
-	}, { replace = false }) then
+	}, { replace = true }) then
 		return
 	end
 
@@ -166,12 +169,12 @@ RegisterNUICallback("toggleOverlay", function(_, cb)
 end)
 
 RegisterNUICallback("placeMarker", function(_, cb)
-	TriggerEvent("iml-evidencias:PlaceMarker")
+	TriggerEvent("iml-evidencias:PlaceMarker", false)
 	closeTablet(cb)
 end)
 
 RegisterNUICallback("placeTape", function(_, cb)
-	TriggerEvent("iml-evidencias:PlaceTape")
+	TriggerEvent("iml-evidencias:PlaceTape", false)
 	closeTablet(cb)
 end)
 

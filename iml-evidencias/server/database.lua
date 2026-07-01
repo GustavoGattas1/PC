@@ -110,6 +110,23 @@ function IML_Notify(Source, Type, Message, Duration)
 	TriggerClientEvent("Notify", Source, Info.Title, Message, Info.Color, Duration or 5000)
 end
 
+function IML_ConsumeItem(Passport, ItemName, FromItemUse)
+	if not Passport or not ItemName then
+		return false
+	end
+
+	if vRP.ItemAmount(Passport, ItemName) >= 1 then
+		vRP.TakeItem(Passport, ItemName, 1, true)
+		return true
+	end
+
+	if FromItemUse then
+		return true
+	end
+
+	return false
+end
+
 function IML_GetIdentity(Passport)
 	local Name = vRP.FullName(Passport)
 	local Identity = vRP.Identity(Passport)

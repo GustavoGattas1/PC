@@ -1,6 +1,46 @@
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- REGISTRO DE ITENS USÁVEIS (Creative / vRP)
 -----------------------------------------------------------------------------------------------------------------------------------------
+local ItemAliases = {
+	["fita-policial"] = "fitapolicial",
+	["tablet-forense"] = "tabletforense",
+	["saco-cadaver"] = "sacocadaver",
+	["saco-evidencia"] = "sacoevidencia",
+	["luvas-latex"] = "luvaslatex",
+	["marcador-evidencia"] = "marcadorevidencia",
+	["laudo-pericial"] = "laudopericial",
+	["scanner-gsr"] = "scannergsr",
+	["swab-sangue"] = "swabsangue",
+	["kit-gsr"] = "kitgsr",
+	["molde-pneu"] = "moldepneu"
+}
+
+local function NormalizeItemName(ItemName)
+	if type(ItemName) ~= "string" or ItemName == "" then
+		return nil
+	end
+
+	ItemName = string.lower(ItemName)
+	ItemName = string.match(ItemName, "^([^%-]+)") or ItemName
+
+	return ItemAliases[ItemName] or ItemName
+end
+
+local function ResolveItemName(...)
+	local Args = { ... }
+
+	for _, Arg in ipairs(Args) do
+		if type(Arg) == "string" and Arg ~= "" and not tonumber(Arg) then
+			local Normalized = NormalizeItemName(Arg)
+			if Normalized and ItemHandlers[Normalized] then
+				return Normalized
+			end
+		end
+	end
+
+	return nil
+end
+
 local ItemHandlers = {
 	[Config.Items.LatexGloves] = function(Source, Passport)
 		TriggerClientEvent("iml-evidencias:ToggleGloves", Source)
@@ -11,7 +51,7 @@ local ItemHandlers = {
 			IML_Notify(Source, "negado", Config.Lang.NotAuthorized)
 			return
 		end
-		TriggerClientEvent("iml-evidencias:UseBodyBag", Source)
+		TriggerClientEvent("iml-evidencias:UseBodyBag", Source, true)
 	end,
 
 	[Config.Items.Laudo] = function(Source, Passport)
@@ -39,7 +79,7 @@ local ItemHandlers = {
 			IML_Notify(Source, "negado", Config.Lang.NotAuthorized)
 			return
 		end
-		TriggerClientEvent("iml-evidencias:PlaceMarker", Source)
+		TriggerClientEvent("iml-evidencias:PlaceMarker", Source, true)
 	end,
 
 	[Config.Items.PoliceTape] = function(Source, Passport)
@@ -47,7 +87,7 @@ local ItemHandlers = {
 			IML_Notify(Source, "negado", Config.Lang.NotAuthorized)
 			return
 		end
-		TriggerClientEvent("iml-evidencias:PlaceTape", Source)
+		TriggerClientEvent("iml-evidencias:PlaceTape", Source, true)
 	end,
 
 	[Config.Items.ForensicKit] = function(Source, Passport)
@@ -61,7 +101,10 @@ local ItemHandlers = {
 
 local function HandleItemUse(Source, ItemName)
 	local Passport = vRP.Passport(Source)
-	if not Passport or not ItemName then return end
+	if not Passport then return false end
+
+	ItemName = NormalizeItemName(ItemName)
+	if not ItemName then return false end
 
 	local Handler = ItemHandlers[ItemName]
 	if Handler then
@@ -69,7 +112,13 @@ local function HandleItemUse(Source, ItemName)
 		return true
 	end
 
+	IML_Notify(Source, "negado", Config.Lang.ItemNotRecognized)
+
 	return false
+end
+
+local function HandleItemUseEvent(ItemName)
+	HandleItemUse(source, ItemName)
 end
 
 -----------------------------------------------------------------------------------------------------------------------------------------
@@ -77,23 +126,41 @@ end
 -----------------------------------------------------------------------------------------------------------------------------------------
 RegisterNetEvent("iml-evidencias:UseItem")
 AddEventHandler("iml-evidencias:UseItem", function(ItemName)
-	HandleItemUse(source, ItemName)
+	HandleItemUseEvent(ItemName)
 end)
 
 RegisterNetEvent("inventory:UseItem")
 AddEventHandler("inventory:UseItem", function(ItemName)
-	HandleItemUse(source, ItemName)
+	HandleItemUseEvent(ItemName)
 end)
 
 RegisterNetEvent("inventory:Use")
 AddEventHandler("inventory:Use", function(ItemName)
-	HandleItemUse(source, ItemName)
+	HandleItemUseEvent(ItemName)
+end)
+
+RegisterNetEvent("inventory:ServerUse")
+AddEventHandler("inventory:ServerUse", function(ItemName)
+	HandleItemUseEvent(ItemName)
+end)
+
+RegisterNetEvent("player:UseItem")
+AddEventHandler("player:UseItem", function(ItemName)
+	HandleItemUseEvent(ItemName)
 end)
 
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- EXPORTS PARA Item.lua (Execute)
 -----------------------------------------------------------------------------------------------------------------------------------------
-exports("UseItem", function(Source, ItemName)
+exports("UseItem", function(Source, ...)
+	local ItemName = ResolveItemName(...)
+	if not ItemName then
+		if Config.Debug then
+			print("[IML] UseItem sem nome válido. Source:", Source, "Args:", json.encode({ ... }))
+		end
+		return false
+	end
+
 	return HandleItemUse(Source, ItemName)
 end)
 
@@ -117,4 +184,12 @@ end)
 
 exports("UseLaudo", function(Source)
 	return HandleItemUse(Source, Config.Items.Laudo)
+end)
+
+exports("UseFita", function(Source)
+	return HandleItemUse(Source, Config.Items.PoliceTape)
+end)
+
+exports("UseMarcador", function(Source)
+	return HandleItemUse(Source, Config.Items.EvidenceMarker)
 end)

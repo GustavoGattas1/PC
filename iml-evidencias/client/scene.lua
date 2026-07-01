@@ -288,11 +288,10 @@ AddEventHandler("iml-evidencias:RemoveMarker", function(MarkerId)
 end)
 
 RegisterNetEvent("iml-evidencias:PlaceMarker")
-AddEventHandler("iml-evidencias:PlaceMarker", function()
-	if not IsCivil then return end
+AddEventHandler("iml-evidencias:PlaceMarker", function(FromItemUse)
 	local Ped = PlayerPedId()
 	local Coords = GetEntityCoords(Ped)
-	TriggerServerEvent("iml-evidencias:PlaceMarker", { x = Coords.x, y = Coords.y, z = Coords.z - 0.95 })
+	TriggerServerEvent("iml-evidencias:PlaceMarker", { x = Coords.x, y = Coords.y, z = Coords.z - 0.95 }, FromItemUse == true)
 end)
 
 CreateThread(function()
@@ -341,11 +340,10 @@ function SpawnTapeProp(Segment)
 end
 
 RegisterNetEvent("iml-evidencias:PlaceTape")
-AddEventHandler("iml-evidencias:PlaceTape", function()
-	if not IsCivil then return end
+AddEventHandler("iml-evidencias:PlaceTape", function(FromItemUse)
 	local Ped = PlayerPedId()
 	local Coords = GetEntityCoords(Ped)
-	TriggerServerEvent("iml-evidencias:PlaceTape", { x = Coords.x, y = Coords.y, z = Coords.z }, GetEntityHeading(Ped))
+	TriggerServerEvent("iml-evidencias:PlaceTape", { x = Coords.x, y = Coords.y, z = Coords.z }, GetEntityHeading(Ped), FromItemUse == true)
 end)
 
 RegisterNetEvent("iml-evidencias:SyncTape")
