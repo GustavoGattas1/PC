@@ -173,11 +173,6 @@ RegisterNUICallback("placeMarker", function(_, cb)
 	closeTablet(cb)
 end)
 
-RegisterNUICallback("placeTape", function(_, cb)
-	TriggerEvent("iml-evidencias:PlaceTape", false)
-	closeTablet(cb)
-end)
-
 RegisterNUICallback("scanNearbyGsr", function(_, cb)
 	closeTablet(cb)
 	TriggerEvent("iml-evidencias:OpenGsrScanner")

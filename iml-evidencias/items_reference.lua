@@ -39,16 +39,6 @@
 		end
 	},
 
-	["sacocadaver"] = {
-		Index = "sacocadaver",
-		Name = "Saco Mortuário",
-		Type = "Usável",
-		Weight = 2.0,
-		Execute = function(source, Passport, Amount, Slot, Full, Item, Split)
-			exports["iml-evidencias"]:UseItem(source, Item or Full or "sacocadaver")
-		end
-	},
-
 	["scannergsr"] = {
 		Index = "scannergsr",
 		Name = "Scanner GSR",
@@ -76,16 +66,6 @@
 		Weight = 0.3,
 		Execute = function(source, Passport, Amount, Slot, Full, Item, Split)
 			exports["iml-evidencias"]:UseItem(source, Item or Full or "marcadorevidencia")
-		end
-	},
-
-	["fitapolicial"] = {
-		Index = "fitapolicial",
-		Name = "Fita Policial",
-		Type = "Usável",
-		Weight = 0.2,
-		Execute = function(source, Passport, Amount, Slot, Full, Item, Split)
-			exports["iml-evidencias"]:UseItem(source, Item or Full or "fitapolicial")
 		end
 	},
 
@@ -134,10 +114,10 @@
 ]]
 
 -- Alternativa via evento (se sua base usar):
--- TriggerServerEvent("iml-evidencias:UseItem", "fitapolicial")
+-- TriggerServerEvent("iml-evidencias:UseItem", "marcadorevidencia")
 
 -- Comandos de fallback no jogo:
 -- /luvas — equipar/remover luvas
 -- /cena ou M — overlay de investigação
 -- /tabletforense — abrir tablet
--- /coletarcorpo — coletar corpo com saco mortuário
+-- /periciar — periciar cadáver próximo (target também disponível)

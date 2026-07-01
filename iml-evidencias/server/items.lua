@@ -2,17 +2,15 @@
 -- REGISTRO DE ITENS USÁVEIS (Creative / vRP)
 -----------------------------------------------------------------------------------------------------------------------------------------
 local ItemAliases = {
-	["fita-policial"] = "fitapolicial",
-	["tablet-forense"] = "tabletforense",
-	["saco-cadaver"] = "sacocadaver",
-	["saco-evidencia"] = "sacoevidencia",
 	["luvas-latex"] = "luvaslatex",
 	["marcador-evidencia"] = "marcadorevidencia",
 	["laudo-pericial"] = "laudopericial",
 	["scanner-gsr"] = "scannergsr",
 	["swab-sangue"] = "swabsangue",
 	["kit-gsr"] = "kitgsr",
-	["molde-pneu"] = "moldepneu"
+	["molde-pneu"] = "moldepneu",
+	["tablet-forense"] = "tabletforense",
+	["saco-evidencia"] = "sacoevidencia"
 }
 
 local function NormalizeItemName(ItemName)
@@ -46,14 +44,6 @@ local ItemHandlers = {
 		TriggerClientEvent("iml-evidencias:ToggleGloves", Source)
 	end,
 
-	[Config.Items.BodyBag] = function(Source, Passport)
-		if not IML.CanCollect(Passport) then
-			IML_Notify(Source, "negado", Config.Lang.NotAuthorized)
-			return
-		end
-		TriggerClientEvent("iml-evidencias:UseBodyBag", Source, true)
-	end,
-
 	[Config.Items.Laudo] = function(Source, Passport)
 		IML_OpenLatestReport(Source, Passport)
 	end,
@@ -82,14 +72,6 @@ local ItemHandlers = {
 		TriggerClientEvent("iml-evidencias:PlaceMarker", Source, true)
 	end,
 
-	[Config.Items.PoliceTape] = function(Source, Passport)
-		if not IML.CanCollect(Passport) then
-			IML_Notify(Source, "negado", Config.Lang.NotAuthorized)
-			return
-		end
-		TriggerClientEvent("iml-evidencias:PlaceTape", Source, true)
-	end,
-
 	[Config.Items.ForensicKit] = function(Source, Passport)
 		if not IML.CanCollect(Passport) then
 			IML_Notify(Source, "negado", Config.Lang.NotAuthorized)
@@ -113,7 +95,6 @@ local function HandleItemUse(Source, ItemName)
 	end
 
 	IML_Notify(Source, "negado", Config.Lang.ItemNotRecognized)
-
 	return false
 end
 
@@ -156,7 +137,7 @@ exports("UseItem", function(Source, ...)
 	local ItemName = ResolveItemName(...)
 	if not ItemName then
 		if Config.Debug then
-			print("[IML] UseItem sem nome válido. Source:", Source, "Args:", json.encode({ ... }))
+			print("[IML] UseItem sem nome válido. Source:", Source)
 		end
 		return false
 	end
@@ -166,10 +147,6 @@ end)
 
 exports("UseLuvas", function(Source)
 	return HandleItemUse(Source, Config.Items.LatexGloves)
-end)
-
-exports("UseBodyBag", function(Source)
-	return HandleItemUse(Source, Config.Items.BodyBag)
 end)
 
 exports("UseTablet", function(Source)
@@ -184,10 +161,6 @@ end)
 
 exports("UseLaudo", function(Source)
 	return HandleItemUse(Source, Config.Items.Laudo)
-end)
-
-exports("UseFita", function(Source)
-	return HandleItemUse(Source, Config.Items.PoliceTape)
 end)
 
 exports("UseMarcador", function(Source)

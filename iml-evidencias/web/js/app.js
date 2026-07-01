@@ -10,7 +10,6 @@ const views = {
 	lab: document.getElementById("view-lab"),
 	autopsy: document.getElementById("view-autopsy"),
 	locker: document.getElementById("view-locker"),
-	bodydrop: document.getElementById("view-bodydrop"),
 	report: document.getElementById("view-report"),
 	tablet: document.getElementById("view-tablet"),
 	bodyDiagram: document.getElementById("view-body-diagram"),
@@ -149,8 +148,28 @@ document.getElementById("btn-refresh-scene").addEventListener("click", () => pos
 
 document.getElementById("btn-overlay").addEventListener("click", () => post("toggleOverlay"));
 document.getElementById("btn-marker").addEventListener("click", () => { post("placeMarker"); closeApp(); });
-document.getElementById("btn-tape").addEventListener("click", () => { post("placeTape"); closeApp(); });
 document.getElementById("btn-gsr-scan").addEventListener("click", () => { post("scanNearbyGsr"); closeApp(); });
+
+const minigameThemes = {
+	swab: { icon: "🩸", badge: "SANGUE", className: "theme-swab" },
+	bag: { icon: "🔫", badge: "BALÍSTICA", className: "theme-bag" },
+	dna: { icon: "🧬", badge: "DNA", className: "theme-dna" },
+	mold: { icon: "🛞", badge: "PNEU", className: "theme-mold" },
+	pickup: { icon: "🔬", badge: "COLETA", className: "theme-pickup" }
+};
+
+function setMinigameTheme(type, title, hint) {
+	const theme = minigameThemes[type] || minigameThemes.pickup;
+	const panel = document.getElementById("minigame-panel");
+	const icon = document.getElementById("minigame-icon");
+	const badge = document.getElementById("minigame-badge");
+
+	panel.className = "minigame-panel minigame-panel-wide " + theme.className;
+	icon.textContent = theme.icon;
+	badge.textContent = theme.badge;
+	document.getElementById("minigame-title").textContent = title;
+	document.getElementById("minigame-hint").textContent = hint;
+}
 
 function getStageRect(stage) {
 	return stage.getBoundingClientRect();
@@ -261,8 +280,7 @@ function completeMinigame(success) {
 }
 
 function startSwabMinigame(stage) {
-	document.getElementById("minigame-title").textContent = "Coleta de Sangue";
-	document.getElementById("minigame-hint").textContent = "Arraste o cotonete e limpe todas as manchas de sangue na superfície";
+	setMinigameTheme("swab", "Coleta de Sangue", "Arraste o cotonete e limpe todas as manchas de sangue na superfície");
 	updateMinigameStatus("Manchas: 0/0");
 
 	const floor = document.createElement("div");
@@ -329,8 +347,7 @@ function startSwabMinigame(stage) {
 }
 
 function startBagMinigame(stage) {
-	document.getElementById("minigame-title").textContent = "Cápsula de Projétil";
-	document.getElementById("minigame-hint").textContent = "Arraste a cápsula e coloque dentro do saco de evidência";
+	setMinigameTheme("bag", "Cápsula de Projétil", "Arraste a cápsula e coloque dentro do saco de evidência");
 	updateMinigameStatus("Coloque no saco");
 
 	const scene = document.createElement("div");
@@ -397,8 +414,7 @@ function startBagMinigame(stage) {
 }
 
 function startMoldMinigame(stage) {
-	document.getElementById("minigame-title").textContent = "Molde de Pneu";
-	document.getElementById("minigame-hint").textContent = "Arraste o molde até o rastro de pneu";
+	setMinigameTheme("mold", "Molde de Pneu", "Arraste o molde até o rastro de pneu");
 	updateMinigameStatus("Posicione o molde");
 
 	const stageW = stage.offsetWidth || 480;
@@ -424,8 +440,7 @@ function startMoldMinigame(stage) {
 }
 
 function startPickupMinigame(stage) {
-	document.getElementById("minigame-title").textContent = "Coleta de Evidência";
-	document.getElementById("minigame-hint").textContent = "Arraste a pinça até a evidência e recolha";
+	setMinigameTheme("pickup", "Coleta de Evidência", "Arraste a pinça até a evidência e recolha");
 	updateMinigameStatus("Recolha a evidência");
 
 	const evidence = document.createElement("div");
@@ -484,6 +499,83 @@ function setupGenericDropMinigame(stage, item, target, successText) {
 	startMinigameTimer(() => completeMinigame(false));
 }
 
+function startDnaMinigame(stage) {
+	setMinigameTheme("dna", "Coleta de DNA", "Arraste o swab molecular e colete todas as amostras na hélice");
+	updateMinigameStatus("Amostras: 0/0");
+
+	const stageW = stage.offsetWidth || 480;
+	const stageH = stage.offsetHeight || 256;
+
+	const scene = document.createElement("div");
+	scene.className = "mg-dna-scene";
+	stage.appendChild(scene);
+
+	const helix = document.createElement("div");
+	helix.className = "mg-dna-helix";
+	helix.innerHTML = `
+		<div class="mg-dna-strand mg-dna-strand-left"></div>
+		<div class="mg-dna-strand mg-dna-strand-right"></div>
+		<div class="mg-dna-grid"></div>
+	`;
+	scene.appendChild(helix);
+
+	const nodeCount = 5;
+	const nodes = [];
+	const nodePositions = [
+		{ left: 42, top: 18 },
+		{ left: 58, top: 32 },
+		{ left: 40, top: 48 },
+		{ left: 60, top: 62 },
+		{ left: 45, top: 76 }
+	];
+
+	for (let i = 0; i < nodeCount; i++) {
+		const pos = nodePositions[i] || { left: 50, top: 20 + i * 14 };
+		const node = document.createElement("div");
+		node.className = "mg-dna-node";
+		node.style.left = pos.left + "%";
+		node.style.top = pos.top + "%";
+		helix.appendChild(node);
+		nodes.push(node);
+	}
+
+	let collected = 0;
+	updateMinigameStatus(`Amostras: ${collected}/${nodeCount}`);
+
+	const swab = document.createElement("div");
+	swab.className = "mg-dna-swab";
+	swab.innerHTML = '<div class="mg-dna-swab-tip"></div><div class="mg-dna-swab-stick"></div>';
+	swab.style.left = (stageW / 2 - 20) + "px";
+	swab.style.top = (stageH - 88) + "px";
+	scene.appendChild(swab);
+
+	const collectNodes = (el) => {
+		const tipRect = el.querySelector(".mg-dna-swab-tip").getBoundingClientRect();
+		nodes.forEach((node) => {
+			if (node.classList.contains("collected")) return;
+			const nodeRect = node.getBoundingClientRect();
+			if (rectsOverlap(tipRect, nodeRect, 10)) {
+				node.classList.add("collected");
+				collected++;
+				updateMinigameStatus(`Amostras: ${collected}/${nodeCount}`);
+				if (collected >= nodeCount) {
+					updateMinigameStatus("Perfil genético capturado!");
+					stage.classList.add("mg-success-flash");
+					completeMinigame(true);
+				}
+			}
+		});
+	};
+
+	const cleanupDrag = setupDraggable(swab, scene, collectNodes);
+	mgCleanup = () => {
+		cleanupDrag();
+		stopMinigameTimer();
+	};
+
+	startMinigameTimer(() => completeMinigame(false));
+}
+
 function startMinigame(type) {
 	collectionUiActive = true;
 	mgFinished = false;
@@ -504,6 +596,9 @@ function startMinigame(type) {
 				break;
 			case "bag":
 				startBagMinigame(stage);
+				break;
+			case "dna":
+				startDnaMinigame(stage);
 				break;
 			case "mold":
 				startMoldMinigame(stage);
@@ -822,11 +917,6 @@ window.addEventListener("message", (event) => {
 			panelTitle.textContent = "Armário de Evidências";
 			views.locker.classList.remove("hidden");
 			renderEvidenceList(document.getElementById("locker-list"), data.evidence, "Ver", () => {});
-			break;
-		case "openBodyDrop":
-			panelTitle.textContent = "Entrega de Corpos";
-			views.bodydrop.classList.remove("hidden");
-			renderBodyList(document.getElementById("bodydrop-list"), data.bodies, "Entregar", (body) => post("deliverBody", { body_id: body.body_id }));
 			break;
 		case "openReport":
 			panelTitle.textContent = data.title || "Laudo Pericial";

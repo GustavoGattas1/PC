@@ -1,12 +1,10 @@
 -----------------------------------------------------------------------------------------------------------------------------------------
--- PROPS 3D, OVERLAY, MARCADORES E FITA POLICIAL
+-- PROPS 3D, OVERLAY E MARCADORES
 -----------------------------------------------------------------------------------------------------------------------------------------
 EvidenceProps = {}
 MarkerProps = {}
-TapeProps = {}
 SceneOverlayActive = false
 SceneMarkers = {}
-SceneTape = {}
 SceneEvidenceIndex = {}
 
 -----------------------------------------------------------------------------------------------------------------------------------------
@@ -314,70 +312,6 @@ CreateThread(function()
 end)
 
 -----------------------------------------------------------------------------------------------------------------------------------------
--- FITA POLICIAL (PROP 3D)
------------------------------------------------------------------------------------------------------------------------------------------
-function SpawnTapeProp(Segment)
-	if not Segment or not Segment.start or TapeProps[Segment.id] then return end
-	local Model = Config.SceneProps and Config.SceneProps.Tape or `prop_barrier_work06`
-	if not LoadModel(Model) then return end
-
-	local Mid = vector3(
-		(Segment.start.x + Segment.finish.x) / 2,
-		(Segment.start.y + Segment.finish.y) / 2,
-		(Segment.start.z + Segment.finish.z) / 2
-	)
-
-	local Obj = CreateObject(Model, Mid.x, Mid.y, Mid.z, false, false, false)
-	if DoesEntityExist(Obj) then
-		local Heading = math.deg(math.atan(Segment.finish.x - Segment.start.x, Segment.finish.y - Segment.start.y))
-		SetEntityHeading(Obj, Heading)
-		PlaceObjectOnGroundProperly(Obj)
-		FreezeEntityPosition(Obj, true)
-		SetEntityCollision(Obj, false, false)
-		TapeProps[Segment.id] = Obj
-	end
-	SetModelAsNoLongerNeeded(Model)
-end
-
-RegisterNetEvent("iml-evidencias:PlaceTape")
-AddEventHandler("iml-evidencias:PlaceTape", function(FromItemUse)
-	local Ped = PlayerPedId()
-	local Coords = GetEntityCoords(Ped)
-	TriggerServerEvent("iml-evidencias:PlaceTape", { x = Coords.x, y = Coords.y, z = Coords.z }, GetEntityHeading(Ped), FromItemUse == true)
-end)
-
-RegisterNetEvent("iml-evidencias:SyncTape")
-AddEventHandler("iml-evidencias:SyncTape", function(Segment)
-	if Segment and Segment.id then
-		SceneTape[Segment.id] = Segment
-		SpawnTapeProp(Segment)
-	end
-end)
-
-CreateThread(function()
-	while true do
-		local Sleep = 1000
-		if IsCivil then
-			local PedCoords = GetEntityCoords(PlayerPedId())
-			for _, Segment in pairs(SceneTape) do
-				if Segment.start and Segment.finish then
-					local Mid = vector3(
-						(Segment.start.x + Segment.finish.x) / 2,
-						(Segment.start.y + Segment.finish.y) / 2,
-						(Segment.start.z + Segment.finish.z) / 2
-					)
-					if #(PedCoords - Mid) < 50.0 then
-						Sleep = 0
-						DrawLine(Segment.start.x, Segment.start.y, Segment.start.z + 0.5, Segment.finish.x, Segment.finish.y, Segment.finish.z + 0.5, 255, 220, 0, 160)
-					end
-				end
-			end
-		end
-		Wait(Sleep)
-	end
-end)
-
------------------------------------------------------------------------------------------------------------------------------------------
 -- PROPS AO CARREGAR CENA
 -----------------------------------------------------------------------------------------------------------------------------------------
 CreateThread(function()
@@ -392,18 +326,11 @@ CreateThread(function()
 			for Id, Marker in pairs(SceneMarkers) do
 				if not MarkerProps[Id] then SpawnMarkerProp(Marker) end
 			end
-			for Id, Segment in pairs(SceneTape) do
-				if not TapeProps[Id] then SpawnTapeProp(Segment) end
-			end
 		else
 			for Id in pairs(EvidenceProps) do RemoveEvidenceProp(Id) end
 			for Id, Obj in pairs(MarkerProps) do
 				if DoesEntityExist(Obj) then DeleteEntity(Obj) end
 				MarkerProps[Id] = nil
-			end
-			for Id, Obj in pairs(TapeProps) do
-				if DoesEntityExist(Obj) then DeleteEntity(Obj) end
-				TapeProps[Id] = nil
 			end
 		end
 	end

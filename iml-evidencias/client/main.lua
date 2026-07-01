@@ -22,7 +22,6 @@ Tunnel.bindInterface("iml-evidencias", ClientIML)
 SceneEvidence = {}
 SceneCorpses = {}
 SceneMarkers = SceneMarkers or {}
-SceneTape = SceneTape or {}
 WearingGloves = false
 NuiOpen = false
 IsCivil = false
@@ -89,13 +88,6 @@ function LoadSceneData()
 	if Markers then
 		for _, Marker in ipairs(Markers) do
 			SceneMarkers[Marker.id] = Marker
-		end
-	end
-
-	local Tape = vSERVER.RequestTape()
-	if Tape then
-		for _, Segment in ipairs(Tape) do
-			SceneTape[Segment.id] = Segment
 		end
 	end
 end
@@ -203,19 +195,6 @@ AddEventHandler("iml-evidencias:ToggleGloves", function()
 end)
 
 -----------------------------------------------------------------------------------------------------------------------------------------
--- USAR SACO MORTUÁRIO (item)
------------------------------------------------------------------------------------------------------------------------------------------
-RegisterNetEvent("iml-evidencias:UseBodyBag")
-AddEventHandler("iml-evidencias:UseBodyBag", function(FromItemUse)
-	local TargetSource = GetClosestCorpsePlayer and GetClosestCorpsePlayer()
-	if TargetSource then
-		TriggerServerEvent("iml-evidencias:CollectBody", TargetSource, FromItemUse == true)
-	else
-		IMLNotify("negado", Config.Lang.NoCorpse)
-	end
-end)
-
------------------------------------------------------------------------------------------------------------------------------------------
 -- MARCADORES DO IML
 -----------------------------------------------------------------------------------------------------------------------------------------
 CreateThread(function()
@@ -229,7 +208,6 @@ CreateThread(function()
 		for _, Loc in ipairs(Config.Locations.Ballistics or {}) do AllLocations[#AllLocations + 1] = { data = Loc, action = "lab" } end
 		for _, Loc in ipairs(Config.Locations.Autopsy) do AllLocations[#AllLocations + 1] = { data = Loc, action = "autopsy" } end
 		for _, Loc in ipairs(Config.Locations.Locker) do AllLocations[#AllLocations + 1] = { data = Loc, action = "locker" } end
-		for _, Loc in ipairs(Config.Locations.BodyDrop) do AllLocations[#AllLocations + 1] = { data = Loc, action = "bodydrop" } end
 
 		for _, Entry in ipairs(AllLocations) do
 			if not IsCivil then break end
@@ -246,8 +224,7 @@ CreateThread(function()
 					local ActionText = {
 						lab = "~r~[E]~w~ Analisar Evidências",
 						autopsy = "~r~[E]~w~ Realizar Autópsia",
-						locker = "~r~[E]~w~ Armário de Evidências",
-						bodydrop = "~r~[E]~w~ Entregar Corpo"
+						locker = "~r~[E]~w~ Armário de Evidências"
 					}
 
 					DrawText3D(Loc.Coords.x, Loc.Coords.y, Loc.Coords.z, ActionText[Entry.action] or "~r~[E]~w~ Interagir")
@@ -272,7 +249,6 @@ function HandleLocationAction(Action)
 	if Action == "lab" then OpenLabMenu()
 	elseif Action == "autopsy" then OpenAutopsyMenu()
 	elseif Action == "locker" then OpenLockerMenu()
-	elseif Action == "bodydrop" then OpenBodyDropMenu()
 	end
 end
 
@@ -310,16 +286,6 @@ function OpenLockerMenu()
 	OpenNuiPanel({ action = "openLocker", evidence = Evidence }, { replace = false })
 end
 
-function OpenBodyDropMenu()
-	if not IsCivil then
-		IMLNotify("negado", Config.Lang.NotAuthorized)
-		return
-	end
-
-	local Bodies = vSERVER.GetMyBodies()
-	OpenNuiPanel({ action = "openBodyDrop", bodies = Bodies }, { replace = false })
-end
-
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- NUI CALLBACKS
 -----------------------------------------------------------------------------------------------------------------------------------------
@@ -342,24 +308,9 @@ RegisterNUICallback("autopsy", function(Data, cb)
 	cb("ok")
 end)
 
-RegisterNUICallback("deliverBody", function(Data, cb)
-	if Data and Data.body_id then
-		TriggerServerEvent("iml-evidencias:DeliverBody", Data.body_id)
-	end
-	CloseNuiPanel(false)
-	cb("ok")
-end)
-
 RegisterNetEvent("iml-evidencias:OpenReport")
 AddEventHandler("iml-evidencias:OpenReport", function(Report, Title)
 	OpenNuiPanel({ action = "openReport", report = Report, title = Title or "Laudo Pericial" })
-end)
-
-RegisterNetEvent("iml-evidencias:BodyCollected")
-AddEventHandler("iml-evidencias:BodyCollected", function()
-	local Ped = PlayerPedId()
-	SetEntityVisible(Ped, false, false)
-	SetEntityCollision(Ped, false, false)
 end)
 
 function DrawText3D(x, y, z, text)

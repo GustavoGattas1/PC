@@ -627,41 +627,132 @@ body {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	background: rgba(0, 0, 0, 0.82);
+	background: rgba(0, 0, 0, 0.88);
 	z-index: 100;
 }
 
 .minigame-panel {
 	background: linear-gradient(145deg, #1a1a2e, #0f3460);
 	border: 1px solid rgba(255, 255, 255, 0.1);
-	border-radius: 0.75rem;
-	padding: 1.25rem 1.5rem 1.5rem;
+	border-radius: 0.85rem;
+	padding: 1.1rem 1.35rem 1.35rem;
 	width: 22rem;
-	text-align: center;
+	box-shadow: 0 1.25rem 3rem rgba(0, 0, 0, 0.55);
 }
 
 .minigame-panel-wide {
-	width: min(34rem, 92vw);
+	width: min(36rem, 94vw);
 }
 
-.minigame-panel h3 {
-	margin-bottom: 0.35rem;
+.minigame-header {
+	display: flex;
+	align-items: flex-start;
+	gap: 0.85rem;
+	margin-bottom: 0.9rem;
+	text-align: left;
+}
+
+.minigame-icon {
+	font-size: 2rem;
+	line-height: 1;
+	flex-shrink: 0;
+	width: 2.75rem;
+	height: 2.75rem;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(255, 255, 255, 0.06);
+	border-radius: 0.65rem;
+	border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.minigame-header-text {
+	flex: 1;
+	min-width: 0;
+}
+
+.minigame-header-text h3 {
+	margin-bottom: 0.2rem;
 	font-size: 1.05rem;
+	color: #fff;
 }
 
-.minigame-panel p {
-	font-size: 0.78rem;
-	color: rgba(255, 255, 255, 0.65);
-	margin-bottom: 0.85rem;
+.minigame-header-text p {
+	font-size: 0.76rem;
+	color: rgba(255, 255, 255, 0.62);
+	margin: 0;
+}
+
+.minigame-badge {
+	font-size: 0.58rem;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	padding: 0.3rem 0.55rem;
+	border-radius: 0.3rem;
+	background: rgba(52, 152, 219, 0.18);
+	border: 1px solid rgba(52, 152, 219, 0.35);
+	color: #85c1e9;
+	white-space: nowrap;
+}
+
+.theme-swab .minigame-badge {
+	background: rgba(231, 76, 60, 0.18);
+	border-color: rgba(231, 76, 60, 0.4);
+	color: #f1948a;
+}
+
+.theme-bag .minigame-badge {
+	background: rgba(212, 172, 13, 0.18);
+	border-color: rgba(212, 172, 13, 0.4);
+	color: #f4d03f;
+}
+
+.theme-dna .minigame-badge {
+	background: rgba(155, 89, 182, 0.2);
+	border-color: rgba(155, 89, 182, 0.45);
+	color: #d7bde2;
+}
+
+.theme-mold .minigame-badge {
+	background: rgba(86, 101, 115, 0.22);
+	border-color: rgba(86, 101, 115, 0.45);
+	color: #aeb6bf;
+}
+
+.theme-pickup .minigame-badge {
+	background: rgba(46, 204, 113, 0.16);
+	border-color: rgba(46, 204, 113, 0.35);
+	color: #82e0aa;
+}
+
+.theme-swab .minigame-stage {
+	border-color: rgba(231, 76, 60, 0.25);
+}
+
+.theme-bag .minigame-stage {
+	border-color: rgba(212, 172, 13, 0.28);
+}
+
+.theme-dna .minigame-stage {
+	border-color: rgba(155, 89, 182, 0.35);
+	background: linear-gradient(180deg, #1f1530 0%, #120d1f 100%);
+}
+
+.theme-mold .minigame-stage {
+	border-color: rgba(86, 101, 115, 0.35);
+}
+
+.theme-pickup .minigame-stage {
+	border-color: rgba(46, 204, 113, 0.25);
 }
 
 .minigame-stage {
 	position: relative;
 	width: 100%;
-	height: 16rem;
+	height: 16.5rem;
 	background: linear-gradient(180deg, #2c2c34 0%, #1e1e26 100%);
 	border: 2px solid rgba(255, 255, 255, 0.08);
-	border-radius: 0.5rem;
+	border-radius: 0.55rem;
 	overflow: hidden;
 	user-select: none;
 	touch-action: none;
@@ -908,6 +999,133 @@ body {
 	0% { box-shadow: inset 0 0 0 0 rgba(46, 204, 113, 0); }
 	50% { box-shadow: inset 0 0 40px 10px rgba(46, 204, 113, 0.35); }
 	100% { box-shadow: inset 0 0 0 0 rgba(46, 204, 113, 0); }
+}
+
+/* DNA — hélice molecular */
+.mg-dna-scene {
+	position: absolute;
+	inset: 0;
+	overflow: hidden;
+}
+
+.mg-dna-helix {
+	position: absolute;
+	inset: 0.75rem 1.25rem;
+}
+
+.mg-dna-grid {
+	position: absolute;
+	inset: 0;
+	background-image:
+		linear-gradient(rgba(155, 89, 182, 0.06) 1px, transparent 1px),
+		linear-gradient(90deg, rgba(155, 89, 182, 0.06) 1px, transparent 1px);
+	background-size: 1.25rem 1.25rem;
+	opacity: 0.5;
+}
+
+.mg-dna-strand {
+	position: absolute;
+	top: 8%;
+	bottom: 8%;
+	width: 0.2rem;
+	border-radius: 1rem;
+	background: linear-gradient(180deg, #9b59b6, #6c3483, #9b59b6);
+	opacity: 0.55;
+	animation: dna-pulse 2.4s ease-in-out infinite;
+}
+
+.mg-dna-strand-left {
+	left: 38%;
+	transform: rotate(8deg);
+}
+
+.mg-dna-strand-right {
+	right: 38%;
+	transform: rotate(-8deg);
+	animation-delay: 1.2s;
+}
+
+@keyframes dna-pulse {
+	0%, 100% { opacity: 0.45; filter: blur(0); }
+	50% { opacity: 0.85; filter: blur(0.5px); }
+}
+
+.mg-dna-node {
+	position: absolute;
+	width: 1.35rem;
+	height: 1.35rem;
+	margin-left: -0.675rem;
+	margin-top: -0.675rem;
+	border-radius: 50%;
+	background: radial-gradient(circle at 35% 35%, #d7bde2 0%, #9b59b6 55%, #6c3483 100%);
+	box-shadow: 0 0 14px rgba(155, 89, 182, 0.65);
+	animation: dna-node-glow 1.6s ease-in-out infinite;
+	pointer-events: none;
+	transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+.mg-dna-node:nth-child(odd) {
+	animation-delay: 0.4s;
+}
+
+@keyframes dna-node-glow {
+	0%, 100% { transform: scale(1); box-shadow: 0 0 10px rgba(155, 89, 182, 0.5); }
+	50% { transform: scale(1.12); box-shadow: 0 0 18px rgba(214, 137, 255, 0.75); }
+}
+
+.mg-dna-node.collected {
+	opacity: 0;
+	transform: scale(0.2);
+	animation: none;
+}
+
+.mg-dna-swab {
+	position: absolute;
+	width: 2.5rem;
+	height: 5.25rem;
+	cursor: grab;
+	z-index: 20;
+}
+
+.mg-dna-swab.dragging {
+	cursor: grabbing;
+	z-index: 30;
+}
+
+.mg-dna-swab-stick {
+	position: absolute;
+	bottom: 0;
+	left: 50%;
+	transform: translateX(-50%);
+	width: 0.32rem;
+	height: 3.4rem;
+	background: linear-gradient(90deg, #5b2c6f, #8e44ad);
+	border-radius: 0.2rem;
+}
+
+.mg-dna-swab-tip {
+	position: absolute;
+	top: 0;
+	left: 50%;
+	transform: translateX(-50%);
+	width: 1rem;
+	height: 2rem;
+	background: linear-gradient(180deg, #f5eef8 0%, #e8daef 100%);
+	border-radius: 0.5rem 0.5rem 0.2rem 0.2rem;
+	box-shadow: 0 2px 8px rgba(155, 89, 182, 0.35);
+}
+
+.mg-dna-swab-tip::after {
+	content: "";
+	position: absolute;
+	bottom: -0.12rem;
+	left: 50%;
+	transform: translateX(-50%);
+	width: 0.45rem;
+	height: 0.3rem;
+	background: #9b59b6;
+	border-radius: 50%;
+	opacity: 0.75;
 }
 
 @media (max-width: 768px) {

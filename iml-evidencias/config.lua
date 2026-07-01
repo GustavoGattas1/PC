@@ -27,7 +27,6 @@ Config.Items = {
 	ForensicKit = "kitpericia",
 	EvidenceBag = "sacoevidencia",
 	LatexGloves = "luvaslatex",
-	BodyBag = "sacocadaver",
 	BloodSwab = "swabsangue",
 	GsrKit = "kitgsr",
 	Laudo = "laudopericial",
@@ -36,7 +35,6 @@ Config.Items = {
 	ForensicTablet = "tabletforense",
 	GsrScanner = "scannergsr",
 	EvidenceMarker = "marcadorevidencia",
-	PoliceTape = "fitapolicial",
 	TireMold = "moldepneu"
 }
 
@@ -62,7 +60,13 @@ Config.CollectDistance = 2.5
 Config.CorpseDistance = 3.0
 Config.MaxSceneEvidence = 400
 Config.MaxMarkers = 25
-Config.MaxTapeSegments = 40
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- TARGET (olhinho Creative)
+-----------------------------------------------------------------------------------------------------------------------------------------
+Config.Target = {
+	Distance = 3.0
+}
 
 Config.EvidenceCooldown = {
 	default = 400,
@@ -147,8 +151,7 @@ Config.Tablet = {
 }
 
 Config.SceneProps = {
-	Marker = `prop_roadcone02a`,
-	Tape = `prop_barrier_work06`
+	Marker = `prop_roadcone02a`
 }
 
 -----------------------------------------------------------------------------------------------------------------------------------------
@@ -180,9 +183,6 @@ Config.Locations = {
 	Locker = {
 		{ Coords = vec3(252.45, -1370.20, 39.53), Heading = 230.0, Label = "Armário de Evidências" }
 	},
-	BodyDrop = {
-		{ Coords = vec3(240.55, -1380.75, 39.53), Heading = 50.0, Label = "Entrega de Corpos" }
-	},
 	Ballistics = {
 		{ Coords = vec3(249.80, -1372.10, 39.53), Heading = 320.0, Label = "Perícia Balística" }
 	}
@@ -213,7 +213,7 @@ Config.EvidenceTypes = {
 	blood_pool = { Label = "Poça de Sangue", Icon = "🩸", Color = "#922b21", Minigame = "swab" },
 	blood_swab = { Label = "Swab de Sangue (Cadáver)", Icon = "🧪", Color = "#c0392b" },
 	fingerprint = { Label = "Impressão Digital", Icon = "👆", Color = "#8e44ad", Minigame = "pickup" },
-	dna = { Label = "Amostra de DNA", Icon = "🧬", Color = "#9b59b6", Minigame = "swab" },
+	dna = { Label = "Amostra de DNA", Icon = "🧬", Color = "#9b59b6", Minigame = "dna" },
 	casing = { Label = "Cápsula de Projétil", Icon = "🔫", Color = "#d4ac0d", Minigame = "bag" },
 	magazine = { Label = "Pente Abandonado", Icon = "📦", Color = "#2c3e50", Minigame = "bag" },
 	bullet = { Label = "Projétil Impactado", Icon = "💥", Color = "#e67e22", Minigame = "bag" },
@@ -350,8 +350,6 @@ Config.Lang = {
 	EvidenceCollected = "Evidência coletada e lacrada no saco.",
 	EvidenceAnalyzed = "Análise concluída. Laudo gerado.",
 	NoEvidence = "Nenhuma evidência encontrada.",
-	BodyCollected = "Corpo acondicionado no saco mortuário.",
-	BodyDelivered = "Corpo entregue ao IML para autópsia.",
 	AutopsyDone = "Autópsia concluída. Laudo médico-legal emitido.",
 	DnaMatch = "DNA compatível com: %s (Passaporte #%s)",
 	DnaNoMatch = "DNA não encontrado na base de dados.",
@@ -366,20 +364,18 @@ Config.Lang = {
 	CorpseExamined = "Perícia preliminar do corpo concluída.",
 	BloodSwabCollected = "Amostra de sangue do cadáver coletada.",
 	NoCorpse = "Nenhum cadáver encontrado nas proximidades.",
-	CorpseAlreadyBagged = "Este corpo já foi acondicionado.",
 	GsrCollected = "Amostra GSR coletada das mãos do suspeito.",
 	GsrPositive = "GSR POSITIVO — disparo recente detectado.",
 	GsrNegative = "GSR NEGATIVO — sem resíduo de pólvora.",
 	OverlayOn = "Overlay de investigação ativado.",
 	OverlayOff = "Overlay de investigação desativado.",
 	MarkerPlaced = "Marcador de evidência posicionado.",
-	TapePlaced = "Fita policial instalada.",
 	MinigameFailed = "Coleta falhou — tente novamente.",
 	MinigameSwabHint = "Arraste o cotonete e limpe o sangue",
 	MinigameBagHint = "Coloque a cápsula no saco de evidência",
+	MinigameDnaHint = "Colete as amostras na hélice de DNA",
 	CaseArchived = "Caso arquivado com sucesso.",
 	ReportPrinted = "Laudo impresso no prancheta.",
-	NeedBodyBag = "Você precisa de um saco mortuário.",
 	NeedTablet = "Você precisa do tablet forense.",
 	NeedScanner = "Você precisa do scanner GSR portátil.",
 	PanelBusy = "Feche o painel aberto antes de abrir outro.",

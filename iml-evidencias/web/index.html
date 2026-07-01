@@ -36,12 +36,6 @@
 					<div id="locker-list" class="card-list"></div>
 				</section>
 
-				<section id="view-bodydrop" class="view hidden">
-					<h2>Entrega de Corpos</h2>
-					<p class="hint">Selecione o corpo acondicionado para entregar ao IML.</p>
-					<div id="bodydrop-list" class="card-list"></div>
-				</section>
-
 				<section id="view-report" class="view hidden">
 					<div class="report-header">
 						<h2 id="report-title">Laudo Pericial</h2>
@@ -73,7 +67,6 @@
 								<div class="tool-grid">
 									<button class="tool-btn" id="btn-overlay">🔍 Overlay de Cena</button>
 									<button class="tool-btn" id="btn-marker">📌 Marcador</button>
-									<button class="tool-btn" id="btn-tape">🚧 Fita Policial</button>
 									<button class="tool-btn" id="btn-gsr-scan">📡 Scanner GSR</button>
 								</div>
 							</div>
@@ -118,9 +111,15 @@
 		</div>
 
 		<div id="minigame-overlay" class="hidden">
-			<div class="minigame-panel minigame-panel-wide">
-				<h3 id="minigame-title">Coleta de Evidência</h3>
-				<p id="minigame-hint">Siga as instruções na tela</p>
+			<div class="minigame-panel minigame-panel-wide" id="minigame-panel">
+				<div class="minigame-header">
+					<span class="minigame-icon" id="minigame-icon">🔬</span>
+					<div class="minigame-header-text">
+						<h3 id="minigame-title">Coleta de Evidência</h3>
+						<p id="minigame-hint">Siga as instruções na tela</p>
+					</div>
+					<span class="minigame-badge" id="minigame-badge">FORENSE</span>
+				</div>
 				<div id="minigame-stage" class="minigame-stage"></div>
 				<div class="minigame-status">
 					<span id="minigame-status-text">0%</span>

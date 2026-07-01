@@ -1,8 +1,7 @@
 -----------------------------------------------------------------------------------------------------------------------------------------
--- ARQUIVO DE CASOS, MARCADORES E FITA
+-- ARQUIVO DE CASOS E MARCADORES
 -----------------------------------------------------------------------------------------------------------------------------------------
 SceneMarkers = SceneMarkers or {}
-SceneTape = SceneTape or {}
 MarkerCounter = MarkerCounter or 0
 
 function IML.RequestMarkers()
@@ -12,17 +11,6 @@ function IML.RequestMarkers()
 	local List = {}
 	for Id, Marker in pairs(SceneMarkers) do
 		List[#List + 1] = Marker
-	end
-	return List
-end
-
-function IML.RequestTape()
-	local Passport = vRP.Passport(source)
-	if not IML.CanCollect(Passport) then return {} end
-
-	local List = {}
-	for Id, Segment in pairs(SceneTape) do
-		List[#List + 1] = Segment
 	end
 	return List
 end
@@ -110,52 +98,6 @@ AddEventHandler("iml-evidencias:PlaceMarker", function(Coords, FromItemUse)
 	SceneMarkers[MarkerId] = Marker
 	IML_BroadcastCivil("iml-evidencias:SyncMarker", Marker)
 	IML_Notify(Source, "success", Config.Lang.MarkerPlaced)
-end)
-
-RegisterNetEvent("iml-evidencias:PlaceTape")
-AddEventHandler("iml-evidencias:PlaceTape", function(Coords, Heading, FromItemUse)
-	local Source = source
-	local Passport = vRP.Passport(Source)
-	if not Passport or not IML.CanCollect(Passport) then
-		if Passport then
-			IML_Notify(Source, "negado", Config.Lang.NotAuthorized)
-		end
-		return
-	end
-
-	if not IML_ConsumeItem(Passport, Config.Items.PoliceTape, FromItemUse == true) then
-		IML_Notify(Source, "negado", "Você precisa de fita policial.")
-		return
-	end
-
-	local Count = 0
-	for _ in pairs(SceneTape) do Count = Count + 1 end
-	if Count >= Config.MaxTapeSegments then
-		IML_Notify(Source, "negado", "Limite de fita policial atingido.")
-		return
-	end
-
-	local Rad = math.rad(Heading or 0)
-	local Length = 3.5
-	local Start = { x = Coords.x, y = Coords.y, z = Coords.z }
-	local Finish = {
-		x = Coords.x + math.sin(Rad) * Length,
-		y = Coords.y + math.cos(Rad) * Length,
-		z = Coords.z
-	}
-
-	local SegmentId = IML_GenerateId("TAPE")
-	local Segment = {
-		id = SegmentId,
-		start = Start,
-		finish = Finish,
-		placed_by = Passport,
-		created = os.time()
-	}
-
-	SceneTape[SegmentId] = Segment
-	IML_BroadcastCivil("iml-evidencias:SyncTape", Segment)
-	IML_Notify(Source, "success", Config.Lang.TapePlaced)
 end)
 
 RegisterNetEvent("iml-evidencias:ArchiveCase")
