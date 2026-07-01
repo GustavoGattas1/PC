@@ -8,6 +8,11 @@ function Loja_FindProduct(ProductId)
 			return Product
 		end
 	end
+	for _, Product in ipairs(Config.DiamondPackages or {}) do
+		if Product.id == ProductId then
+			return Product
+		end
+	end
 	return nil
 end
 
@@ -26,18 +31,34 @@ function Loja_GetProductsByCategory(CategoryId)
 end
 
 function Loja_SanitizeProduct(Product)
-	return {
+	local Sanitized = {
 		id = Product.id,
 		category = Product.category,
 		type = Product.type,
 		name = Product.name,
 		description = Product.description,
-		price = Product.price,
+		price = Product.price_brl or Product.price,
 		currency = Product.currency or Config.DefaultCurrency,
 		badge = Product.badge,
 		benefits = Product.benefits,
 		originalPrice = Product.originalPrice
 	}
+
+	if Product.type == "diamonds" and Product.data then
+		Sanitized.price_brl = Product.price_brl or Product.price
+		Sanitized.gems_amount = Product.data.gems
+		Sanitized.is_real_money = true
+	end
+
+	return Sanitized
+end
+
+function Loja_GetAllProducts()
+	local All = {}
+	for _, Product in ipairs(Config.Products) do
+		All[#All + 1] = Product
+	end
+	return All
 end
 
 function Loja_SanitizeCatalog()

@@ -1,4 +1,11 @@
 -----------------------------------------------------------------------------------------------------------------------------------------
+-- VRP
+-----------------------------------------------------------------------------------------------------------------------------------------
+local Tunnel = module("vrp","lib/Tunnel")
+local Proxy = module("vrp","lib/Proxy")
+vRP = Proxy.getInterface("vRP")
+
+-----------------------------------------------------------------------------------------------------------------------------------------
 -- BANCO DE DADOS — HISTÓRICO DE COMPRAS E EXTRAS
 -----------------------------------------------------------------------------------------------------------------------------------------
 
@@ -75,9 +82,85 @@ vRP.Prepare("loja_vip/BuyProperty", [[
 	ON DUPLICATE KEY UPDATE Passport = @passport
 ]])
 
+-- Personagem e moedas — schema corenetwork.characters
+vRP.Prepare("loja_vip/GetCharacter", [[
+	SELECT id, License, Name, Lastname, Bank
+	FROM characters
+	WHERE id = @passport AND Deleted = 0
+	LIMIT 1
+]])
+
+vRP.Prepare("loja_vip/GetAccountGems", [[
+	SELECT Gemstone FROM accounts WHERE License = @license LIMIT 1
+]])
+
+vRP.Prepare("loja_vip/TakeBank", [[
+	UPDATE characters SET Bank = Bank - @amount
+	WHERE id = @passport AND Bank >= @amount
+]])
+
+vRP.Prepare("loja_vip/GiveBank", [[
+	UPDATE characters SET Bank = Bank + @amount WHERE id = @passport
+]])
+
+vRP.Prepare("loja_vip/TakeGems", [[
+	UPDATE accounts SET Gemstone = Gemstone - @amount
+	WHERE License = @license AND Gemstone >= @amount
+]])
+
+vRP.Prepare("loja_vip/GiveGems", [[
+	UPDATE accounts SET Gemstone = Gemstone + @amount WHERE License = @license
+]])
+
+-- Pagamentos Mercado Pago
+vRP.Prepare("loja_vip/CreateMPPayments", [[
+	CREATE TABLE IF NOT EXISTS loja_vip_mp_payments (
+		ref VARCHAR(64) PRIMARY KEY,
+		passport INT NOT NULL,
+		product_id VARCHAR(64) NOT NULL,
+		gems_amount INT NOT NULL,
+		amount_brl DECIMAL(10,2) NOT NULL,
+		method VARCHAR(16) NOT NULL,
+		mp_id VARCHAR(64) DEFAULT NULL,
+		status VARCHAR(32) NOT NULL DEFAULT 'pending',
+		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+		paid_at TIMESTAMP NULL DEFAULT NULL,
+		INDEX idx_passport (passport),
+		INDEX idx_mp_id (mp_id),
+		INDEX idx_status (status)
+	)
+]])
+
+vRP.Prepare("loja_vip/InsertMPPayment", [[
+	INSERT INTO loja_vip_mp_payments (ref, passport, product_id, gems_amount, amount_brl, method, mp_id, status)
+	VALUES (@ref, @passport, @product_id, @gems_amount, @amount_brl, @method, @mp_id, @status)
+]])
+
+vRP.Prepare("loja_vip/GetMPPayment", [[
+	SELECT * FROM loja_vip_mp_payments WHERE ref = @ref LIMIT 1
+]])
+
+vRP.Prepare("loja_vip/GetMPPaymentByMpId", [[
+	SELECT * FROM loja_vip_mp_payments WHERE mp_id = @mp_id LIMIT 1
+]])
+
+vRP.Prepare("loja_vip/UpdateMPPaymentStatus", [[
+	UPDATE loja_vip_mp_payments SET status = @status, paid_at = @paid_at WHERE ref = @ref AND status != 'approved'
+]])
+
+vRP.Prepare("loja_vip/UpdateMPPaymentMpId", [[
+	UPDATE loja_vip_mp_payments SET mp_id = @mp_id WHERE ref = @ref
+]])
+
+vRP.Prepare("loja_vip/GetPendingMPPayments", [[
+	SELECT ref, mp_id, passport FROM loja_vip_mp_payments
+	WHERE status = 'pending' AND created_at > DATE_SUB(NOW(), INTERVAL 1 HOUR)
+]])
+
 CreateThread(function()
 	vRP.Query("loja_vip/CreatePurchases", {})
 	vRP.Query("loja_vip/CreateExtras", {})
+	vRP.Query("loja_vip/CreateMPPayments", {})
 end)
 
 function Loja_DB_LogPurchase(Passport, Product)

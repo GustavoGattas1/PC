@@ -5,7 +5,7 @@ lua54 "yes"
 name "loja-vip"
 author "Creative Uncharted"
 description "Loja VIP completa — veículos, casas, planos VIP e benefícios"
-version "1.0.0"
+version "1.2.0"
 
 shared_scripts {
 	"@vrp/config/Item.lua",
@@ -23,6 +23,9 @@ client_scripts {
 server_scripts {
 	"@vrp/lib/Utils.lua",
 	"server/database.lua",
+	"server/bridge.lua",
+	"server/delivery.lua",
+	"server/payments.lua",
 	"server/main.lua"
 }
 
