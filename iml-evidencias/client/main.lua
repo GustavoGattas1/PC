@@ -269,6 +269,11 @@ CreateThread(function()
 end)
 
 function HandleLocationAction(Action)
+	if IsNuiBusy and IsNuiBusy() then
+		IMLNotify("important", Config.Lang.PanelBusy)
+		return
+	end
+
 	if Action == "lab" then OpenLabMenu()
 	elseif Action == "autopsy" then OpenAutopsyMenu()
 	elseif Action == "locker" then OpenLockerMenu()
@@ -287,9 +292,7 @@ function OpenLabMenu()
 		IMLNotify("important", Config.Lang.NoEvidence)
 		return
 	end
-	SetNuiFocus(true, true)
-	NuiOpen = true
-	SendNUIMessage({ action = "openLab", evidence = Evidence })
+	OpenNuiPanel({ action = "openLab", evidence = Evidence }, { replace = false })
 end
 
 function OpenAutopsyMenu()
@@ -299,9 +302,7 @@ function OpenAutopsyMenu()
 	end
 
 	local Bodies = vSERVER.GetPendingBodies()
-	SetNuiFocus(true, true)
-	NuiOpen = true
-	SendNUIMessage({ action = "openAutopsy", bodies = Bodies })
+	OpenNuiPanel({ action = "openAutopsy", bodies = Bodies }, { replace = false })
 end
 
 function OpenLockerMenu()
@@ -311,9 +312,7 @@ function OpenLockerMenu()
 	end
 
 	local Evidence = vSERVER.GetMyEvidence()
-	SetNuiFocus(true, true)
-	NuiOpen = true
-	SendNUIMessage({ action = "openLocker", evidence = Evidence })
+	OpenNuiPanel({ action = "openLocker", evidence = Evidence }, { replace = false })
 end
 
 function OpenBodyDropMenu()
@@ -323,18 +322,14 @@ function OpenBodyDropMenu()
 	end
 
 	local Bodies = vSERVER.GetMyBodies()
-	SetNuiFocus(true, true)
-	NuiOpen = true
-	SendNUIMessage({ action = "openBodyDrop", bodies = Bodies })
+	OpenNuiPanel({ action = "openBodyDrop", bodies = Bodies }, { replace = false })
 end
 
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- NUI CALLBACKS
 -----------------------------------------------------------------------------------------------------------------------------------------
 RegisterNUICallback("close", function(_, cb)
-	SetNuiFocus(false, false)
-	NuiOpen = false
-	if RemoveTabletProp then RemoveTabletProp() end
+	CloseNuiPanel(true)
 	cb("ok")
 end)
 
@@ -356,17 +351,13 @@ RegisterNUICallback("deliverBody", function(Data, cb)
 	if Data and Data.body_id then
 		TriggerServerEvent("iml-evidencias:DeliverBody", Data.body_id)
 	end
-	SetNuiFocus(false, false)
-	NuiOpen = false
-	if RemoveTabletProp then RemoveTabletProp() end
+	CloseNuiPanel(false)
 	cb("ok")
 end)
 
 RegisterNetEvent("iml-evidencias:OpenReport")
 AddEventHandler("iml-evidencias:OpenReport", function(Report, Title)
-	SetNuiFocus(true, true)
-	NuiOpen = true
-	SendNUIMessage({ action = "openReport", report = Report, title = Title or "Laudo Pericial" })
+	OpenNuiPanel({ action = "openReport", report = Report, title = Title or "Laudo Pericial" })
 end)
 
 RegisterNetEvent("iml-evidencias:BodyCollected")

@@ -58,9 +58,7 @@ function BuildLocalSceneScan()
 end
 
 function closeTablet(cb)
-	SetNuiFocus(false, false)
-	NuiOpen = false
-	RemoveTabletProp()
+	CloseNuiPanel(false)
 	cb("ok")
 end
 
@@ -71,24 +69,29 @@ AddEventHandler("iml-evidencias:OpenTablet", function()
 		return
 	end
 
-	AttachTabletProp()
-
-	SetNuiFocus(true, true)
-	NuiOpen = true
-	SendNUIMessage({
+	if not OpenNuiPanel({
 		action = "openTablet",
 		evidence = vSERVER.GetMyEvidence(),
 		cases = vSERVER.GetCases(),
 		reports = vSERVER.GetMyReports(),
 		scene = BuildLocalSceneScan(),
 		overlay = SceneOverlayActive
-	})
+	}, { replace = false }) then
+		return
+	end
+
+	AttachTabletProp()
 end)
 
 RegisterNetEvent("iml-evidencias:OpenGsrScanner")
 AddEventHandler("iml-evidencias:OpenGsrScanner", function()
 	if not IsCivil then
 		IMLNotify("negado", Config.Lang.NotAuthorized)
+		return
+	end
+
+	if IsNuiBusy() then
+		IMLNotify("important", Config.Lang.PanelBusy)
 		return
 	end
 
@@ -113,7 +116,10 @@ AddEventHandler("iml-evidencias:OpenGsrScanner", function()
 		return
 	end
 
-	SendNUIMessage({ action = "startGsrScan" })
+	if not OpenNuiPanel({ action = "startGsrScan" }, { replace = false }) then
+		return
+	end
+
 	TaskStartScenarioInPlace(Ped, "WORLD_HUMAN_STAND_MOBILE", 0, true)
 	Wait(2500)
 	vSERVER.ScanGSR(ClosestPlayer)
@@ -122,16 +128,12 @@ end)
 
 RegisterNetEvent("iml-evidencias:GsrScanResult")
 AddEventHandler("iml-evidencias:GsrScanResult", function(Result)
-	SetNuiFocus(true, true)
-	NuiOpen = true
-	SendNUIMessage({ action = "openGsrScanner", result = Result })
+	OpenNuiPanel({ action = "openGsrScanner", result = Result })
 end)
 
 RegisterNetEvent("iml-evidencias:OpenBodyDiagram")
 AddEventHandler("iml-evidencias:OpenBodyDiagram", function(Exam)
-	SetNuiFocus(true, true)
-	NuiOpen = true
-	SendNUIMessage({ action = "openBodyDiagram", exam = Exam })
+	OpenNuiPanel({ action = "openBodyDiagram", exam = Exam })
 end)
 
 RegisterNetEvent("iml-evidencias:PrintReport")

@@ -53,15 +53,15 @@ CreateThread(function()
 
 							local TargetSource = GetPlayerServerId(Player)
 
-							if IsControlJustPressed(0, 38) and IsFlashlightOut() then
+							if IsControlJustPressed(0, 38) and IsFlashlightOut() and not IsNuiBusy() then
 								TriggerServerEvent("iml-evidencias:ExamineCorpse", TargetSource)
 							end
 
-							if IsControlJustPressed(0, 47) and IsFlashlightOut() then
+							if IsControlJustPressed(0, 47) and IsFlashlightOut() and not IsNuiBusy() then
 								TriggerServerEvent("iml-evidencias:CollectBloodSwab", TargetSource)
 							end
 
-							if IsControlJustPressed(0, 74) and IsFlashlightOut() then
+							if IsControlJustPressed(0, 74) and IsFlashlightOut() and not IsNuiBusy() then
 								TriggerServerEvent("iml-evidencias:CollectBody", TargetSource)
 							end
 						end
@@ -138,5 +138,9 @@ RegisterCommand("luvas", function()
 end)
 
 RegisterCommand("tabletforense", function()
+	if IsNuiBusy and IsNuiBusy() then
+		IMLNotify("important", Config.Lang.PanelBusy)
+		return
+	end
 	TriggerEvent("iml-evidencias:OpenTablet")
 end)

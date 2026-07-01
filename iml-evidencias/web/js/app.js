@@ -76,16 +76,21 @@ function hideCollectionUi() {
 	mainPanel.classList.remove("panel-tablet");
 }
 
-function closeApp() {
+function resetUiState() {
 	nuiPanelOpen = false;
 	collectionUiActive = false;
 	app.classList.add("hidden");
 	minigameOverlay.classList.add("hidden");
 	progressOverlay.classList.add("hidden");
+	mainPanel.classList.remove("hidden");
 	mainPanel.classList.remove("panel-tablet");
 	hideAllViews();
 	stopMinigame();
 	stopProgress();
+}
+
+function closeApp() {
+	resetUiState();
 	post("close");
 }
 
@@ -444,6 +449,11 @@ window.addEventListener("message", (event) => {
 
 	if (data.action === "finishCollectionUi") {
 		hideCollectionUi();
+		return;
+	}
+
+	if (data.action === "forceClose") {
+		resetUiState();
 		return;
 	}
 

@@ -379,5 +379,6 @@ Config.Lang = {
 	ReportPrinted = "Laudo impresso no prancheta.",
 	NeedBodyBag = "Você precisa de um saco mortuário.",
 	NeedTablet = "Você precisa do tablet forense.",
-	NeedScanner = "Você precisa do scanner GSR portátil."
+	NeedScanner = "Você precisa do scanner GSR portátil.",
+	PanelBusy = "Feche o painel aberto antes de abrir outro."
 }

@@ -4,7 +4,7 @@
 MinigameCallback = nil
 
 function StartMinigame(Type, Callback)
-	if MinigameCallback then return end
+	if MinigameCallback or (IsNuiBusy and IsNuiBusy() and not Collecting) then return end
 	MinigameCallback = Callback
 
 	SetNuiFocus(true, true)
@@ -12,7 +12,9 @@ function StartMinigame(Type, Callback)
 end
 
 RegisterNUICallback("minigameCancel", function(_, cb)
-	SetNuiFocus(false, false)
+	if not Collecting then
+		SetNuiFocus(false, false)
+	end
 	if MinigameCallback then
 		local Callback = MinigameCallback
 		MinigameCallback = nil

@@ -5,7 +5,7 @@ lua54 "yes"
 name "iml-evidencias"
 author "Creative Uncharted"
 description "Sistema avançado de IML e evidências forenses"
-version "2.1.3"
+version "2.1.4"
 
 shared_scripts {
 	"@vrp/config/Item.lua",
@@ -21,6 +21,7 @@ client_scripts {
 	"client/death.lua",
 	"client/minigames.lua",
 	"client/collection.lua",
+	"client/nui.lua",
 	"client/scene.lua",
 	"client/vehicles.lua",
 	"client/forensics.lua",

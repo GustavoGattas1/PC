@@ -110,7 +110,7 @@ function RunCollectionFlow(EvidenceId, Evidence, OnComplete)
 end
 
 function StartEvidenceCollection(EvidenceId, Evidence)
-	if Collecting or NuiOpen then return end
+	if Collecting or (IsNuiBusy and IsNuiBusy()) then return end
 
 	if not IsCivil then
 		IMLNotify("negado", Config.Lang.NotAuthorized)
