@@ -139,13 +139,14 @@ end
 
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- TIROS: CÁPSULAS, PROJÉTEIS, GSR
+-- Detecção: CEventGunShot (gameEventTriggered) + IsPedShooting no loop
 -----------------------------------------------------------------------------------------------------------------------------------------
 CreateThread(function()
 	while true do
 		local Ped = PlayerPedId()
-		local Sleep = 250
+		local Sleep = 200
 
-		if HasPedJustFiredWeapon(Ped) or IsPedShooting(Ped) then
+		if IsPedShooting(Ped) then
 			Sleep = 0
 			HandlePlayerShot()
 		end
