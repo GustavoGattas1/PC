@@ -261,6 +261,10 @@ function Loja.Purchase(ProductId)
 		return { success = false, message = Config.Lang.ProductNotFound }
 	end
 
+	if Product.type == "diamonds" then
+		return { success = false, message = Config.Lang.SelectPaymentMethod }
+	end
+
 	if Product.data and Product.data.requireGroup then
 		if not Loja_HasGroup(Passport, Product.data.requireGroup) then
 			return { success = false, message = Config.Lang.NoPermission }
@@ -337,3 +341,45 @@ RegisterCommand("lojareload", function(Source)
 		Loja_Notify(Source, "info", "Catálogo da loja recarregado.", 3000)
 	end
 end, false)
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- MERCADO PAGO — TUNNEL
+-----------------------------------------------------------------------------------------------------------------------------------------
+local function AwaitCallback(Callback, Timeout)
+	local Result = nil
+	Callback(function(Res) Result = Res end)
+	local Expire = GetGameTimer() + (Timeout or 15000)
+	while Result == nil and GetGameTimer() < Expire do
+		Wait(50)
+	end
+	return Result
+end
+
+function Loja.CreatePayment(ProductId, Method)
+	local Source = source
+	local Passport = vRP.Passport(Source)
+	if not Passport or not Loja_Bridge_CharacterExists(Passport) then
+		return { success = false, message = Config.Lang.NoPassport }
+	end
+
+	return AwaitCallback(function(Done)
+		MP_CreatePayment(Passport, ProductId, Method, Done)
+	end, 15000) or { success = false, message = Config.Lang.MercadoPagoError }
+end
+
+function Loja.CheckPayment(Ref)
+	local Source = source
+	local Passport = vRP.Passport(Source)
+	if not Passport or not Ref then
+		return { success = false, status = "invalid" }
+	end
+
+	local Payment = vRP.Query("loja_vip/GetMPPayment", { ref = Ref })
+	if not Payment or not Payment[1] or tonumber(Payment[1].passport) ~= Passport then
+		return { success = false, status = "not_found" }
+	end
+
+	return AwaitCallback(function(Done)
+		MP_CheckPaymentStatus(Ref, Done)
+	end, 10000) or { success = false, status = "timeout" }
+end

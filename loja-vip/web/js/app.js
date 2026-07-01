@@ -25,22 +25,22 @@ let selectedProduct = null;
 let purchasing = false;
 
 const CATEGORY_EMOJI = {
-	all: "🌟", crown: "👑", car: "🏎️", home: "🏡",
+	all: "🌟", diamond: "💎", crown: "👑", car: "🏎️", home: "🏡",
 	box: "📦", gift: "🎁", star: "✨", grid: "🌟"
 };
 
 const CATEGORY_GRADIENT = {
-	all: "cat-all", vip: "cat-vip", vehicles: "cat-vehicle",
+	all: "cat-all", diamonds: "cat-diamond", vip: "cat-vip", vehicles: "cat-vehicle",
 	houses: "cat-house", items: "cat-item", packs: "cat-pack", extras: "cat-extra"
 };
 
 const TYPE_LABELS = {
-	vip: "VIP", vehicle: "Veículo", house: "Casa",
+	diamonds: "Diamantes", vip: "VIP", vehicle: "Veículo", house: "Casa",
 	item: "Item", pack: "Pack", extra: "Extra"
 };
 
 const TYPE_EMOJI = {
-	vip: "👑", vehicle: "🚗", house: "🏠", item: "📦", pack: "🎁", extra: "⭐"
+	diamonds: "💎", vip: "👑", vehicle: "🚗", house: "🏠", item: "📦", pack: "🎁", extra: "⭐"
 };
 
 const PRODUCT_IMAGES = {
@@ -70,10 +70,17 @@ const PRODUCT_IMAGES = {
 	extra_slot_personagem: "https://images.unsplash.com/photo-1519682337058-a94d519337bc?w=500&h=280&fit=crop",
 	extra_slot_garagem: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500&h=280&fit=crop",
 	extra_placa_custom: "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=500&h=280&fit=crop",
-	extra_nome_personagem: "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=500&h=280&fit=crop"
+	extra_nome_personagem: "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=500&h=280&fit=crop",
+	gem_100: "https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=500&h=280&fit=crop",
+	gem_500: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500&h=280&fit=crop",
+	gem_1000: "https://images.unsplash.com/photo-1635322978813-dbe983d94d48?w=500&h=280&fit=crop",
+	gem_2500: "https://images.unsplash.com/photo-1610375461246-83e3d815e6?w=500&h=280&fit=crop",
+	gem_5000: "https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=500&h=280&fit=crop",
+	gem_10000: "https://images.unsplash.com/photo-1607083206869-4c7672f72d8a?w=500&h=280&fit=crop"
 };
 
 const TYPE_IMAGES = {
+	diamonds: "https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=500&h=280&fit=crop",
 	vip: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500&h=280&fit=crop",
 	vehicle: "https://images.unsplash.com/photo-1494976388531-d1058498cdd8?w=500&h=280&fit=crop",
 	house: "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=500&h=280&fit=crop",
@@ -84,6 +91,7 @@ const TYPE_IMAGES = {
 
 const HERO_BY_CATEGORY = {
 	all: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=900&h=200&fit=crop",
+	diamonds: "https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=900&h=200&fit=crop",
 	vip: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=900&h=200&fit=crop",
 	vehicles: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=900&h=200&fit=crop",
 	houses: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=900&h=200&fit=crop",
@@ -107,6 +115,8 @@ function post(endpoint, data = {}) {
 function formatMoney(v) { return "R$ " + Number(v || 0).toLocaleString("pt-BR"); }
 function formatGems(v) { return Number(v || 0).toLocaleString("pt-BR"); }
 
+function formatBRL(v) { return "R$ " + Number(v || 0).toFixed(2).replace(".", ","); }
+
 function getBadgeClass(badge) {
 	if (!badge) return "";
 	const l = badge.toLowerCase();
@@ -127,12 +137,17 @@ function showToast(msg, type = "success") {
 }
 
 function closeApp() {
+	if (paymentOverlay && !paymentOverlay.classList.contains("hidden")) {
+		closePaymentModal();
+		return;
+	}
 	if (modalOverlay && !modalOverlay.classList.contains("hidden")) {
 		closeModal();
 		return;
 	}
 	app.classList.add("hidden");
 	closeModal();
+	closePaymentModal();
 	purchasing = false;
 	post("close");
 }
@@ -243,6 +258,13 @@ function renderProducts() {
 		const original = product.originalPrice
 			? `<span class="original">${formatGems(product.originalPrice)}</span>` : "";
 
+		const isDiamonds = product.type === "diamonds" || product.is_real_money;
+		const gemsInfo = product.gems_amount ? `<span class="gems-bonus">+${formatGems(product.gems_amount)} 💎</span>` : "";
+		const priceHtml = isDiamonds
+			? `<strong class="price-brl">${formatBRL(product.price_brl || product.price)}</strong>${gemsInfo}`
+			: `${original}<span class="gem">💎</span><strong>${formatGems(product.price)}</strong>`;
+		const buyLabel = isDiamonds ? "Comprar 💳" : "Comprar";
+
 		card.innerHTML = `
 			<div class="card-image">
 				<img src="${img}" alt="${product.name}" loading="lazy" onerror="this.src='${TYPE_IMAGES[product.type] || TYPE_IMAGES.item}'">
@@ -254,21 +276,15 @@ function renderProducts() {
 				<h3 class="product-name">${product.name}</h3>
 				<p class="product-desc">${product.description || ""}</p>
 				<div class="product-footer">
-					<div class="product-price">
-						${original}
-						<span class="gem">💎</span>
-						<strong>${formatGems(product.price)}</strong>
-					</div>
-					<button class="btn-buy" type="button">Comprar</button>
+					<div class="product-price">${priceHtml}</div>
+					<button class="btn-buy" type="button">${buyLabel}</button>
 				</div>
 			</div>
 		`;
 
-		card.querySelector(".btn-buy").addEventListener("click", (e) => {
-			e.stopPropagation();
-			openModal(product);
-		});
-		card.addEventListener("click", () => openModal(product));
+		const openFn = () => isDiamonds ? openPaymentModal(product) : openModal(product);
+		card.querySelector(".btn-buy").addEventListener("click", (e) => { e.stopPropagation(); openFn(); });
+		card.addEventListener("click", openFn);
 		productGrid.appendChild(card);
 	});
 }
@@ -409,5 +425,121 @@ window.addEventListener("message", (event) => {
 			if (data.history) history = data.history;
 			currentView === "history" ? renderHistory() : renderProducts();
 			break;
+		case "paymentApproved":
+			if (data.balance) updateBalance(data.balance);
+			showPaymentSuccess(data.gems);
+			break;
 	}
+});
+
+// ─── MERCADO PAGO ───
+const paymentOverlay = document.getElementById("payment-overlay");
+let paymentProduct = null;
+let paymentRef = null;
+let paymentPoll = null;
+
+function showPaymentStep(stepId) {
+	["payment-step-method", "payment-step-pix", "payment-step-card", "payment-step-success"].forEach(id => {
+		document.getElementById(id)?.classList.toggle("hidden", id !== stepId);
+	});
+}
+
+function stopPaymentPoll() {
+	if (paymentPoll) { clearInterval(paymentPoll); paymentPoll = null; }
+}
+
+function openPaymentModal(product) {
+	paymentProduct = product;
+	paymentRef = null;
+	stopPaymentPoll();
+	closeModal();
+
+	document.getElementById("payment-product-info").innerHTML = `
+		<strong>${product.name}</strong>
+		<span>${formatBRL(product.price_brl || product.price)} → ${formatGems(product.gems_amount || 0)} 💎</span>
+	`;
+	showPaymentStep("payment-step-method");
+	paymentOverlay.classList.remove("hidden");
+}
+
+function closePaymentModal() {
+	stopPaymentPoll();
+	paymentOverlay.classList.add("hidden");
+	paymentProduct = null;
+	paymentRef = null;
+}
+
+function startPaymentPoll(ref) {
+	stopPaymentPoll();
+	paymentPoll = setInterval(async () => {
+		const result = await post("checkPayment", { ref });
+		if (result?.status === "approved") {
+			stopPaymentPoll();
+			if (result.balance) updateBalance(result.balance);
+			showPaymentSuccess(paymentProduct?.gems_amount);
+		} else if (result?.status === "rejected" || result?.status === "cancelled") {
+			stopPaymentPoll();
+			showToast("Pagamento recusado ou cancelado.", "error");
+		}
+	}, 5000);
+}
+
+async function initPayment(method) {
+	if (!paymentProduct) return;
+	showPaymentStep(method === "pix" ? "payment-step-pix" : "payment-step-card");
+
+	if (method === "pix") {
+		document.getElementById("pix-content").classList.add("hidden");
+		document.getElementById("pix-status-text").textContent = "Gerando PIX...";
+	}
+
+	const result = await post("createPayment", { productId: paymentProduct.id, method });
+
+	if (!result?.success) {
+		showToast(result?.message || "Erro ao criar pagamento.", "error");
+		showPaymentStep("payment-step-method");
+		return;
+	}
+
+	paymentRef = result.ref;
+
+	if (method === "pix" && result.pix) {
+		document.getElementById("pix-status-text").textContent = "PIX gerado!";
+		if (result.pix.qr_code_base64) {
+			document.getElementById("pix-qr").src = "data:image/png;base64," + result.pix.qr_code_base64;
+		}
+		document.getElementById("pix-code").value = result.pix.qr_code || "";
+		document.getElementById("pix-content").classList.remove("hidden");
+		startPaymentPoll(result.ref);
+	} else if (method === "card" && result.checkout_url) {
+		const link = document.getElementById("card-checkout-link");
+		link.href = result.checkout_url;
+		startPaymentPoll(result.ref);
+	} else {
+		showToast("Erro ao gerar pagamento.", "error");
+		showPaymentStep("payment-step-method");
+	}
+}
+
+function showPaymentSuccess(gems) {
+	showPaymentStep("payment-step-success");
+	document.getElementById("payment-success-text").textContent =
+		gems ? `${formatGems(gems)} diamantes creditados na sua conta!` : "Diamantes creditados!";
+	showToast("Pagamento aprovado! 🎉", "success");
+	post("refresh");
+}
+
+document.getElementById("payment-close")?.addEventListener("click", closePaymentModal);
+document.getElementById("btn-pay-pix")?.addEventListener("click", () => initPayment("pix"));
+document.getElementById("btn-pay-card")?.addEventListener("click", () => initPayment("card"));
+document.getElementById("btn-payment-done")?.addEventListener("click", closePaymentModal);
+document.getElementById("btn-copy-pix")?.addEventListener("click", () => {
+	const input = document.getElementById("pix-code");
+	input.select();
+	navigator.clipboard?.writeText(input.value);
+	showToast("Código PIX copiado!", "success");
+});
+
+paymentOverlay?.addEventListener("click", (e) => {
+	if (e.target === paymentOverlay) closePaymentModal();
 });

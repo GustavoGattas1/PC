@@ -305,6 +305,12 @@ body {
 .cat-item.active { background: linear-gradient(135deg, rgba(168,85,247,0.2), rgba(139,92,246,0.1)); border-color: rgba(168,85,247,0.4); }
 .cat-pack.active { background: linear-gradient(135deg, rgba(255,45,149,0.2), rgba(236,72,153,0.1)); border-color: rgba(255,45,149,0.4); }
 .cat-extra.active { background: linear-gradient(135deg, rgba(251,146,60,0.2), rgba(249,115,22,0.1)); border-color: rgba(251,146,60,0.4); }
+.cat-diamond.active { background: linear-gradient(135deg, rgba(34,211,238,0.25), rgba(255,215,0,0.15)); border-color: rgba(34,211,238,0.5); }
+
+.card-diamonds:hover { box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 0 30px rgba(34, 211, 238, 0.25); }
+
+.price-brl { color: var(--green); font-size: 1rem; }
+.gems-bonus { display: block; font-size: 0.68rem; color: var(--cyan); font-weight: 700; margin-top: 0.15rem; }
 
 .sidebar-footer {
 	padding: 0.75rem;
@@ -1071,3 +1077,184 @@ body {
 
 .toast.success { border-color: rgba(74, 222, 128, 0.5); box-shadow: 0 15px 40px rgba(74, 222, 128, 0.15); }
 .toast.error { border-color: rgba(244, 63, 94, 0.5); box-shadow: 0 15px 40px rgba(244, 63, 94, 0.15); }
+
+/* ─── Mercado Pago Payment ─── */
+.payment-overlay {
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.75);
+	backdrop-filter: blur(8px);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 300;
+	animation: fadeIn 0.3s ease;
+}
+
+.payment-panel {
+	width: 22rem;
+	max-width: 92vw;
+	background: linear-gradient(180deg, #1a1530, #0d0a18);
+	border: 1px solid rgba(255, 255, 255, 0.12);
+	border-radius: 20px;
+	overflow: hidden;
+	box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(34, 211, 238, 0.15);
+	animation: slideUp 0.35s ease;
+}
+
+.payment-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 1rem 1.25rem;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+	background: linear-gradient(135deg, rgba(34, 211, 238, 0.1), rgba(255, 215, 0, 0.05));
+}
+
+.payment-header h3 { font-size: 1rem; font-weight: 800; }
+
+.payment-close {
+	background: rgba(255, 255, 255, 0.08);
+	border: none;
+	color: #fff;
+	width: 2rem;
+	height: 2rem;
+	border-radius: 50%;
+	cursor: pointer;
+}
+
+.payment-step { padding: 1.25rem; }
+
+.payment-product {
+	padding: 0.85rem;
+	background: rgba(255, 255, 255, 0.05);
+	border-radius: 12px;
+	margin-bottom: 1rem;
+	border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.payment-product strong { display: block; font-size: 0.95rem; margin-bottom: 0.25rem; }
+.payment-product span { font-size: 0.8rem; color: var(--cyan); font-weight: 700; }
+
+.payment-subtitle { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.75rem; }
+
+.payment-methods { display: flex; flex-direction: column; gap: 0.6rem; }
+
+.pay-method-btn {
+	display: flex;
+	align-items: center;
+	gap: 0.85rem;
+	padding: 1rem;
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	border-radius: 14px;
+	background: rgba(255, 255, 255, 0.04);
+	color: #fff;
+	font-family: inherit;
+	cursor: pointer;
+	transition: all 0.25s;
+	text-align: left;
+}
+
+.pay-method-btn:hover { transform: translateY(-2px); }
+
+.pay-method-btn.pix:hover {
+	border-color: rgba(34, 211, 238, 0.5);
+	background: rgba(34, 211, 238, 0.1);
+	box-shadow: 0 8px 20px rgba(34, 211, 238, 0.15);
+}
+
+.pay-method-btn.card:hover {
+	border-color: rgba(168, 85, 247, 0.5);
+	background: rgba(168, 85, 247, 0.1);
+	box-shadow: 0 8px 20px rgba(168, 85, 247, 0.15);
+}
+
+.pay-icon { font-size: 1.75rem; }
+.pay-method-btn strong { display: block; font-size: 0.9rem; }
+.pay-method-btn span { font-size: 0.68rem; color: var(--text-muted); }
+
+.pix-qr {
+	display: block;
+	width: 11rem;
+	height: 11rem;
+	margin: 0 auto 0.75rem;
+	border-radius: 12px;
+	background: #fff;
+	padding: 0.5rem;
+}
+
+.pix-hint { text-align: center; font-size: 0.72rem; color: var(--text-muted); margin-bottom: 0.75rem; }
+
+.pix-copy-box {
+	display: flex;
+	gap: 0.4rem;
+	margin-bottom: 0.75rem;
+}
+
+.pix-copy-box input {
+	flex: 1;
+	background: rgba(0, 0, 0, 0.3);
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	border-radius: 8px;
+	padding: 0.5rem;
+	color: #fff;
+	font-size: 0.65rem;
+	font-family: monospace;
+}
+
+.pix-copy-box button {
+	padding: 0.5rem 0.75rem;
+	background: var(--cyan);
+	border: none;
+	border-radius: 8px;
+	color: #000;
+	font-weight: 700;
+	font-size: 0.72rem;
+	cursor: pointer;
+}
+
+.pix-wait {
+	text-align: center;
+	font-size: 0.75rem;
+	color: var(--gold);
+	animation: pulse 2s infinite;
+}
+
+.card-payment-info { text-align: center; }
+.pay-icon-big { font-size: 3rem; display: block; margin-bottom: 0.5rem; }
+.card-payment-info h4 { font-size: 1rem; margin-bottom: 0.35rem; }
+.card-payment-info p { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 1rem; }
+
+.btn-checkout {
+	display: inline-block;
+	padding: 0.85rem 1.5rem;
+	background: linear-gradient(135deg, #a855f7, #ec4899);
+	color: #fff;
+	text-decoration: none;
+	border-radius: 999px;
+	font-weight: 800;
+	font-size: 0.85rem;
+	margin-bottom: 1rem;
+	transition: all 0.25s;
+}
+
+.btn-checkout:hover { transform: scale(1.05); box-shadow: 0 8px 25px rgba(168, 85, 247, 0.4); }
+
+.payment-success { text-align: center; padding: 1rem 0; }
+.payment-success span { font-size: 3rem; display: block; margin-bottom: 0.5rem; }
+.payment-success h4 { font-size: 1.1rem; color: var(--green); margin-bottom: 0.35rem; }
+.payment-success p { font-size: 0.8rem; color: var(--text-soft); margin-bottom: 1rem; }
+
+.payment-status { text-align: center; padding: 2rem 0; }
+.spinner {
+	display: inline-block;
+	width: 2rem;
+	height: 2rem;
+	border: 3px solid rgba(255, 255, 255, 0.1);
+	border-top-color: var(--cyan);
+	border-radius: 50%;
+	animation: spin 0.8s linear infinite;
+	margin-bottom: 0.75rem;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }

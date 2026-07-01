@@ -68,6 +68,7 @@ Config.Locations = {
 -----------------------------------------------------------------------------------------------------------------------------------------
 Config.Categories = {
 	{ id = "all", label = "Todos", icon = "grid", description = "Todos os produtos disponíveis" },
+	{ id = "diamonds", label = "Comprar Diamantes", icon = "diamond", description = "PIX e Cartão de Crédito via Mercado Pago" },
 	{ id = "vip", label = "Planos VIP", icon = "crown", description = "Assinaturas e benefícios exclusivos" },
 	{ id = "vehicles", label = "Veículos", icon = "car", description = "Carros, motos e veículos especiais" },
 	{ id = "houses", label = "Casas", icon = "home", description = "Propriedades e imóveis premium" },
@@ -336,9 +337,9 @@ Config.Products = {
 		data = {
 			requireGroup = { "Policia", "Civil", "Federal" },
 			items = {
-				{ item = "WEAPON_PISTOL", amount = 1 },
-				{ item = "WEAPON_PISTOL_AMMO", amount = 60 },
-				{ item = "vest", amount = 1 }
+				{ item = "WEAPON_PISTOL_MK2", amount = 1 },
+				{ item = "AMMO_PISTOL_MK2", amount = 60 },
+				{ item = "colete", amount = 1 }
 			}
 		}
 	},
@@ -456,6 +457,117 @@ Config.Products = {
 }
 
 -----------------------------------------------------------------------------------------------------------------------------------------
+-- MERCADO PAGO — PIX e Cartão de Crédito
+-- Obtenha suas credenciais em: https://www.mercadopago.com.br/developers/panel/app
+-----------------------------------------------------------------------------------------------------------------------------------------
+Config.MercadoPago = {
+	Enabled = true,
+
+	-- Cole seu Access Token (Produção ou Teste)
+	AccessToken = "SEU_ACCESS_TOKEN_AQUI",
+
+	-- URL pública do seu servidor FiveM para webhooks
+	-- Exemplo: "http://SEU_IP:30120/loja-vip/webhook"
+	NotificationUrl = "",
+
+	-- E-mail padrão do pagador (obrigatório no Mercado Pago)
+	DefaultPayerEmail = "comprador@seudominio.com.br",
+
+	-- Modo sandbox (true = testes, false = produção)
+	Sandbox = true,
+
+	-- Tempo máximo aguardando pagamento (segundos)
+	PaymentTimeout = 900,
+
+	-- Intervalo de verificação automática (ms) no servidor
+	PollInterval = 8000
+}
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- PACOTES DE DIAMANTES (pagamento real via Mercado Pago)
+-- type: diamonds | currency: brl | price_brl = valor em reais | data.gems = diamantes entregues
+-----------------------------------------------------------------------------------------------------------------------------------------
+Config.DiamondPackages = {
+	{
+		id = "gem_100",
+		category = "diamonds",
+		type = "diamonds",
+		name = "100 Diamantes",
+		description = "Pacote inicial ideal para começar na loja VIP.",
+		price_brl = 9.90,
+		currency = "brl",
+		badge = "Starter",
+		benefits = { "Entrega automática após pagamento", "PIX ou Cartão", "Cai direto na sua conta" },
+		data = { gems = 100 }
+	},
+	{
+		id = "gem_500",
+		category = "diamonds",
+		type = "diamonds",
+		name = "500 Diamantes",
+		description = "Pacote popular com ótimo custo-benefício.",
+		price_brl = 39.90,
+		currency = "brl",
+		badge = "Popular",
+		benefits = { "+20% bônus incluso", "PIX instantâneo", "Cartão em até 12x" },
+		data = { gems = 600 }
+	},
+	{
+		id = "gem_1000",
+		category = "diamonds",
+		type = "diamonds",
+		name = "1.000 Diamantes",
+		description = "Para jogadores que querem o máximo da loja.",
+		price_brl = 69.90,
+		currency = "brl",
+		badge = "Recomendado",
+		benefits = { "+30% bônus incluso", "Melhor custo por diamante", "Entrega imediata" },
+		data = { gems = 1300 }
+	},
+	{
+		id = "gem_2500",
+		category = "diamonds",
+		type = "diamonds",
+		name = "2.500 Diamantes",
+		description = "Pacote premium para compradores frequentes.",
+		price_brl = 149.90,
+		currency = "brl",
+		badge = "Premium",
+		benefits = { "+40% bônus incluso", "Suporte prioritário", "PIX ou Cartão" },
+		data = { gems = 3500 }
+	},
+	{
+		id = "gem_5000",
+		category = "diamonds",
+		type = "diamonds",
+		name = "5.000 Diamantes",
+		description = "O maior pacote — status máximo na cidade.",
+		price_brl = 279.90,
+		currency = "brl",
+		badge = "Elite",
+		benefits = { "+50% bônus incluso", "Melhor valor do servidor", "Entrega automática" },
+		data = { gems = 7500 }
+	},
+	{
+		id = "gem_10000",
+		category = "diamonds",
+		type = "diamonds",
+		name = "10.000 Diamantes",
+		description = "Pacote definitivo para whales e investidores.",
+		price_brl = 499.90,
+		currency = "brl",
+		badge = "Melhor Valor",
+		benefits = { "+60% bônus incluso", "Máximo de diamantes", "PIX ou Cartão em 12x" },
+		data = { gems = 16000 }
+	}
+}
+
+-- Mescla pacotes de diamantes nos produtos da loja
+for _, Package in ipairs(Config.DiamondPackages) do
+	Config.Products[#Config.Products + 1] = Package
+end
+
+-----------------------------------------------------------------------------------------------------------------------------------------
 -- TEXTOS / LANG
 -----------------------------------------------------------------------------------------------------------------------------------------
 Config.Lang = {
@@ -473,5 +585,13 @@ Config.Lang = {
 	HouseExists = "Esta propriedade já possui dono.",
 	NoPermission = "Você não tem permissão para comprar este item.",
 	InvalidPlate = "Placa inválida ou já em uso.",
-	PackPartialFail = "Alguns itens do pack não puderam ser entregues. Contate a administração."
+	PackPartialFail = "Alguns itens do pack não puderam ser entregues. Contate a administração.",
+	MercadoPagoDisabled = "Pagamentos via Mercado Pago estão desativados.",
+	MercadoPagoError = "Erro ao criar pagamento. Tente novamente.",
+	PaymentPending = "Aguardando pagamento...",
+	PaymentApproved = "Pagamento confirmado! Diamantes creditados.",
+	PaymentRejected = "Pagamento recusado ou cancelado.",
+	PaymentExpired = "Pagamento expirado. Gere um novo PIX ou link.",
+	PaymentCopied = "Código PIX copiado!",
+	SelectPaymentMethod = "Escolha a forma de pagamento"
 }

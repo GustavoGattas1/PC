@@ -155,6 +155,72 @@
 			<span id="toast-icon"></span>
 			<span id="toast-message"></span>
 		</div>
+
+		<!-- Pagamento Mercado Pago -->
+		<div id="payment-overlay" class="payment-overlay hidden">
+			<div class="payment-panel">
+				<div class="payment-header">
+					<h3>💎 Comprar Diamantes</h3>
+					<button class="payment-close" id="payment-close">✕</button>
+				</div>
+
+				<div id="payment-step-method" class="payment-step">
+					<div class="payment-product" id="payment-product-info"></div>
+					<p class="payment-subtitle">Escolha como pagar:</p>
+					<div class="payment-methods">
+						<button class="pay-method-btn pix" id="btn-pay-pix">
+							<span class="pay-icon">📱</span>
+							<div>
+								<strong>PIX</strong>
+								<span>Aprovação instantânea</span>
+							</div>
+						</button>
+						<button class="pay-method-btn card" id="btn-pay-card">
+							<span class="pay-icon">💳</span>
+							<div>
+								<strong>Cartão de Crédito</strong>
+								<span>Até 12x sem juros</span>
+							</div>
+						</button>
+					</div>
+				</div>
+
+				<div id="payment-step-pix" class="payment-step hidden">
+					<div class="payment-status waiting">
+						<span class="spinner"></span>
+						<p id="pix-status-text">Gerando PIX...</p>
+					</div>
+					<div id="pix-content" class="hidden">
+						<img id="pix-qr" class="pix-qr" alt="QR Code PIX">
+						<p class="pix-hint">Escaneie o QR Code ou copie o código PIX</p>
+						<div class="pix-copy-box">
+							<input id="pix-code" type="text" readonly>
+							<button id="btn-copy-pix" type="button">Copiar</button>
+						</div>
+						<p class="pix-wait">⏳ Aguardando confirmação do pagamento...</p>
+					</div>
+				</div>
+
+				<div id="payment-step-card" class="payment-step hidden">
+					<div class="card-payment-info">
+						<span class="pay-icon-big">💳</span>
+						<h4>Pagamento com Cartão</h4>
+						<p>Clique no botão abaixo para abrir o checkout seguro do Mercado Pago.</p>
+						<a id="card-checkout-link" class="btn-checkout" href="#" target="_blank" rel="noopener">Abrir Pagamento</a>
+						<p class="pix-wait">⏳ Aguardando confirmação do pagamento...</p>
+					</div>
+				</div>
+
+				<div id="payment-step-success" class="payment-step hidden">
+					<div class="payment-success">
+						<span>✅</span>
+						<h4>Pagamento Aprovado!</h4>
+						<p id="payment-success-text">Diamantes creditados na sua conta.</p>
+						<button class="btn btn-primary" id="btn-payment-done">Continuar</button>
+					</div>
+				</div>
+			</div>
+		</div>
 	</div>
 
 	<script src="js/app.js"></script>

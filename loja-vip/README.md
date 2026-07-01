@@ -8,8 +8,9 @@ Sistema completo de loja VIP para servidores **Creative Uncharted (vRP)** com NU
 - **Aliases:** `/vip`, `/store`, `/donate`
 - **Ponto físico** com blip e marker (configurável em `config.lua`)
 - **NUI moderna** — sidebar, busca, grid de produtos, modal de compra, histórico
-- **Categorias:** VIP, Veículos, Casas, Itens, Packs, Extras
-- **Moedas:** diamantes (gems) e banco in-game
+- **Categorias:** Comprar Diamantes (Mercado Pago), VIP, Veículos, Casas, Itens, Packs, Extras
+- **Mercado Pago** — compra de diamantes com **PIX** e **Cartão de Crédito**
+- **Moedas:** diamantes in-game (gems), banco e pagamento real (BRL)
 - **Histórico de compras** no banco de dados
 - **Packs com desconto** — combos de múltiplos produtos
 
@@ -23,6 +24,26 @@ Sistema completo de loja VIP para servidores **Creative Uncharted (vRP)** com NU
 3. As tabelas SQL são criadas automaticamente no primeiro start
 4. Ajuste `Config.Locations` com as coordenadas da sua cidade
 5. Ajuste `Config.Products` com os veículos, casas e grupos VIP da sua base
+6. Configure o **Mercado Pago** em `Config.MercadoPago` (veja abaixo)
+
+## Mercado Pago (PIX e Cartão)
+
+1. Crie uma aplicação em [Mercado Pago Developers](https://www.mercadopago.com.br/developers/panel/app)
+2. Copie o **Access Token** para `Config.MercadoPago.AccessToken`
+3. Configure a URL de webhook (IP público do servidor):
+   ```lua
+   Config.MercadoPago = {
+       Enabled = true,
+       AccessToken = "APP_USR-seu-token-aqui",
+       NotificationUrl = "http://SEU_IP:30120/loja-vip/webhook",
+       DefaultPayerEmail = "comprador@seudominio.com.br",
+       Sandbox = true  -- false em produção
+   }
+   ```
+4. Abra a porta do servidor no firewall/router para webhooks
+5. Pacotes de diamantes em `Config.DiamondPackages` (categoria **Comprar Diamantes**)
+
+**Fluxo:** Jogador escolhe pacote → PIX (QR Code) ou Cartão (checkout MP) → diamantes creditados automaticamente na tabela `accounts.Gemstone`.
 
 ## Configuração
 

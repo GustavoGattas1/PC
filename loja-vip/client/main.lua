@@ -183,6 +183,44 @@ RegisterNUICallback("refresh", function(_, cb)
 	cb("ok")
 end)
 
+RegisterNUICallback("createPayment", function(Data, cb)
+	if not Data or not Data.productId or not Data.method then
+		cb({ success = false, message = Config.Lang.ProductNotFound })
+		return
+	end
+
+	local Result = vSERVER.CreatePayment(Data.productId, Data.method)
+	cb(Result or { success = false, message = Config.Lang.MercadoPagoError })
+end)
+
+RegisterNUICallback("checkPayment", function(Data, cb)
+	if not Data or not Data.ref then
+		cb({ success = false, status = "invalid" })
+		return
+	end
+
+	local Result = vSERVER.CheckPayment(Data.ref)
+	cb(Result or { success = false, status = "timeout" })
+end)
+
+RegisterNUICallback("openCheckout", function(Data, cb)
+	if Data and Data.url then
+		SendNUIMessage({ action = "openCheckoutUrl", url = Data.url })
+	end
+	cb("ok")
+end)
+
+RegisterNetEvent("loja-vip:PaymentApproved")
+AddEventHandler("loja-vip:PaymentApproved", function(Data)
+	if Data and Data.balance then
+		SendNUIMessage({
+			action = "paymentApproved",
+			balance = Data.balance,
+			gems = Data.gems
+		})
+	end
+end)
+
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- CONTROLES BLOQUEADOS COM PAINEL ABERTO
 -----------------------------------------------------------------------------------------------------------------------------------------
