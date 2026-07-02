@@ -43,7 +43,14 @@ function Wall_BuildPlayerData(Source)
 	local Passport = vRP.Passport(Source)
 	if not Passport then return nil end
 
-	local Name = Wall_Bridge_GetPlayerName(Passport)
+	local Name = "Jogador #" .. tostring(Passport)
+
+	if Wall_Bridge_GetPlayerName then
+		Name = Wall_Bridge_GetPlayerName(Passport)
+	elseif vRP.FullName then
+		Name = vRP.FullName(Passport) or Name
+	end
+
 	local Group = Wall_GetPlayerGroup(Passport)
 
 	return {

@@ -1,9 +1,23 @@
 -----------------------------------------------------------------------------------------------------------------------------------------
+-- VRP
+-----------------------------------------------------------------------------------------------------------------------------------------
+local Tunnel = module("vrp", "lib/Tunnel")
+local Proxy = module("vrp", "lib/Proxy")
+vRP = Proxy.getInterface("vRP")
+
+-----------------------------------------------------------------------------------------------------------------------------------------
 -- BRIDGE — RESOLUÇÃO DE NOMES VIA BANCO
 -----------------------------------------------------------------------------------------------------------------------------------------
 
 local CharacterCache = {}
 local CACHE_TTL = 5000
+
+local function CacheNow()
+	if GetGameTimer then
+		return GetGameTimer()
+	end
+	return os.time() * 1000
+end
 
 vRP.Prepare("wall/GetCharacter", [[
 	SELECT * FROM characters WHERE id = @passport LIMIT 1
@@ -15,7 +29,7 @@ end
 
 local function GetCached(Passport)
 	local Entry = CharacterCache[CacheKey(Passport)]
-	if Entry and (GetGameTimer() - Entry.time) < CACHE_TTL then
+	if Entry and (CacheNow() - Entry.time) < CACHE_TTL then
 		return Entry.data
 	end
 	return nil
@@ -24,7 +38,7 @@ end
 local function SetCache(Passport, Data)
 	CharacterCache[CacheKey(Passport)] = {
 		data = Data,
-		time = GetGameTimer()
+		time = CacheNow()
 	}
 end
 
