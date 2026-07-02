@@ -158,28 +158,34 @@ function Wall_BuildInfoLines(ServerId, Ped, Distance, PlayerData)
 		Lines[#Lines + 1] = MainLine
 	end
 
+	local StatsLine = ""
+
 	if WallDisplay.Health then
 		if IsDead then
-			Lines[#Lines + 1] = "~r~MORTO"
+			StatsLine = StatsLine .. (StatsLine ~= "" and " | " or "") .. "~r~MORTO"
 		else
-			Lines[#Lines + 1] = "~g~" .. Wall_FormatHealth(Health) .. "%"
+			StatsLine = StatsLine .. (StatsLine ~= "" and " | " or "") .. "~g~" .. Wall_FormatHealth(Health) .. "%"
 		end
 	end
 
 	if WallDisplay.Armor and not IsDead then
-		Lines[#Lines + 1] = "~b~" .. Armor .. "%"
+		StatsLine = StatsLine .. (StatsLine ~= "" and " | " or "") .. "~b~" .. Armor .. "%"
 	end
 
 	if WallDisplay.Weapon and not IsDead then
-		Lines[#Lines + 1] = "~o~" .. Wall_GetWeaponLabel(WeaponHash)
+		StatsLine = StatsLine .. (StatsLine ~= "" and " | " or "") .. "~o~" .. Wall_GetWeaponLabel(WeaponHash)
+	end
+
+	if WallDisplay.Distance then
+		StatsLine = StatsLine .. (StatsLine ~= "" and " | " or "") .. "~c~" .. Wall_Round(Distance, 1) .. "m"
+	end
+
+	if StatsLine ~= "" then
+		Lines[#Lines + 1] = StatsLine
 	end
 
 	if WallDisplay.Group and PlayerData and PlayerData.group then
 		Lines[#Lines + 1] = "~p~" .. PlayerData.group
-	end
-
-	if WallDisplay.Distance then
-		Lines[#Lines + 1] = "~c~" .. Wall_Round(Distance, 1) .. "m"
 	end
 
 	if WallDisplay.Status then

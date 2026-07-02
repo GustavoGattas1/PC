@@ -96,6 +96,7 @@ end)
 
 local ConfigOptions = {
 	passport = "Passport",
+	steam = "SteamName",
 	name = "Name",
 	health = "Health",
 	armor = "Armor",
