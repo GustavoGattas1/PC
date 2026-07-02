@@ -18,11 +18,6 @@ vSERVER = Tunnel.getInterface("sistema-wall")
 WallActive = false
 WallAuthorized = false
 WallPlayers = {}
-WallDisplay = {}
-
-for Key, Value in pairs(Config.Display) do
-	WallDisplay[Key] = Value
-end
 
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- INICIALIZAÇÃO
@@ -68,74 +63,6 @@ AddEventHandler("sistema-wall:SyncPlayers", function(Players)
 end)
 
 -----------------------------------------------------------------------------------------------------------------------------------------
--- CONFIG
------------------------------------------------------------------------------------------------------------------------------------------
-RegisterNetEvent("sistema-wall:OpenConfig")
-AddEventHandler("sistema-wall:OpenConfig", function()
-	local Lines = {
-		"~b~CONFIGURAÇÕES DO WALL~w~",
-		"",
-		"ID Cidade: " .. (WallDisplay.Passport and Config.Lang.OptionOn or Config.Lang.OptionOff),
-		"Nome Steam: " .. (WallDisplay.SteamName and Config.Lang.OptionOn or Config.Lang.OptionOff),
-		"Nome RP: " .. (WallDisplay.Name and Config.Lang.OptionOn or Config.Lang.OptionOff),
-		"Vida: " .. (WallDisplay.Health and Config.Lang.OptionOn or Config.Lang.OptionOff),
-		"Colete: " .. (WallDisplay.Armor and Config.Lang.OptionOn or Config.Lang.OptionOff),
-		"Arma: " .. (WallDisplay.Weapon and Config.Lang.OptionOn or Config.Lang.OptionOff),
-		"Linha: " .. (WallDisplay.Line and Config.Lang.OptionOn or Config.Lang.OptionOff),
-		"Esqueleto: " .. (WallDisplay.Skeleton and Config.Lang.OptionOn or Config.Lang.OptionOff),
-		"",
-		"Use ~y~/wallconfig [opção]~w~ para alternar",
-		"Opções: passport, steam, name, health, armor, weapon, line, skeleton, walls, self, blip"
-	}
-
-	for _, Line in ipairs(Lines) do
-		Wall_NotifyClient("info", Line, 12000)
-		Wait(100)
-	end
-end)
-
-local ConfigOptions = {
-	passport = "Passport",
-	steam = "SteamName",
-	name = "Name",
-	health = "Health",
-	armor = "Armor",
-	weapon = "Weapon",
-	vehicle = "Vehicle",
-	speed = "Speed",
-	distance = "Distance",
-	group = "Group",
-	status = "Status",
-	line = "Line",
-	skeleton = "Skeleton",
-	walls = "ThroughWalls",
-	self = "Self",
-	blip = "Blip",
-	npcs = "Npcs",
-	serverid = "ServerId"
-}
-
-RegisterNetEvent("sistema-wall:SetOption")
-AddEventHandler("sistema-wall:SetOption", function(Option)
-	Option = string.lower(tostring(Option or ""))
-	local Key = ConfigOptions[Option]
-
-	if not Key or WallDisplay[Key] == nil then
-		Wall_NotifyClient("negado", "Opção inválida. Use /wallconfig para ver as opções.")
-		return
-	end
-
-	WallDisplay[Key] = not WallDisplay[Key]
-
-	if Key == "Blip" and not WallDisplay.Blip then
-		Wall_ClearBlips()
-	end
-
-	local State = WallDisplay[Key] and "~g~ativado" or "~r~desativado"
-	Wall_NotifyClient("important", Option .. " " .. State, 3000)
-end)
-
------------------------------------------------------------------------------------------------------------------------------------------
 -- KEYMAPPING
 -----------------------------------------------------------------------------------------------------------------------------------------
 RegisterKeyMapping(Config.Command, "Alternar Wall (Staff)", "keyboard", Config.Key)
@@ -154,7 +81,7 @@ CreateThread(function()
 			SetTextColour(100, 200, 255, 200)
 			SetTextOutline()
 			SetTextEntry("STRING")
-			AddTextComponentString("~b~WALL ATIVO~w~ | " .. Wall_CountVisible() .. " jogador(es) | " .. math.floor(Config.DrawDistance) .. "m")
+			AddTextComponentString("~b~WALL ATIVO~w~ | " .. Wall_CountVisible() .. " jogador(es)")
 			DrawText(0.015, 0.02)
 		end
 
@@ -169,7 +96,7 @@ function Wall_CountVisible()
 
 	for _, Player in ipairs(GetActivePlayers()) do
 		local TargetPed = GetPlayerPed(Player)
-		if TargetPed ~= Ped or WallDisplay.Self then
+		if TargetPed ~= Ped or Config.Display.Self then
 			local Dist = #(PedCoords - GetEntityCoords(TargetPed))
 			if Dist <= Config.DrawDistance then
 				Count = Count + 1
@@ -188,14 +115,12 @@ function Wall_IsActive()
 	return WallActive
 end
 
-function Wall_GetDisplay()
-	return WallDisplay
+function Wall_GetHeadCoords(Ped)
+	local BoneCoords = GetPedBoneCoords(Ped, 31086, 0.0, 0.0, 0.0)
+	local Offset = Config.HeadOffset or 0.35
+	return vector3(BoneCoords.x, BoneCoords.y, BoneCoords.z + Offset)
 end
 
 exports("IsWallActive", function()
 	return WallActive
-end)
-
-exports("GetWallDisplay", function()
-	return WallDisplay
 end)

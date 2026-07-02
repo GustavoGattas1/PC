@@ -49,7 +49,7 @@ function Wall_DrawText3D(x, y, z, Lines, Color)
 		SetTextEntry("STRING")
 		SetTextCentre(true)
 		AddTextComponentString(Line)
-		DrawText(ScreenX, ScreenY + ((Index - 1) * LineSpacing))
+		DrawText(ScreenX, ScreenY - 0.03 - ((Index - 1) * LineSpacing))
 	end
 end
 
@@ -105,7 +105,7 @@ end
 -- BLIPS
 -----------------------------------------------------------------------------------------------------------------------------------------
 function Wall_UpdateBlip(ServerId, Ped, Name)
-	if not WallDisplay.Blip then return end
+	if not Config.Display.Blip then return end
 
 	local Blip = PlayerBlips[ServerId]
 
@@ -144,13 +144,13 @@ function Wall_BuildInfoLines(ServerId, Ped, Distance, PlayerData)
 
 	local MainLine = ""
 
-	if WallDisplay.Passport and PlayerData and PlayerData.passport then
+	if Config.Display.Passport and PlayerData and PlayerData.passport then
 		MainLine = "~w~#" .. PlayerData.passport
 	end
 
-	if WallDisplay.SteamName and PlayerData and PlayerData.steam then
+	if Config.Display.SteamName and PlayerData and PlayerData.steam then
 		MainLine = MainLine .. (MainLine ~= "" and " ~s~" or "~s~") .. PlayerData.steam
-	elseif WallDisplay.Name and PlayerData and PlayerData.name then
+	elseif Config.Display.Name and PlayerData and PlayerData.name then
 		MainLine = MainLine .. (MainLine ~= "" and " ~s~" or "~s~") .. PlayerData.name
 	end
 
@@ -160,7 +160,7 @@ function Wall_BuildInfoLines(ServerId, Ped, Distance, PlayerData)
 
 	local StatsLine = ""
 
-	if WallDisplay.Health then
+	if Config.Display.Health then
 		if IsDead then
 			StatsLine = StatsLine .. (StatsLine ~= "" and " | " or "") .. "~r~MORTO"
 		else
@@ -168,15 +168,15 @@ function Wall_BuildInfoLines(ServerId, Ped, Distance, PlayerData)
 		end
 	end
 
-	if WallDisplay.Armor and not IsDead then
+	if Config.Display.Armor and not IsDead then
 		StatsLine = StatsLine .. (StatsLine ~= "" and " | " or "") .. "~b~" .. Armor .. "%"
 	end
 
-	if WallDisplay.Weapon and not IsDead then
+	if Config.Display.Weapon and not IsDead then
 		StatsLine = StatsLine .. (StatsLine ~= "" and " | " or "") .. "~o~" .. Wall_GetWeaponLabel(WeaponHash)
 	end
 
-	if WallDisplay.Distance then
+	if Config.Display.Distance then
 		StatsLine = StatsLine .. (StatsLine ~= "" and " | " or "") .. "~c~" .. Wall_Round(Distance, 1) .. "m"
 	end
 
@@ -184,11 +184,11 @@ function Wall_BuildInfoLines(ServerId, Ped, Distance, PlayerData)
 		Lines[#Lines + 1] = StatsLine
 	end
 
-	if WallDisplay.Group and PlayerData and PlayerData.group then
+	if Config.Display.Group and PlayerData and PlayerData.group then
 		Lines[#Lines + 1] = "~p~" .. PlayerData.group
 	end
 
-	if WallDisplay.Status then
+	if Config.Display.Status then
 		local State = Player(ServerId).state
 		if State then
 			local StatusParts = {}
@@ -229,8 +229,8 @@ CreateThread(function()
 				local ServerId = GetPlayerServerId(Player)
 				local IsSelf = TargetPed == Ped
 
-				if TargetPed and DoesEntityExist(TargetPed) and (not IsSelf or WallDisplay.Self) then
-					if IsPedAPlayer(TargetPed) or WallDisplay.Npcs then
+				if TargetPed and DoesEntityExist(TargetPed) and (not IsSelf or Config.Display.Self) then
+					if IsPedAPlayer(TargetPed) or Config.Display.Npcs then
 						local TargetCoords = GetEntityCoords(TargetPed)
 						local Distance = #(PedCoords - TargetCoords)
 
@@ -238,32 +238,32 @@ CreateThread(function()
 							local PlayerData = Wall_GetPlayerData(ServerId)
 							local Health = GetEntityHealth(TargetPed)
 							local Color = Wall_GetColor(TargetPed, Health, IsSelf, PlayerData and PlayerData.staff)
-							local HeadCoords = GetPedBoneCoords(TargetPed, 31086, 0.0, 0.0, Config.HeadOffset or 0.55)
+							local HeadCoords = Wall_GetHeadCoords(TargetPed)
 							local Lines = Wall_BuildInfoLines(ServerId, TargetPed, Distance, PlayerData)
 
 							if #Lines > 0 then
 								Wall_DrawText3D(HeadCoords.x, HeadCoords.y, HeadCoords.z, Lines, Color)
 							end
 
-							if WallDisplay.Line and not IsSelf then
-								Wall_DrawLineToTarget(PedCoords, TargetCoords)
+							if Config.Display.Line and not IsSelf then
+								Wall_DrawLineToTarget(PedCoords, HeadCoords)
 							end
 
-							if WallDisplay.Skeleton then
+							if Config.Display.Skeleton then
 								Wall_DrawSkeleton(TargetPed)
 							end
 
-							if WallDisplay.Blip then
+							if Config.Display.Blip then
 								local BlipName = PlayerData and (PlayerData.steam or PlayerData.name) or ("#" .. (PlayerData and PlayerData.passport or ServerId))
 								Wall_UpdateBlip(ServerId, TargetPed, BlipName)
 							end
 
-							if not WallDisplay.ThroughWalls then
+							if not Config.Display.ThroughWalls then
 								if not HasEntityClearLosToEntity(Ped, TargetPed, 17) then
 									-- info ainda visível mas com opacidade reduzida — padrão BR mantém visível
 								end
 							end
-						elseif WallDisplay.Blip and PlayerBlips[ServerId] then
+						elseif Config.Display.Blip and PlayerBlips[ServerId] then
 							if DoesBlipExist(PlayerBlips[ServerId]) then
 								RemoveBlip(PlayerBlips[ServerId])
 							end

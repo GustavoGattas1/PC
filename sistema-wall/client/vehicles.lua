@@ -69,18 +69,18 @@ function Wall_BuildVehicleLines(Vehicle, Distance)
 	Lines[#Lines + 1] = "~y~[VEÍCULO]~w~ " .. Label
 	Lines[#Lines + 1] = "~c~Placa: ~w~" .. Plate .. " ~c~| ~w~" .. Class
 
-	if WallDisplay.Speed then
+	if Config.Display.Speed then
 		Lines[#Lines + 1] = "~o~Velocidade: ~w~" .. Speed .. " km/h"
 	end
 
-	if WallDisplay.Health then
+	if Config.Display.Health then
 		Lines[#Lines + 1] = string.format("~g~Motor: ~w~%d%% ~r~| ~g~Lataria: ~w~%d%%",
 			math.floor(math.max(0, Health) / 10),
 			math.floor(math.max(0, BodyHealth) / 10)
 		)
 	end
 
-	if WallDisplay.Distance then
+	if Config.Display.Distance then
 		Lines[#Lines + 1] = "~c~Dist: ~w~" .. Wall_Round(Distance, 1) .. "m"
 	end
 
@@ -94,7 +94,7 @@ CreateThread(function()
 	while true do
 		local Sleep = 1000
 
-		if WallActive and WallDisplay.Vehicle then
+		if WallActive and Config.Display.Vehicle then
 			local Ped = PlayerPedId()
 			local PedCoords = GetEntityCoords(Ped)
 			local DrawDistance = math.min(Config.DrawDistance, 150.0)
@@ -118,7 +118,7 @@ CreateThread(function()
 								Wall_DrawText3D(VehCoords.x, VehCoords.y, VehCoords.z + 1.2, Lines, { 255, 200, 80, 220 })
 							end
 
-							if WallDisplay.Line then
+							if Config.Display.Line then
 								local C = Config.Colors.Line
 								DrawLine(
 									PedCoords.x, PedCoords.y, PedCoords.z,

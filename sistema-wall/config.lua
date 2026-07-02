@@ -21,7 +21,7 @@ Config.RequireService = false
 -- COMANDOS E TECLAS
 -----------------------------------------------------------------------------------------------------------------------------------------
 Config.Command = "wall"
-Config.CommandAliases = { "esp", "playerwall" }
+Config.CommandAliases = {}
 
 -- Tecla padrão para alternar o wall (DELETE)
 Config.Key = "DELETE"
@@ -49,7 +49,7 @@ Config.Display = {
 	Vehicle = false,
 	Speed = false,
 	Status = false,
-	Line = false,
+	Line = true,
 	Blip = false,
 	Skeleton = false,
 	Self = false,
@@ -61,8 +61,8 @@ Config.Display = {
 Config.TextScale = 0.22
 Config.TextLineSpacing = 0.014
 
--- Offset acima da cabeça (em metros)
-Config.HeadOffset = 0.55
+-- Offset acima da cabeça (metros adicionados no eixo Z mundial)
+Config.HeadOffset = 0.35
 
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- CORES (R, G, B, A)
@@ -168,5 +168,5 @@ Config.Lang = {
 	NoPermission = "Acesso negado.",
 	OptionOn = "~g~ativado",
 	OptionOff = "~r~desativado",
-	Help = "Use ~y~/wall~w~ para alternar | ~y~/wallconfig~w~ para opções"
+	Help = "Use ~y~/wall~w~ para alternar"
 }
