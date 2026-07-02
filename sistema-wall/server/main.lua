@@ -51,12 +51,14 @@ function Wall_BuildPlayerData(Source)
 		Name = vRP.FullName(Passport) or Name
 	end
 
+	local SteamName = GetPlayerName(Source) or "Desconhecido"
 	local Group = Wall_GetPlayerGroup(Passport)
 
 	return {
 		source = Source,
 		passport = Passport,
 		name = Name,
+		steam = SteamName,
 		group = Group,
 		staff = Group ~= nil
 	}
@@ -180,8 +182,8 @@ RegisterCommand("wallinfo", function(Source, Args)
 	end
 
 	Wall_NotifyServer(Source, "info",
-		string.format("#%s %s | Source: %s | Grupo: %s",
-			Data.passport, Data.name, Data.source, Data.group or "Nenhum"
+		string.format("ID: #%s | Steam: %s | Grupo: %s",
+			Data.passport, Data.steam or Data.name, Data.group or "Nenhum"
 		), 8000
 	)
 end, false)

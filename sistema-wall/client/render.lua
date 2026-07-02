@@ -36,9 +36,11 @@ function Wall_DrawText3D(x, y, z, Lines, Color)
 	local G = Color and Color[2] or 255
 	local B = Color and Color[3] or 255
 	local A = Color and Color[4] or 230
+	local BaseScale = Config.TextScale or 0.22
+	local LineSpacing = Config.TextLineSpacing or 0.014
 
 	for Index, Line in ipairs(Lines) do
-		local Scale = math.max(0.28, 0.38 - (Index * 0.01))
+		local Scale = math.max(0.18, BaseScale - ((Index - 1) * 0.02))
 		SetTextScale(Scale, Scale)
 		SetTextFont(4)
 		SetTextProportional(true)
@@ -47,7 +49,7 @@ function Wall_DrawText3D(x, y, z, Lines, Color)
 		SetTextEntry("STRING")
 		SetTextCentre(true)
 		AddTextComponentString(Line)
-		DrawText(ScreenX, ScreenY + ((Index - 1) * 0.022))
+		DrawText(ScreenX, ScreenY + ((Index - 1) * LineSpacing))
 	end
 end
 
@@ -140,48 +142,44 @@ function Wall_BuildInfoLines(ServerId, Ped, Distance, PlayerData)
 	local IsDead = Wall_IsDead(Ped, Health)
 	local WeaponHash = GetSelectedPedWeapon(Ped)
 
-	local Header = ""
+	local MainLine = ""
 
 	if WallDisplay.Passport and PlayerData and PlayerData.passport then
-		Header = Header .. "~w~[#" .. PlayerData.passport .. "]"
+		MainLine = "~w~#" .. PlayerData.passport
 	end
 
-	if WallDisplay.Name and PlayerData and PlayerData.name then
-		Header = Header .. (Header ~= "" and " " or "") .. "~s~" .. PlayerData.name
-	elseif WallDisplay.ServerId then
-		Header = Header .. (Header ~= "" and " " or "") .. "~s~Source: " .. ServerId
+	if WallDisplay.SteamName and PlayerData and PlayerData.steam then
+		MainLine = MainLine .. (MainLine ~= "" and " ~s~" or "~s~") .. PlayerData.steam
+	elseif WallDisplay.Name and PlayerData and PlayerData.name then
+		MainLine = MainLine .. (MainLine ~= "" and " ~s~" or "~s~") .. PlayerData.name
 	end
 
-	if Header ~= "" then
-		Lines[#Lines + 1] = Header
+	if MainLine ~= "" then
+		Lines[#Lines + 1] = MainLine
 	end
 
 	if WallDisplay.Health then
 		if IsDead then
 			Lines[#Lines + 1] = "~r~MORTO"
 		else
-			Lines[#Lines + 1] = "~g~Vida: ~w~" .. Wall_FormatHealth(Health) .. "%"
+			Lines[#Lines + 1] = "~g~" .. Wall_FormatHealth(Health) .. "%"
 		end
 	end
 
 	if WallDisplay.Armor and not IsDead then
-		Lines[#Lines + 1] = "~b~Colete: ~w~" .. Armor .. "%"
+		Lines[#Lines + 1] = "~b~" .. Armor .. "%"
 	end
 
 	if WallDisplay.Weapon and not IsDead then
-		Lines[#Lines + 1] = "~o~Arma: ~w~" .. Wall_GetWeaponLabel(WeaponHash)
+		Lines[#Lines + 1] = "~o~" .. Wall_GetWeaponLabel(WeaponHash)
 	end
 
 	if WallDisplay.Group and PlayerData and PlayerData.group then
-		Lines[#Lines + 1] = "~p~Grupo: ~w~" .. PlayerData.group
-	end
-
-	if WallDisplay.ServerId then
-		Lines[#Lines + 1] = "~c~Source: ~w~" .. ServerId
+		Lines[#Lines + 1] = "~p~" .. PlayerData.group
 	end
 
 	if WallDisplay.Distance then
-		Lines[#Lines + 1] = "~c~Dist: ~w~" .. Wall_Round(Distance, 1) .. "m"
+		Lines[#Lines + 1] = "~c~" .. Wall_Round(Distance, 1) .. "m"
 	end
 
 	if WallDisplay.Status then
@@ -234,7 +232,7 @@ CreateThread(function()
 							local PlayerData = Wall_GetPlayerData(ServerId)
 							local Health = GetEntityHealth(TargetPed)
 							local Color = Wall_GetColor(TargetPed, Health, IsSelf, PlayerData and PlayerData.staff)
-							local HeadCoords = GetPedBoneCoords(TargetPed, 31086, 0.0, 0.0, 0.3)
+							local HeadCoords = GetPedBoneCoords(TargetPed, 31086, 0.0, 0.0, Config.HeadOffset or 0.55)
 							local Lines = Wall_BuildInfoLines(ServerId, TargetPed, Distance, PlayerData)
 
 							if #Lines > 0 then
@@ -250,7 +248,7 @@ CreateThread(function()
 							end
 
 							if WallDisplay.Blip then
-								local BlipName = PlayerData and PlayerData.name or ("#" .. ServerId)
+								local BlipName = PlayerData and (PlayerData.steam or PlayerData.name) or ("#" .. (PlayerData and PlayerData.passport or ServerId))
 								Wall_UpdateBlip(ServerId, TargetPed, BlipName)
 							end
 

@@ -75,18 +75,17 @@ AddEventHandler("sistema-wall:OpenConfig", function()
 	local Lines = {
 		"~b~CONFIGURAÇÕES DO WALL~w~",
 		"",
-		"Passport: " .. (WallDisplay.Passport and Config.Lang.OptionOn or Config.Lang.OptionOff),
-		"Nome: " .. (WallDisplay.Name and Config.Lang.OptionOn or Config.Lang.OptionOff),
+		"ID Cidade: " .. (WallDisplay.Passport and Config.Lang.OptionOn or Config.Lang.OptionOff),
+		"Nome Steam: " .. (WallDisplay.SteamName and Config.Lang.OptionOn or Config.Lang.OptionOff),
+		"Nome RP: " .. (WallDisplay.Name and Config.Lang.OptionOn or Config.Lang.OptionOff),
 		"Vida: " .. (WallDisplay.Health and Config.Lang.OptionOn or Config.Lang.OptionOff),
 		"Colete: " .. (WallDisplay.Armor and Config.Lang.OptionOn or Config.Lang.OptionOff),
 		"Arma: " .. (WallDisplay.Weapon and Config.Lang.OptionOn or Config.Lang.OptionOff),
-		"Veículo: " .. (WallDisplay.Vehicle and Config.Lang.OptionOn or Config.Lang.OptionOff),
 		"Linha: " .. (WallDisplay.Line and Config.Lang.OptionOn or Config.Lang.OptionOff),
 		"Esqueleto: " .. (WallDisplay.Skeleton and Config.Lang.OptionOn or Config.Lang.OptionOff),
-		"Paredes: " .. (WallDisplay.ThroughWalls and Config.Lang.OptionOn or Config.Lang.OptionOff),
 		"",
 		"Use ~y~/wallconfig [opção]~w~ para alternar",
-		"Opções: passport, name, health, armor, weapon, vehicle, line, skeleton, walls, self, blip"
+		"Opções: passport, steam, name, health, armor, weapon, line, skeleton, walls, self, blip"
 	}
 
 	for _, Line in ipairs(Lines) do

@@ -38,23 +38,31 @@ Config.RenderSleep = 0
 -----------------------------------------------------------------------------------------------------------------------------------------
 Config.Display = {
 	Passport = true,
-	Name = true,
-	ServerId = true,
-	Health = true,
-	Armor = true,
-	Weapon = true,
-	Distance = true,
-	Group = true,
-	Vehicle = true,
-	Speed = true,
-	Status = true,
-	Line = true,
+	SteamName = true,
+	Name = false,
+	ServerId = false,
+	Health = false,
+	Armor = false,
+	Weapon = false,
+	Distance = false,
+	Group = false,
+	Vehicle = false,
+	Speed = false,
+	Status = false,
+	Line = false,
 	Blip = false,
 	Skeleton = false,
 	Self = false,
 	Npcs = false,
 	ThroughWalls = true
 }
+
+-- Tamanho do texto acima da cabeça (menor = mais discreto)
+Config.TextScale = 0.22
+Config.TextLineSpacing = 0.014
+
+-- Offset acima da cabeça (em metros)
+Config.HeadOffset = 0.55
 
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- CORES (R, G, B, A)
