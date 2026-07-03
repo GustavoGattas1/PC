@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Maze Elevator</title>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+	<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+	<div id="app" class="hidden">
+		<div class="overlay"></div>
+
+		<div class="panel">
+			<div class="panel-glow"></div>
+
+			<header class="panel-header">
+				<div class="logo-wrap">
+					<img id="logo" src="images/maze_bank.svg" alt="Logo" />
+				</div>
+				<div class="titles">
+					<p class="eyebrow">ELEVADOR</p>
+					<h1 id="building-name">MAZE BANK</h1>
+					<p id="subtitle" class="subtitle">Selecione o andar</p>
+				</div>
+				<button id="btn-close" class="btn-close" aria-label="Fechar">
+					<i class="fa-solid fa-xmark"></i>
+				</button>
+			</header>
+
+			<div class="divider"></div>
+
+			<div id="floor-list" class="floor-list"></div>
+
+			<footer class="panel-footer">
+				<span><i class="fa-solid fa-shield-halved"></i> Acesso verificado pelo servidor</span>
+				<span><kbd>ESC</kbd> Fechar</span>
+			</footer>
+		</div>
+	</div>
+
+	<script src="app.js"></script>
+</body>
+</html>
