@@ -10,141 +10,114 @@ vRP = Proxy.getInterface("vRP")
 -----------------------------------------------------------------------------------------------------------------------------------------
 Wall = {}
 Tunnel.bindInterface("sistema-wall", Wall)
-vCLIENT = Tunnel.getInterface("sistema-wall")
 
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- VARIÁVEIS
 -----------------------------------------------------------------------------------------------------------------------------------------
 local ActiveWalls = {}
+local CachedPlayers = {}
+local CachedPlayersDirty = true
+local ShowCharacterName = Config.Display.Name
 
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- PERMISSÃO
 -----------------------------------------------------------------------------------------------------------------------------------------
-function Wall_HasPermission(Passport)
+local function HasPermission(Passport)
 	return Wall_HasGroup(Passport, Config.Groups)
 end
 
-function Wall_GetPlayerGroup(Passport)
-	if not Passport then return nil end
-
-	for _, Group in ipairs(Config.Groups) do
-		if vRP.HasGroup(Passport, Group) then
-			return Group
+local function GetPlayerGroup(Passport)
+	for i = 1, #Config.Groups do
+		if vRP.HasGroup(Passport, Config.Groups[i]) then
+			return Config.Groups[i]
 		end
 	end
-
-	return nil
 end
 
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- DADOS DOS JOGADORES
 -----------------------------------------------------------------------------------------------------------------------------------------
-function Wall_BuildPlayerData(Source)
+local function BuildPlayerData(Source)
 	local Passport = vRP.Passport(Source)
-	if not Passport then return nil end
-
-	local Name = "Jogador #" .. tostring(Passport)
-
-	if Wall_Bridge_GetPlayerName then
-		Name = Wall_Bridge_GetPlayerName(Passport)
-	elseif vRP.FullName then
-		Name = vRP.FullName(Passport) or Name
-	end
+	if not Passport then return end
 
 	local SteamName = GetPlayerName(Source) or "Desconhecido"
-	local Group = Wall_GetPlayerGroup(Passport)
+	local Group = GetPlayerGroup(Passport)
 
 	return {
-		source = Source,
 		passport = Passport,
-		name = Name,
+		name = ShowCharacterName and (Wall_Bridge_GetPlayerName(Passport) or SteamName) or SteamName,
 		steam = SteamName,
 		group = Group,
 		staff = Group ~= nil
 	}
 end
 
-function Wall_GetOnlinePlayers()
-	local Players = {}
+local function RebuildPlayerCache()
+	CachedPlayers = {}
 	local Sources = vRP.Players()
 
 	if Sources then
-		for Passport, Source in pairs(Sources) do
-			local Data = Wall_BuildPlayerData(Source)
+		for _, Source in pairs(Sources) do
+			local Data = BuildPlayerData(Source)
 			if Data then
-				Players[Source] = Data
+				CachedPlayers[Source] = Data
 			end
 		end
 	else
-		for _, Source in ipairs(GetPlayers()) do
-			Source = tonumber(Source)
-			local Data = Wall_BuildPlayerData(Source)
+		local Players = GetPlayers()
+		for i = 1, #Players do
+			local Source = tonumber(Players[i])
+			local Data = BuildPlayerData(Source)
 			if Data then
-				Players[Source] = Data
+				CachedPlayers[Source] = Data
 			end
 		end
 	end
 
-	return Players
+	CachedPlayersDirty = false
+	return CachedPlayers
+end
+
+local function GetPlayerCache()
+	if CachedPlayersDirty then
+		return RebuildPlayerCache()
+	end
+	return CachedPlayers
+end
+
+local function BroadcastPlayerCache()
+	local Players = GetPlayerCache()
+	for Source, Active in pairs(ActiveWalls) do
+		if Active then
+			TriggerClientEvent("sistema-wall:SyncPlayers", Source, Players)
+		end
+	end
 end
 
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- TUNNEL
 -----------------------------------------------------------------------------------------------------------------------------------------
 function Wall.CheckPermission()
-	local Source = source
-	local Passport = vRP.Passport(Source)
-	return Passport and Wall_HasPermission(Passport) or false
-end
-
-function Wall.GetPlayerList()
-	local Source = source
-	local Passport = vRP.Passport(Source)
-
-	if not Passport or not Wall_HasPermission(Passport) then
-		return {}
-	end
-
-	return Wall_GetOnlinePlayers()
-end
-
-function Wall.GetPlayerInfo(TargetSource)
-	local Source = source
-	local Passport = vRP.Passport(Source)
-
-	if not Passport or not Wall_HasPermission(Passport) then
-		return nil
-	end
-
-	TargetSource = tonumber(TargetSource)
-	if not TargetSource then return nil end
-
-	return Wall_BuildPlayerData(TargetSource)
+	local Passport = vRP.Passport(source)
+	return Passport and HasPermission(Passport) or false
 end
 
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- COMANDOS
 -----------------------------------------------------------------------------------------------------------------------------------------
-local function RegisterWallCommand(Name)
-	RegisterCommand(Name, function(Source)
-		local Passport = vRP.Passport(Source)
-		if not Passport then return end
-
-		if not Wall_HasPermission(Passport) then
+RegisterCommand(Config.Command, function(Source)
+	local Passport = vRP.Passport(Source)
+	if not Passport or not HasPermission(Passport) then
+		if Passport then
 			Wall_NotifyServer(Source, "negado", Config.Lang.NotAuthorized)
-			return
 		end
+		return
+	end
 
-		ActiveWalls[Source] = not ActiveWalls[Source]
-		TriggerClientEvent("sistema-wall:Toggle", Source, ActiveWalls[Source])
-	end, false)
-end
-
-RegisterWallCommand(Config.Command)
-
-for _, Alias in ipairs(Config.CommandAliases or {}) do
-	RegisterWallCommand(Alias)
-end
+	ActiveWalls[Source] = not ActiveWalls[Source]
+	TriggerClientEvent("sistema-wall:Toggle", Source, ActiveWalls[Source])
+end, false)
 
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- EVENTOS
@@ -153,51 +126,58 @@ RegisterNetEvent("sistema-wall:RequestSync")
 AddEventHandler("sistema-wall:RequestSync", function()
 	local Source = source
 	local Passport = vRP.Passport(Source)
-
-	if not Passport or not Wall_HasPermission(Passport) then return end
-
-	TriggerClientEvent("sistema-wall:SyncPlayers", Source, Wall_GetOnlinePlayers())
-end)
-
-AddEventHandler("playerDropped", function()
-	local Source = source
-	ActiveWalls[Source] = nil
-	Wall_Bridge_ClearCache(nil)
-end)
-
-AddEventHandler("Disconnect", function(Passport, Source)
-	ActiveWalls[Source] = nil
-	if Passport then
-		Wall_Bridge_ClearCache(Passport)
-	end
-end)
-
------------------------------------------------------------------------------------------------------------------------------------------
--- SYNC PERIÓDICO PARA STAFF COM WALL ATIVO
------------------------------------------------------------------------------------------------------------------------------------------
-CreateThread(function()
-	while true do
-		Wait(Config.UpdateInterval or 500)
-
-		for Source, Active in pairs(ActiveWalls) do
-			if Active then
-				TriggerClientEvent("sistema-wall:SyncPlayers", Source, Wall_GetOnlinePlayers())
-			end
-		end
-	end
+	if not Passport or not HasPermission(Passport) then return end
+	TriggerClientEvent("sistema-wall:SyncPlayers", Source, GetPlayerCache())
 end)
 
 RegisterNetEvent("sistema-wall:SetActive")
 AddEventHandler("sistema-wall:SetActive", function(Active)
 	local Source = source
 	local Passport = vRP.Passport(Source)
-
-	if not Passport or not Wall_HasPermission(Passport) then return end
+	if not Passport or not HasPermission(Passport) then return end
 
 	ActiveWalls[Source] = Active == true
-
 	if ActiveWalls[Source] then
-		TriggerClientEvent("sistema-wall:SyncPlayers", Source, Wall_GetOnlinePlayers())
+		TriggerClientEvent("sistema-wall:SyncPlayers", Source, GetPlayerCache())
+	end
+end)
+
+AddEventHandler("playerDropped", function()
+	local Source = source
+	ActiveWalls[Source] = nil
+	CachedPlayers[Source] = nil
+	CachedPlayersDirty = true
+end)
+
+AddEventHandler("Disconnect", function(Passport, Source)
+	ActiveWalls[Source] = nil
+	CachedPlayers[Source] = nil
+	CachedPlayersDirty = true
+	if Passport then
+		Wall_Bridge_ClearCache(Passport)
+	end
+end)
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- SYNC PERIÓDICO
+-----------------------------------------------------------------------------------------------------------------------------------------
+CreateThread(function()
+	local Interval = Config.UpdateInterval or 500
+	while true do
+		Wait(Interval)
+
+		local HasActive = false
+		for _, Active in pairs(ActiveWalls) do
+			if Active then
+				HasActive = true
+				break
+			end
+		end
+
+		if HasActive then
+			CachedPlayersDirty = true
+			BroadcastPlayerCache()
+		end
 	end
 end)
 
@@ -209,5 +189,5 @@ exports("IsWallActive", function(Source)
 end)
 
 exports("HasWallPermission", function(Passport)
-	return Wall_HasPermission(Passport)
+	return HasPermission(Passport)
 end)

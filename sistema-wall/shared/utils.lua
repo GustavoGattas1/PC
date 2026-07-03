@@ -22,11 +22,11 @@ function Wall_HasGroup(Passport, Groups)
 	if not Passport or not Groups then return false end
 	if type(Groups) == "string" then Groups = { Groups } end
 
-	for _, Group in ipairs(Groups) do
+	for i = 1, #Groups do
+		local Group = Groups[i]
 		if Config.RequireService and vRP and vRP.HasService(Passport, Group) then
 			return true
 		end
-
 		if vRP and vRP.HasGroup(Passport, Group) then
 			return true
 		end
@@ -46,23 +46,11 @@ function Wall_Round(Number, Decimals)
 end
 
 function Wall_FormatHealth(Health)
-	local Hp = math.max(0, Health - 100)
-	return math.floor(Hp)
-end
-
-function Wall_GetHealthPercent(Health)
-	local Hp = Wall_FormatHealth(Health)
-	return math.min(100, math.max(0, Hp))
+	return math.floor(math.max(0, Health - 100))
 end
 
 function Wall_IsDead(Ped, Health)
-	if not Ped or not DoesEntityExist(Ped) then return true end
 	if Health and Health <= 101 then return true end
+	if not Ped or not DoesEntityExist(Ped) then return true end
 	return IsEntityDead(Ped) or IsPedDeadOrDying(Ped, true)
-end
-
-function Wall_HexToRgb(Hex)
-	Hex = Hex:gsub("#", "")
-	if #Hex ~= 6 then return 255, 255, 255 end
-	return tonumber(Hex:sub(1, 2), 16) or 255, tonumber(Hex:sub(3, 4), 16) or 255, tonumber(Hex:sub(5, 6), 16) or 255
 end

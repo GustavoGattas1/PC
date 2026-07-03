@@ -1,126 +1,98 @@
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- RENDERIZAÇÃO DO WALL
 -----------------------------------------------------------------------------------------------------------------------------------------
-
 local PlayerBlips = {}
+local InfoLines = {}
+local StatsParts = {}
+
+local Display = Config.Display
+local Colors = Config.Colors
+local DrawDistance = Config.DrawDistance
+local DrawDistanceSq = DrawDistance * DrawDistance
+local HeadOffset = Config.HeadOffset or 0.35
+local TextScale = Config.TextScale or 0.22
+local TextLineSpacing = Config.TextLineSpacing or 0.014
+local LowHealth = Config.LowHealthThreshold or 120
+
+local ShowPassport = Display.Passport
+local ShowSteam = Display.SteamName
+local ShowName = Display.Name
+local ShowHealth = Display.Health
+local ShowArmor = Display.Armor
+local ShowWeapon = Display.Weapon
+local ShowDistance = Display.Distance
+local ShowGroup = Display.Group
+local ShowStatus = Display.Status
+local ShowLine = Display.Line
+local ShowSkeleton = Display.Skeleton
+local ShowBlip = Display.Blip
+local ShowSelf = Display.Self
+local ShowNpcs = Display.Npcs
+
+local LineColor = Colors.Line
+local SkeletonColor = Colors.Skeleton
+local ColorAlive = Colors.Alive
+local ColorLow = Colors.LowHealth
+local ColorDead = Colors.Dead
+local ColorStaff = Colors.Staff
+local ColorSelf = Colors.Self
 
 local SkeletonBones = {
-	{ 31086, 39317 },
-	{ 39317, 24818 },
-	{ 24818, 24817 },
-	{ 24817, 24816 },
-	{ 24816, 23553 },
-	{ 23553, 11816 },
-	{ 24818, 10706 },
-	{ 10706, 2992 },
-	{ 2992, 28422 },
-	{ 24818, 64729 },
-	{ 64729, 22711 },
-	{ 22711, 28252 },
-	{ 11816, 58271 },
-	{ 58271, 63931 },
-	{ 63931, 14201 },
-	{ 11816, 51826 },
-	{ 51826, 36864 },
-	{ 36864, 52301 }
+	{ 31086, 39317 }, { 39317, 24818 }, { 24818, 24817 }, { 24817, 24816 },
+	{ 24816, 23553 }, { 23553, 11816 }, { 24818, 10706 }, { 10706, 2992 },
+	{ 2992, 28422 }, { 24818, 64729 }, { 64729, 22711 }, { 22711, 28252 },
+	{ 11816, 58271 }, { 58271, 63931 }, { 63931, 14201 }, { 11816, 51826 },
+	{ 51826, 36864 }, { 36864, 52301 }
 }
 
------------------------------------------------------------------------------------------------------------------------------------------
--- DESENHO DE TEXTO
------------------------------------------------------------------------------------------------------------------------------------------
-function Wall_DrawText3D(x, y, z, Lines, Color)
+local function ClearTable(T)
+	for i = #T, 1, -1 do
+		T[i] = nil
+	end
+end
+
+local function DrawText3D(x, y, z, Lines, R, G, B, A)
 	local OnScreen, ScreenX, ScreenY = World3dToScreen2d(x, y, z)
 	if not OnScreen then return end
 
-	local R = Color and Color[1] or 255
-	local G = Color and Color[2] or 255
-	local B = Color and Color[3] or 255
-	local A = Color and Color[4] or 230
-	local BaseScale = Config.TextScale or 0.22
-	local LineSpacing = Config.TextLineSpacing or 0.014
+	SetTextFont(4)
+	SetTextProportional(true)
+	SetTextOutline()
+	SetTextCentre(true)
 
-	for Index, Line in ipairs(Lines) do
-		local Scale = math.max(0.18, BaseScale - ((Index - 1) * 0.02))
+	for i = 1, #Lines do
+		local Scale = math.max(0.18, TextScale - ((i - 1) * 0.02))
 		SetTextScale(Scale, Scale)
-		SetTextFont(4)
-		SetTextProportional(true)
 		SetTextColour(R, G, B, A)
-		SetTextOutline()
 		SetTextEntry("STRING")
-		SetTextCentre(true)
-		AddTextComponentString(Line)
-		DrawText(ScreenX, ScreenY - 0.03 - ((Index - 1) * LineSpacing))
+		AddTextComponentString(Lines[i])
+		DrawText(ScreenX, ScreenY - 0.03 - ((i - 1) * TextLineSpacing))
 	end
 end
 
-function Wall_GetColor(Ped, Health, IsSelf, IsStaff)
-	if Wall_IsDead(Ped, Health) then
-		return Config.Colors.Dead
-	end
-
-	if IsSelf then
-		return Config.Colors.Self
-	end
-
-	if IsStaff then
-		return Config.Colors.Staff
-	end
-
-	if Health and Health <= Config.LowHealthThreshold then
-		return Config.Colors.LowHealth
-	end
-
-	return Config.Colors.Alive
+function Wall_DrawText3D(x, y, z, Lines, Color)
+	DrawText3D(x, y, z, Lines, Color[1] or 255, Color[2] or 255, Color[3] or 255, Color[4] or 230)
 end
 
------------------------------------------------------------------------------------------------------------------------------------------
--- LINHA ATÉ O JOGADOR
------------------------------------------------------------------------------------------------------------------------------------------
-function Wall_DrawLineToTarget(PedCoords, TargetCoords)
-	local C = Config.Colors.Line
-	DrawLine(
-		PedCoords.x, PedCoords.y, PedCoords.z,
-		TargetCoords.x, TargetCoords.y, TargetCoords.z + 0.5,
-		C[1], C[2], C[3], C[4]
-	)
+local function GetColor(Health, IsSelf, IsStaff, IsDead)
+	if IsDead then return ColorDead end
+	if IsSelf then return ColorSelf end
+	if IsStaff then return ColorStaff end
+	if Health <= LowHealth then return ColorLow end
+	return ColorAlive
 end
 
------------------------------------------------------------------------------------------------------------------------------------------
--- ESQUELETO
------------------------------------------------------------------------------------------------------------------------------------------
-function Wall_DrawSkeleton(Ped)
-	local C = Config.Colors.Skeleton
+local function DrawLineToTarget(Px, Py, Pz, Tx, Ty, Tz)
+	DrawLine(Px, Py, Pz, Tx, Ty, Tz, LineColor[1], LineColor[2], LineColor[3], LineColor[4])
+end
 
-	for _, Pair in ipairs(SkeletonBones) do
+local function DrawSkeleton(Ped)
+	for i = 1, #SkeletonBones do
+		local Pair = SkeletonBones[i]
 		local Bone1 = GetPedBoneCoords(Ped, Pair[1], 0.0, 0.0, 0.0)
 		local Bone2 = GetPedBoneCoords(Ped, Pair[2], 0.0, 0.0, 0.0)
-
-		if Bone1 and Bone2 then
-			DrawLine(Bone1.x, Bone1.y, Bone1.z, Bone2.x, Bone2.y, Bone2.z, C[1], C[2], C[3], C[4])
-		end
+		DrawLine(Bone1.x, Bone1.y, Bone1.z, Bone2.x, Bone2.y, Bone2.z, SkeletonColor[1], SkeletonColor[2], SkeletonColor[3], SkeletonColor[4])
 	end
-end
-
------------------------------------------------------------------------------------------------------------------------------------------
--- BLIPS
------------------------------------------------------------------------------------------------------------------------------------------
-function Wall_UpdateBlip(ServerId, Ped, Name)
-	if not Config.Display.Blip then return end
-
-	local Blip = PlayerBlips[ServerId]
-
-	if not Blip or not DoesBlipExist(Blip) then
-		Blip = AddBlipForEntity(Ped)
-		SetBlipSprite(Blip, 1)
-		SetBlipScale(Blip, 0.7)
-		SetBlipColour(Blip, 3)
-		SetBlipAsShortRange(Blip, false)
-		PlayerBlips[ServerId] = Blip
-	end
-
-	BeginTextCommandSetBlipName("STRING")
-	AddTextComponentString(Name or ("Jogador " .. ServerId))
-	EndTextCommandSetBlipName(Blip)
 end
 
 function Wall_ClearBlips()
@@ -132,165 +104,162 @@ function Wall_ClearBlips()
 	end
 end
 
------------------------------------------------------------------------------------------------------------------------------------------
--- MONTAR LINHAS DE INFO
------------------------------------------------------------------------------------------------------------------------------------------
-function Wall_BuildInfoLines(ServerId, Ped, Distance, PlayerData)
-	local Lines = {}
+local function UpdateBlip(ServerId, Ped, Name)
+	local Blip = PlayerBlips[ServerId]
+	if not Blip or not DoesBlipExist(Blip) then
+		Blip = AddBlipForEntity(Ped)
+		SetBlipSprite(Blip, 1)
+		SetBlipScale(Blip, 0.7)
+		SetBlipColour(Blip, 3)
+		SetBlipAsShortRange(Blip, false)
+		PlayerBlips[ServerId] = Blip
+	end
+
+	BeginTextCommandSetBlipName("STRING")
+	AddTextComponentString(Name)
+	EndTextCommandSetBlipName(Blip)
+end
+
+local function BuildInfoLines(ServerId, Ped, Distance, PlayerData)
+	ClearTable(InfoLines)
+	ClearTable(StatsParts)
+
 	local Health = GetEntityHealth(Ped)
-	local Armor = GetPedArmour(Ped)
 	local IsDead = Wall_IsDead(Ped, Health)
-	local WeaponHash = GetSelectedPedWeapon(Ped)
+	local MainLine
 
-	local MainLine = ""
+	if PlayerData then
+		if ShowPassport and PlayerData.passport then
+			MainLine = "~w~#" .. PlayerData.passport
+		end
 
-	if Config.Display.Passport and PlayerData and PlayerData.passport then
-		MainLine = "~w~#" .. PlayerData.passport
-	end
-
-	if Config.Display.SteamName and PlayerData and PlayerData.steam then
-		MainLine = MainLine .. (MainLine ~= "" and " ~s~" or "~s~") .. PlayerData.steam
-	elseif Config.Display.Name and PlayerData and PlayerData.name then
-		MainLine = MainLine .. (MainLine ~= "" and " ~s~" or "~s~") .. PlayerData.name
-	end
-
-	if MainLine ~= "" then
-		Lines[#Lines + 1] = MainLine
-	end
-
-	local StatsLine = ""
-
-	if Config.Display.Health then
-		if IsDead then
-			StatsLine = StatsLine .. (StatsLine ~= "" and " | " or "") .. "~r~MORTO"
-		else
-			StatsLine = StatsLine .. (StatsLine ~= "" and " | " or "") .. "~g~" .. Wall_FormatHealth(Health) .. "%"
+		if ShowSteam and PlayerData.steam then
+			MainLine = MainLine and (MainLine .. " ~s~" .. PlayerData.steam) or ("~s~" .. PlayerData.steam)
+		elseif ShowName and PlayerData.name then
+			MainLine = MainLine and (MainLine .. " ~s~" .. PlayerData.name) or ("~s~" .. PlayerData.name)
 		end
 	end
 
-	if Config.Display.Armor and not IsDead then
-		StatsLine = StatsLine .. (StatsLine ~= "" and " | " or "") .. "~b~" .. Armor .. "%"
+	if MainLine then
+		InfoLines[1] = MainLine
 	end
 
-	if Config.Display.Weapon and not IsDead then
-		StatsLine = StatsLine .. (StatsLine ~= "" and " | " or "") .. "~o~" .. Wall_GetWeaponLabel(WeaponHash)
+	if ShowHealth then
+		StatsParts[#StatsParts + 1] = IsDead and "~r~MORTO" or ("~g~" .. Wall_FormatHealth(Health) .. "%")
 	end
 
-	if Config.Display.Distance then
-		StatsLine = StatsLine .. (StatsLine ~= "" and " | " or "") .. "~c~" .. Wall_Round(Distance, 1) .. "m"
+	if ShowArmor and not IsDead then
+		StatsParts[#StatsParts + 1] = "~b~" .. GetPedArmour(Ped) .. "%"
 	end
 
-	if StatsLine ~= "" then
-		Lines[#Lines + 1] = StatsLine
+	if ShowWeapon and not IsDead then
+		StatsParts[#StatsParts + 1] = "~o~" .. Wall_GetWeaponLabel(GetSelectedPedWeapon(Ped))
 	end
 
-	if Config.Display.Group and PlayerData and PlayerData.group then
-		Lines[#Lines + 1] = "~p~" .. PlayerData.group
+	if ShowDistance then
+		StatsParts[#StatsParts + 1] = "~c~" .. Wall_Round(Distance, 1) .. "m"
 	end
 
-	if Config.Display.Status then
+	if #StatsParts > 0 then
+		InfoLines[#InfoLines + 1] = table.concat(StatsParts, " | ")
+	end
+
+	if ShowGroup and PlayerData and PlayerData.group then
+		InfoLines[#InfoLines + 1] = "~p~" .. PlayerData.group
+	end
+
+	if ShowStatus then
 		local State = Player(ServerId).state
-		if State then
-			local StatusParts = {}
-
+		if State and (State.Death or State.death or State.Coma or State.coma or State.Arena or State.arena) then
+			ClearTable(StatsParts)
 			if State.Death or State.death or State.Coma or State.coma then
-				StatusParts[#StatusParts + 1] = "~r~Coma"
+				StatsParts[#StatsParts + 1] = "~r~Coma"
 			end
-
 			if State.Arena or State.arena then
-				StatusParts[#StatusParts + 1] = "~o~Arena"
+				StatsParts[#StatsParts + 1] = "~o~Arena"
 			end
-
-			if #StatusParts > 0 then
-				Lines[#Lines + 1] = table.concat(StatusParts, " | ")
-			end
+			InfoLines[#InfoLines + 1] = table.concat(StatsParts, " | ")
 		end
 	end
 
-	return Lines
+	return InfoLines, IsDead
 end
 
 -----------------------------------------------------------------------------------------------------------------------------------------
--- LOOP PRINCIPAL
+-- LOOP PRINCIPAL (render + HUD em um único thread)
 -----------------------------------------------------------------------------------------------------------------------------------------
 CreateThread(function()
 	while true do
-		local Sleep = 1000
-
-		if WallActive then
+		if not WallActive then
+			if next(PlayerBlips) then
+				Wall_ClearBlips()
+			end
+			Wait(1000)
+		else
 			local Ped = PlayerPedId()
 			local PedCoords = GetEntityCoords(Ped)
-			local DrawDistance = Config.DrawDistance
+			local Px, Py, Pz = PedCoords.x, PedCoords.y, PedCoords.z
+			local VisibleCount = 0
+			local Players = GetActivePlayers()
 
-			Sleep = Config.RenderSleep or 0
-
-			for _, Player in ipairs(GetActivePlayers()) do
-				local TargetPed = GetPlayerPed(Player)
-				local ServerId = GetPlayerServerId(Player)
-				local IsSelf = TargetPed == Ped
-
-				if TargetPed and DoesEntityExist(TargetPed) and (not IsSelf or Config.Display.Self) then
-					if IsPedAPlayer(TargetPed) or Config.Display.Npcs then
+			for i = 1, #Players do
+				local PlayerId = Players[i]
+				local TargetPed = GetPlayerPed(PlayerId)
+				if TargetPed ~= 0 and DoesEntityExist(TargetPed) then
+					local IsSelf = TargetPed == Ped
+					if not IsSelf or ShowSelf then
+						local ServerId = GetPlayerServerId(PlayerId)
 						local TargetCoords = GetEntityCoords(TargetPed)
-						local Distance = #(PedCoords - TargetCoords)
+						local Dx = Px - TargetCoords.x
+						local Dy = Py - TargetCoords.y
+						local Dz = Pz - TargetCoords.z
+						local DistSq = Dx * Dx + Dy * Dy + Dz * Dz
 
-						if Distance <= DrawDistance then
-							local PlayerData = Wall_GetPlayerData(ServerId)
+						if DistSq <= DrawDistanceSq then
+							VisibleCount = VisibleCount + 1
+							local PlayerData = WallPlayers[ServerId]
 							local Health = GetEntityHealth(TargetPed)
-							local Color = Wall_GetColor(TargetPed, Health, IsSelf, PlayerData and PlayerData.staff)
-							local HeadCoords = Wall_GetHeadCoords(TargetPed)
-							local Lines = Wall_BuildInfoLines(ServerId, TargetPed, Distance, PlayerData)
+							local Lines, IsDead = BuildInfoLines(ServerId, TargetPed, math.sqrt(DistSq), PlayerData)
+							local Color = GetColor(Health, IsSelf, PlayerData and PlayerData.staff, IsDead)
+							local Hx, Hy, Hz = Wall_GetHeadCoords(TargetPed)
 
 							if #Lines > 0 then
-								Wall_DrawText3D(HeadCoords.x, HeadCoords.y, HeadCoords.z, Lines, Color)
+								DrawText3D(Hx, Hy, Hz, Lines, Color[1], Color[2], Color[3], Color[4])
 							end
 
-							if Config.Display.Line and not IsSelf then
-								Wall_DrawLineToTarget(PedCoords, HeadCoords)
+							if ShowLine and not IsSelf then
+								DrawLineToTarget(Px, Py, Pz, Hx, Hy, Hz)
 							end
 
-							if Config.Display.Skeleton then
-								Wall_DrawSkeleton(TargetPed)
+							if ShowSkeleton then
+								DrawSkeleton(TargetPed)
 							end
 
-							if Config.Display.Blip then
-								local BlipName = PlayerData and (PlayerData.steam or PlayerData.name) or ("#" .. (PlayerData and PlayerData.passport or ServerId))
-								Wall_UpdateBlip(ServerId, TargetPed, BlipName)
+							if ShowBlip then
+								UpdateBlip(ServerId, TargetPed, (PlayerData and (PlayerData.steam or PlayerData.name)) or ("#" .. ServerId))
 							end
-
-							if not Config.Display.ThroughWalls then
-								if not HasEntityClearLosToEntity(Ped, TargetPed, 17) then
-									-- info ainda visível mas com opacidade reduzida — padrão BR mantém visível
+						elseif ShowBlip then
+							local Blip = PlayerBlips[ServerId]
+							if Blip then
+								if DoesBlipExist(Blip) then
+									RemoveBlip(Blip)
 								end
+								PlayerBlips[ServerId] = nil
 							end
-						elseif Config.Display.Blip and PlayerBlips[ServerId] then
-							if DoesBlipExist(PlayerBlips[ServerId]) then
-								RemoveBlip(PlayerBlips[ServerId])
-							end
-							PlayerBlips[ServerId] = nil
 						end
 					end
 				end
 			end
-		else
-			if next(PlayerBlips) then
-				Wall_ClearBlips()
-			end
-		end
 
-		Wait(Sleep)
-	end
-end)
+			SetTextFont(4)
+			SetTextScale(0.32, 0.32)
+			SetTextColour(100, 200, 255, 200)
+			SetTextOutline()
+			SetTextEntry("STRING")
+			AddTextComponentString("~b~WALL ATIVO~w~ | " .. VisibleCount .. " jogador(es)")
+			DrawText(0.015, 0.02)
 
------------------------------------------------------------------------------------------------------------------------------------------
--- SYNC PERIÓDICO DO CLIENTE
------------------------------------------------------------------------------------------------------------------------------------------
-CreateThread(function()
-	while true do
-		Wait(Config.UpdateInterval or 500)
-
-		if WallActive then
-			TriggerServerEvent("sistema-wall:RequestSync")
+			Wait(Config.RenderSleep or 0)
 		end
 	end
 end)
