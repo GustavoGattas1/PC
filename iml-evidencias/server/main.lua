@@ -68,6 +68,7 @@ end
 -----------------------------------------------------------------------------------------------------------------------------------------
 AddEventHandler("Connect", function(Passport, Source)
 	IML_EnsureBiometrics(Passport)
+	if IML_InvalidateCivilCache then IML_InvalidateCivilCache() end
 end)
 
 AddEventHandler("CharacterChosen", function(Passport, Source)
@@ -98,8 +99,7 @@ AddEventHandler("iml-evidencias:CreateEvidence", function(Data)
 
 	if not CheckCooldown(Source, "create_" .. Data.type, GetEvidenceCooldown(Data.type)) then return end
 
-	local Count = 0
-	for _ in pairs(SceneEvidence) do Count = Count + 1 end
+	local Count = IML_GetSceneEvidenceCount and IML_GetSceneEvidenceCount() or 0
 	if Count >= Config.MaxSceneEvidence then
 		return
 	end
@@ -174,6 +174,7 @@ function IML.RequestScene()
 			List[#List + 1] = Evidence
 		elseif (Now - Evidence.created) >= Config.EvidenceExpire then
 			SceneEvidence[Id] = nil
+			if IML_AdjustSceneEvidenceCount then IML_AdjustSceneEvidenceCount(-1) end
 		end
 	end
 
@@ -245,6 +246,7 @@ AddEventHandler("iml-evidencias:CollectEvidence", function(EvidenceId)
 
 	Evidence.collected = true
 	SceneEvidence[EvidenceId] = nil
+	if IML_AdjustSceneEvidenceCount then IML_AdjustSceneEvidenceCount(-1) end
 
 	vRP.Query("iml/UpdateCollected", { evidence_id = EvidenceId, collected_by = Passport })
 
@@ -549,6 +551,7 @@ CreateThread(function()
 		for Id, Evidence in pairs(SceneEvidence) do
 			if (Now - Evidence.created) >= Config.EvidenceExpire then
 				SceneEvidence[Id] = nil
+				if IML_AdjustSceneEvidenceCount then IML_AdjustSceneEvidenceCount(-1) end
 				IML_BroadcastCivil("iml-evidencias:RemoveEvidence", Id)
 			end
 		end
@@ -564,4 +567,5 @@ end)
 
 AddEventHandler("Disconnect", function(Passport, Source)
 	PlayerCooldowns[Source] = nil
+	if IML_InvalidateCivilCache then IML_InvalidateCivilCache() end
 end)

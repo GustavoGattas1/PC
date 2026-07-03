@@ -7,6 +7,29 @@ SceneOverlayActive = false
 SceneMarkers = {}
 SceneEvidenceIndex = {}
 
+local HexColorCache = {}
+local EvidenceIndexDirty = true
+local BallisticsCacheDirty = true
+local PropsDirty = true
+local CachedCasings = {}
+local CachedBullets = {}
+local MarkerDrawDistanceSq = 1600.0
+
+function MarkSceneEvidenceDirty()
+	EvidenceIndexDirty = true
+	BallisticsCacheDirty = true
+	PropsDirty = true
+end
+
+local function GetTypeColor(TypeInfo)
+	local Color = TypeInfo and TypeInfo.Color
+	if Color and HexColorCache[Color] then
+		local C = HexColorCache[Color]
+		return C[1], C[2], C[3]
+	end
+	return HexToRgb(Color or "#e74c3c")
+end
+
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- CARREGAR MODELO
 -----------------------------------------------------------------------------------------------------------------------------------------
@@ -66,12 +89,14 @@ function RemoveEvidenceLocal(EvidenceId)
 	end
 	RemoveEvidenceProp(EvidenceId)
 	SceneEvidenceIndex[EvidenceId] = nil
+	MarkSceneEvidenceDirty()
 end
 
 RegisterNetEvent("iml-evidencias:SyncEvidence")
 AddEventHandler("iml-evidencias:SyncEvidence", function(Evidence)
 	if Evidence and Evidence.id and Evidence.coords then
 		SpawnEvidenceProp(Evidence)
+		MarkSceneEvidenceDirty()
 	end
 end)
 
@@ -103,6 +128,13 @@ function HexToRgb(Hex)
 	Hex = Hex:gsub("#", "")
 	if #Hex ~= 6 then return 200, 30, 30 end
 	return tonumber(Hex:sub(1, 2), 16) or 200, tonumber(Hex:sub(3, 4), 16) or 30, tonumber(Hex:sub(5, 6), 16) or 30
+end
+
+for _, TypeInfo in pairs(Config.EvidenceTypes or {}) do
+	if TypeInfo.Color and not HexColorCache[TypeInfo.Color] then
+		local R, G, B = HexToRgb(TypeInfo.Color)
+		HexColorCache[TypeInfo.Color] = { R, G, B }
+	end
 end
 
 function DrawFloatingLabel(x, y, z, Icon, Label, Distance, Color)
@@ -145,31 +177,46 @@ end
 function DrawBallisticsTraces(PedCoords)
 	if not SceneOverlayActive or not Config.SceneOverlay.ShowBallisticsTrace then return end
 
-	local Casings = {}
-	local Bullets = {}
-	local MaxDist = Config.SceneOverlay.TraceDistance or 25.0
+	if BallisticsCacheDirty then
+		CachedCasings = {}
+		CachedBullets = {}
+		local MaxDist = Config.SceneOverlay.TraceDistance or 25.0
 
-	for _, Evidence in pairs(SceneEvidence) do
-		if Evidence.coords and not Evidence.collected then
-			if Evidence.type == "casing" then
-				Casings[#Casings + 1] = Evidence
-			elseif Evidence.type == "bullet" or Evidence.type == "bullet_fragment" then
-				Bullets[#Bullets + 1] = Evidence
+		for _, Evidence in pairs(SceneEvidence) do
+			if Evidence.coords and not Evidence.collected then
+				if Evidence.type == "casing" then
+					CachedCasings[#CachedCasings + 1] = Evidence
+				elseif Evidence.type == "bullet" or Evidence.type == "bullet_fragment" then
+					CachedBullets[#CachedBullets + 1] = Evidence
+				end
 			end
 		end
+
+		BallisticsCacheDirty = false
 	end
 
-	for _, Casing in ipairs(Casings) do
-		local CC = vector3(Casing.coords.x, Casing.coords.y, Casing.coords.z)
-		if #(PedCoords - CC) < MaxDist then
-			local Closest = nil
-			local ClosestDist = MaxDist
+	local MaxDist = Config.SceneOverlay.TraceDistance or 25.0
+	local Px, Py, Pz = PedCoords.x, PedCoords.y, PedCoords.z
 
-			for _, Bullet in ipairs(Bullets) do
-				local BC = vector3(Bullet.coords.x, Bullet.coords.y, Bullet.coords.z)
-				local Dist = #(CC - BC)
-				if Dist < ClosestDist then
-					ClosestDist = Dist
+	for i = 1, #CachedCasings do
+		local Casing = CachedCasings[i]
+		local CC = Casing.coords
+		local Dx = Px - CC.x
+		local Dy = Py - CC.y
+		local Dz = Pz - CC.z
+		if (Dx * Dx + Dy * Dy + Dz * Dz) < (MaxDist * MaxDist) then
+			local Closest = nil
+			local ClosestDistSq = MaxDist * MaxDist
+
+			for j = 1, #CachedBullets do
+				local Bullet = CachedBullets[j]
+				local BC = Bullet.coords
+				local Bdx = CC.x - BC.x
+				local Bdy = CC.y - BC.y
+				local Bdz = CC.z - BC.z
+				local DistSq = Bdx * Bdx + Bdy * Bdy + Bdz * Bdz
+				if DistSq < ClosestDistSq then
+					ClosestDistSq = DistSq
 					Closest = BC
 				end
 			end
@@ -182,6 +229,12 @@ function DrawBallisticsTraces(PedCoords)
 end
 
 function RebuildEvidenceIndex()
+	if not EvidenceIndexDirty then
+		local Count = 0
+		for _ in pairs(SceneEvidenceIndex) do Count = Count + 1 end
+		return Count
+	end
+
 	SceneEvidenceIndex = {}
 	local Num = 0
 	for Id, Evidence in pairs(SceneEvidence) do
@@ -190,6 +243,8 @@ function RebuildEvidenceIndex()
 			SceneEvidenceIndex[Id] = Num
 		end
 	end
+
+	EvidenceIndexDirty = false
 	return Num
 end
 
@@ -200,41 +255,70 @@ CreateThread(function()
 		if IsCivil and (SceneOverlayActive or IsFlashlightOut()) then
 			local Ped = PlayerPedId()
 			local PedCoords = GetEntityCoords(Ped)
+			local Px, Py, Pz = PedCoords.x, PedCoords.y, PedCoords.z
 			local DrawDistance = SceneOverlayActive and (Config.SceneOverlay.DrawDistance or 50.0) or (Config.Flashlight.DrawDistance or 30.0)
+			local DrawDistanceSq = DrawDistance * DrawDistance
 			local EvidenceCount = 0
 			local Pulse = math.sin(GetGameTimer() / 350.0) * 0.05 + 1.0
+			local FlashlightActive = IsFlashlightOut()
+			local NuiBusy = IsNuiBusy and IsNuiBusy()
+			local CollectDistance = Config.CollectDistance
+			local CollectDistanceSq = CollectDistance * CollectDistance
 
 			for Id, Evidence in pairs(SceneEvidence) do
 				if Evidence.coords and not Evidence.collected then
-					local EvCoords = vector3(Evidence.coords.x, Evidence.coords.y, Evidence.coords.z)
-					local Distance = #(PedCoords - EvCoords)
+					local Ex = Evidence.coords.x
+					local Ey = Evidence.coords.y
+					local Ez = Evidence.coords.z
+					local Dx = Px - Ex
+					local Dy = Py - Ey
+					local Dz = Pz - Ez
+					local DistSq = Dx * Dx + Dy * Dy + Dz * Dz
 
-					if Distance < DrawDistance then
+					if DistSq < DrawDistanceSq then
 						Sleep = 0
 						EvidenceCount = EvidenceCount + 1
+						local Distance = math.sqrt(DistSq)
 						local TypeInfo = Config.EvidenceTypes[Evidence.type] or {}
-						local R, G, B = HexToRgb(TypeInfo.Color or "#e74c3c")
+						local R, G, B = GetTypeColor(TypeInfo)
 						local Index = SceneEvidenceIndex[Id] or EvidenceCount
 
 						if SceneOverlayActive then
 							local RingSize = 0.35 * Pulse
-							DrawMarker(25, EvCoords.x, EvCoords.y, EvCoords.z + 0.02, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, RingSize, RingSize, 0.08, R, G, B, 120, false, false, 2, false, nil, nil, false)
-							DrawMarker(32, EvCoords.x, EvCoords.y, EvCoords.z + 0.55, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.2, 0.2, 0.2, R, G, B, 200, true, false, 2, true, nil, nil, false)
-							DrawLightWithRange(EvCoords.x, EvCoords.y, EvCoords.z + 0.3, R, G, B, 2.0, 0.3)
-							DrawFloatingLabel(EvCoords.x, EvCoords.y, EvCoords.z + 0.65, TypeInfo.Icon, "#" .. Index .. " " .. (TypeInfo.Label or "Evidência"), Distance)
+							DrawMarker(25, Ex, Ey, Ez + 0.02, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, RingSize, RingSize, 0.08, R, G, B, 120, false, false, 2, false, nil, nil, false)
+							DrawMarker(32, Ex, Ey, Ez + 0.55, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.2, 0.2, 0.2, R, G, B, 200, true, false, 2, true, nil, nil, false)
+							if Distance < 15.0 then
+								DrawLightWithRange(Ex, Ey, Ez + 0.3, R, G, B, 2.0, 0.3)
+							end
+							DrawFloatingLabel(Ex, Ey, Ez + 0.65, TypeInfo.Icon, "#" .. Index .. " " .. (TypeInfo.Label or "Evidência"), Distance)
 						else
-							DrawMarker(28, EvCoords.x, EvCoords.y, EvCoords.z + 0.05, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.1, 0.1, R, G, B, 140, false, false, 2, false, nil, nil, false)
+							DrawMarker(28, Ex, Ey, Ez + 0.05, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.1, 0.1, R, G, B, 140, false, false, 2, false, nil, nil, false)
 						end
 
-						if Distance < Config.CollectDistance and IsFlashlightOut() and not (IsNuiBusy and IsNuiBusy()) then
+						if DistSq < CollectDistanceSq and FlashlightActive and not NuiBusy then
 							if not SceneOverlayActive then
-								DrawText3D(EvCoords.x, EvCoords.y, EvCoords.z + 0.45, (TypeInfo.Icon or "📋") .. " ~y~[E]~w~ " .. (TypeInfo.Label or "Evidência"))
+								DrawText3D(Ex, Ey, Ez + 0.45, (TypeInfo.Icon or "📋") .. " ~y~[E]~w~ " .. (TypeInfo.Label or "Evidência"))
 							end
 
 							if IsControlJustPressed(0, 38) and StartEvidenceCollection then
 								StartEvidenceCollection(Id, Evidence)
 							end
 						end
+					end
+				end
+			end
+
+			for _, Marker in pairs(SceneMarkers) do
+				if Marker.coords then
+					local Mx = Marker.coords.x
+					local My = Marker.coords.y
+					local Mz = Marker.coords.z
+					local Mdx = Px - Mx
+					local Mdy = Py - My
+					local Mdz = Pz - Mz
+					if (Mdx * Mdx + Mdy * Mdy + Mdz * Mdz) < MarkerDrawDistanceSq then
+						Sleep = 0
+						DrawText3D(Mx, My, Mz + 0.55, "~y~EVIDÊNCIA #" .. (Marker.number or "?"))
 					end
 				end
 			end
@@ -274,6 +358,7 @@ AddEventHandler("iml-evidencias:SyncMarker", function(Marker)
 	if Marker and Marker.id then
 		SceneMarkers[Marker.id] = Marker
 		SpawnMarkerProp(Marker)
+		PropsDirty = true
 	end
 end)
 
@@ -292,32 +377,19 @@ AddEventHandler("iml-evidencias:PlaceMarker", function(FromItemUse)
 	TriggerServerEvent("iml-evidencias:PlaceMarker", { x = Coords.x, y = Coords.y, z = Coords.z - 0.95 }, FromItemUse == true)
 end)
 
-CreateThread(function()
-	while true do
-		local Sleep = 1000
-		if IsCivil then
-			local PedCoords = GetEntityCoords(PlayerPedId())
-			for _, Marker in pairs(SceneMarkers) do
-				if Marker.coords then
-					local MCoords = vector3(Marker.coords.x, Marker.coords.y, Marker.coords.z)
-					if #(PedCoords - MCoords) < 40.0 then
-						Sleep = 0
-						DrawText3D(MCoords.x, MCoords.y, MCoords.z + 0.55, "~y~EVIDÊNCIA #" .. (Marker.number or "?"))
-					end
-				end
-			end
-		end
-		Wait(Sleep)
-	end
-end)
-
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- PROPS AO CARREGAR CENA
 -----------------------------------------------------------------------------------------------------------------------------------------
 CreateThread(function()
 	while true do
-		Wait(3000)
-		if IsCivil then
+		if not IsCivil then
+			for Id in pairs(EvidenceProps) do RemoveEvidenceProp(Id) end
+			for Id, Obj in pairs(MarkerProps) do
+				if DoesEntityExist(Obj) then DeleteEntity(Obj) end
+				MarkerProps[Id] = nil
+			end
+			Wait(3000)
+		elseif PropsDirty then
 			for Id, Evidence in pairs(SceneEvidence) do
 				if Evidence.coords and not Evidence.collected and not EvidenceProps[Id] then
 					SpawnEvidenceProp(Evidence)
@@ -326,12 +398,10 @@ CreateThread(function()
 			for Id, Marker in pairs(SceneMarkers) do
 				if not MarkerProps[Id] then SpawnMarkerProp(Marker) end
 			end
+			PropsDirty = false
+			Wait(3000)
 		else
-			for Id in pairs(EvidenceProps) do RemoveEvidenceProp(Id) end
-			for Id, Obj in pairs(MarkerProps) do
-				if DoesEntityExist(Obj) then DeleteEntity(Obj) end
-				MarkerProps[Id] = nil
-			end
+			Wait(5000)
 		end
 	end
 end)

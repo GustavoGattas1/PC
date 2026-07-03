@@ -252,11 +252,12 @@ function IML_RegisterTargets()
 	end
 
 	if GetResourceState("ox_target") == "started" then
+		local OxOptions = BuildOxOptions()
 		local OkPed = pcall(function()
-			exports.ox_target:addGlobalPed(BuildOxOptions())
+			exports.ox_target:addGlobalPed(OxOptions)
 		end)
 		local OkPlayer = pcall(function()
-			exports.ox_target:addGlobalPlayer(BuildOxOptions())
+			exports.ox_target:addGlobalPlayer(OxOptions)
 		end)
 
 		if OkPed or OkPlayer then

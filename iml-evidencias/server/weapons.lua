@@ -2,23 +2,29 @@
 -- REGISTRO BALÍSTICO DE ARMAS
 -----------------------------------------------------------------------------------------------------------------------------------------
 WeaponRegistry = {}
+PassportWeaponsLoaded = {}
+
+function IML_LoadPassportWeapons(Passport)
+	if PassportWeaponsLoaded[Passport] then return end
+
+	local Existing = vRP.Query("iml/GetWeaponsByPassport", { passport = Passport })
+	for _, Row in ipairs(Existing) do
+		WeaponRegistry[Passport .. "_" .. Row.weapon_hash] = Row.weapon_serial
+	end
+
+	PassportWeaponsLoaded[Passport] = true
+end
 
 function IML_GetOrCreateWeaponSerial(Passport, WeaponHash)
 	if not Passport or not WeaponHash or WeaponHash == 0 then
 		return GenerateSerial()
 	end
 
+	IML_LoadPassportWeapons(Passport)
+
 	local Key = Passport .. "_" .. WeaponHash
 	if WeaponRegistry[Key] then
 		return WeaponRegistry[Key]
-	end
-
-	local Existing = vRP.Query("iml/GetWeaponsByPassport", { passport = Passport })
-	for _, Row in ipairs(Existing) do
-		if Row.weapon_hash == WeaponHash then
-			WeaponRegistry[Key] = Row.weapon_serial
-			return Row.weapon_serial
-		end
 	end
 
 	local Serial = GenerateSerial()

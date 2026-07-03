@@ -6,6 +6,16 @@ local Proxy = module("vrp","lib/Proxy")
 vRP = Proxy.getInterface("vRP")
 
 IML = IML or {}
+IML_BiometricsEnsured = IML_BiometricsEnsured or {}
+SceneEvidenceCount = SceneEvidenceCount or 0
+
+function IML_GetSceneEvidenceCount()
+	return SceneEvidenceCount
+end
+
+function IML_AdjustSceneEvidenceCount(Delta)
+	SceneEvidenceCount = math.max(0, (SceneEvidenceCount or 0) + Delta)
+end
 
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- DATABASE PREPARES
@@ -151,6 +161,10 @@ function IML_GetIdentity(Passport)
 end
 
 function IML_EnsureBiometrics(Passport)
+	if IML_BiometricsEnsured and IML_BiometricsEnsured[Passport] then
+		return
+	end
+
 	local Fingerprint = vRP.Query("iml/GetFingerprint", { passport = Passport })
 	if not Fingerprint[1] then
 		local Hash = "FP-" .. GenerateSerial()
@@ -162,6 +176,9 @@ function IML_EnsureBiometrics(Passport)
 		local Code = GenerateDnaCode(Passport)
 		vRP.Query("iml/InsertDna", { passport = Passport, dna_code = Code })
 	end
+
+	IML_BiometricsEnsured = IML_BiometricsEnsured or {}
+	IML_BiometricsEnsured[Passport] = true
 end
 
 function IML_GenerateId(Prefix)
@@ -169,23 +186,31 @@ function IML_GenerateId(Prefix)
 end
 
 function IML_GetCivilSources()
+	local Now = GetGameTimer and GetGameTimer() or (os.time() * 1000)
+
+	if IML_CivilCache and IML_CivilCacheTime and (Now - IML_CivilCacheTime) < 5000 then
+		return IML_CivilCache
+	end
+
 	local List = {}
 	local Players = vRP.Players()
 
 	if Players then
 		for Passport, Source in pairs(Players) do
-			if Source and IML_HasGroup(Passport, Config.Groups.Civil) and not List[Source] then
-				List[Source] = true
+			if Source and IML_HasGroup(Passport, Config.Groups.Civil) then
+				List[#List + 1] = Source
 			end
 		end
 	end
 
-	local Result = {}
-	for Source in pairs(List) do
-		Result[#Result + 1] = Source
-	end
+	IML_CivilCache = List
+	IML_CivilCacheTime = Now
+	return List
+end
 
-	return Result
+function IML_InvalidateCivilCache()
+	IML_CivilCache = nil
+	IML_CivilCacheTime = 0
 end
 
 function IML_BroadcastCivil(Event, ...)

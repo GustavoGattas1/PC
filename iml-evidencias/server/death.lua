@@ -309,6 +309,7 @@ function IML_CreateSceneEvidence(Data)
 	}
 
 	SceneEvidence[EvidenceId] = Evidence
+	if IML_AdjustSceneEvidenceCount then IML_AdjustSceneEvidenceCount(1) end
 
 	vRP.Query("iml/InsertEvidence", {
 		evidence_id = EvidenceId,

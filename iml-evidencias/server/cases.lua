@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------------------------------------------------------------------
 SceneMarkers = SceneMarkers or {}
 MarkerCounter = MarkerCounter or 0
+SceneMarkersCount = SceneMarkersCount or 0
 
 function IML.RequestMarkers()
 	local Passport = vRP.Passport(source)
@@ -52,8 +53,7 @@ AddEventHandler("iml-evidencias:PlaceMarker", function(Coords, FromItemUse)
 		return
 	end
 
-	local Count = 0
-	for _ in pairs(SceneMarkers) do Count = Count + 1 end
+	local Count = SceneMarkersCount or 0
 	if Count >= Config.MaxMarkers then
 		IML_Notify(Source, "negado", "Limite de marcadores atingido.")
 		return
@@ -70,6 +70,7 @@ AddEventHandler("iml-evidencias:PlaceMarker", function(Coords, FromItemUse)
 	}
 
 	SceneMarkers[MarkerId] = Marker
+	SceneMarkersCount = (SceneMarkersCount or 0) + 1
 	IML_BroadcastCivil("iml-evidencias:SyncMarker", Marker)
 	IML_Notify(Source, "success", Config.Lang.MarkerPlaced)
 end)

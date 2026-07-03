@@ -18,13 +18,18 @@ AddEventHandler("iml-evidencias:SetWeaponSerial", function(WeaponHash, Serial)
 end)
 
 CreateThread(function()
+	local LastRegisteredWeapon = 0
+
 	while true do
 		Wait(2500)
 		local Ped = PlayerPedId()
 		local Weapon = GetSelectedPedWeapon(Ped)
 
-		if Weapon ~= `WEAPON_UNARMED` and IsFirearm(Weapon) then
+		if Weapon ~= `WEAPON_UNARMED` and Weapon ~= LastRegisteredWeapon and IsFirearm(Weapon) then
+			LastRegisteredWeapon = Weapon
 			TriggerServerEvent("iml-evidencias:RegisterWeapon", Weapon)
+		elseif Weapon == `WEAPON_UNARMED` then
+			LastRegisteredWeapon = 0
 		end
 	end
 end)
@@ -66,11 +71,11 @@ AddEventHandler("gameEventTriggered", function(Event, Args)
 end)
 
 -----------------------------------------------------------------------------------------------------------------------------------------
--- FALLBACK DE MORTE
+-- FALLBACK DE MORTE + SANGUE AO RECEBER DANO
 -----------------------------------------------------------------------------------------------------------------------------------------
 CreateThread(function()
 	while true do
-		Wait(500)
+		Wait(350)
 		local Ped = PlayerPedId()
 		local Health = GetEntityHealth(Ped)
 
@@ -80,6 +85,25 @@ CreateThread(function()
 
 		if IsDead and Health > 100 and not IsEntityDead(Ped) then
 			IsDead = false
+		end
+
+		if Health < LastHealth and Health > 100 then
+			local Coords = GetEntityCoords(Ped)
+			local BaseCoords = { x = Coords.x, y = Coords.y, z = Coords.z - 0.95 }
+
+			if math.random(100) <= Config.Chances.Blood then
+				TriggerServerEvent("iml-evidencias:CreateEvidence", {
+					type = "blood",
+					coords = SpreadCoords(BaseCoords, "blood")
+				})
+			end
+
+			if math.random(100) <= Config.Chances.DnaDrop then
+				TriggerServerEvent("iml-evidencias:CreateEvidence", {
+					type = "dna",
+					coords = SpreadCoords(BaseCoords, "dna")
+				})
+			end
 		end
 
 		LastHealth = Health
@@ -147,7 +171,7 @@ CreateThread(function()
 		local Sleep = 200
 
 		if IsPedShooting(Ped) then
-			Sleep = 0
+			Sleep = 50
 			HandlePlayerShot()
 		end
 
@@ -254,35 +278,3 @@ function RotationToDirection(Rot)
 	return vector3(-math.sin(RadZ) * math.abs(math.cos(RadX)), math.cos(RadZ) * math.abs(math.cos(RadX)), math.sin(RadX))
 end
 
------------------------------------------------------------------------------------------------------------------------------------------
--- SANGUE AO RECEBER DANO
------------------------------------------------------------------------------------------------------------------------------------------
-CreateThread(function()
-	while true do
-		Wait(350)
-		local Ped = PlayerPedId()
-		local Health = GetEntityHealth(Ped)
-
-		if Health < LastHealth and Health > 100 then
-			if math.random(100) <= Config.Chances.Blood then
-				local Coords = GetEntityCoords(Ped)
-				local BloodCoords = SpreadCoords({ x = Coords.x, y = Coords.y, z = Coords.z - 0.95 }, "blood")
-				TriggerServerEvent("iml-evidencias:CreateEvidence", {
-					type = "blood",
-					coords = BloodCoords
-				})
-			end
-
-			if math.random(100) <= Config.Chances.DnaDrop then
-				local Coords = GetEntityCoords(Ped)
-				local DnaCoords = SpreadCoords({ x = Coords.x, y = Coords.y, z = Coords.z - 0.95 }, "dna")
-				TriggerServerEvent("iml-evidencias:CreateEvidence", {
-					type = "dna",
-					coords = DnaCoords
-				})
-			end
-		end
-
-		LastHealth = Health
-	end
-end)

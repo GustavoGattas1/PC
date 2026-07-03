@@ -90,6 +90,8 @@ function LoadSceneData()
 			SceneMarkers[Marker.id] = Marker
 		end
 	end
+
+	if MarkSceneEvidenceDirty then MarkSceneEvidenceDirty() end
 end
 
 RegisterNetEvent("iml-evidencias:RefreshAccess")
@@ -136,6 +138,7 @@ AddEventHandler("iml-evidencias:SyncEvidence", function(Evidence)
 	if not IsCivil then return end
 	if Evidence and Evidence.id then
 		SceneEvidence[Evidence.id] = Evidence
+		if MarkSceneEvidenceDirty then MarkSceneEvidenceDirty() end
 	end
 end)
 
@@ -197,40 +200,60 @@ end)
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- MARCADORES DO IML
 -----------------------------------------------------------------------------------------------------------------------------------------
+local AllLocations = {}
+
+local function BuildAllLocations()
+	AllLocations = {}
+	for _, Loc in ipairs(Config.Locations.Lab) do AllLocations[#AllLocations + 1] = { data = Loc, action = "lab" } end
+	for _, Loc in ipairs(Config.Locations.Ballistics or {}) do AllLocations[#AllLocations + 1] = { data = Loc, action = "lab" } end
+	for _, Loc in ipairs(Config.Locations.Autopsy) do AllLocations[#AllLocations + 1] = { data = Loc, action = "autopsy" } end
+	for _, Loc in ipairs(Config.Locations.Locker) do AllLocations[#AllLocations + 1] = { data = Loc, action = "locker" } end
+end
+
+BuildAllLocations()
+
+local MarkerDrawDistance = Config.Marker.DrawDistance
+local MarkerInteractDistance = Config.Marker.InteractDistance
+local MarkerDrawDistanceSq = MarkerDrawDistance * MarkerDrawDistance
+local MarkerInteractDistanceSq = MarkerInteractDistance * MarkerInteractDistance
+
 CreateThread(function()
 	while true do
 		local Sleep = 1000
-		local Ped = PlayerPedId()
-		local PedCoords = GetEntityCoords(Ped)
 
-		local AllLocations = {}
-		for _, Loc in ipairs(Config.Locations.Lab) do AllLocations[#AllLocations + 1] = { data = Loc, action = "lab" } end
-		for _, Loc in ipairs(Config.Locations.Ballistics or {}) do AllLocations[#AllLocations + 1] = { data = Loc, action = "lab" } end
-		for _, Loc in ipairs(Config.Locations.Autopsy) do AllLocations[#AllLocations + 1] = { data = Loc, action = "autopsy" } end
-		for _, Loc in ipairs(Config.Locations.Locker) do AllLocations[#AllLocations + 1] = { data = Loc, action = "locker" } end
+		if IsCivil then
+			local Ped = PlayerPedId()
+			local PedCoords = GetEntityCoords(Ped)
+			local Px, Py, Pz = PedCoords.x, PedCoords.y, PedCoords.z
 
-		for _, Entry in ipairs(AllLocations) do
-			if not IsCivil then break end
+			for i = 1, #AllLocations do
+				local Entry = AllLocations[i]
+				local Loc = Entry.data
+				local Lx = Loc.Coords.x
+				local Ly = Loc.Coords.y
+				local Lz = Loc.Coords.z
+				local Dx = Px - Lx
+				local Dy = Py - Ly
+				local Dz = Pz - Lz
+				local DistSq = Dx * Dx + Dy * Dy + Dz * Dz
 
-			local Loc = Entry.data
-			local Distance = #(PedCoords - Loc.Coords)
+				if DistSq < MarkerDrawDistanceSq then
+					Sleep = 0
+					local M = Config.Marker
+					DrawMarker(M.Type, Lx, Ly, Lz - 0.95, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, M.Size.x, M.Size.y, M.Size.z, M.Color.r, M.Color.g, M.Color.b, M.Color.a, false, false, 2, false, nil, nil, false)
 
-			if Distance < Config.Marker.DrawDistance then
-				Sleep = 0
-				local M = Config.Marker
-				DrawMarker(M.Type, Loc.Coords.x, Loc.Coords.y, Loc.Coords.z - 0.95, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, M.Size.x, M.Size.y, M.Size.z, M.Color.r, M.Color.g, M.Color.b, M.Color.a, false, false, 2, false, nil, nil, false)
+					if DistSq < MarkerInteractDistanceSq then
+						local ActionText = {
+							lab = "~r~[E]~w~ Analisar Evidências",
+							autopsy = "~r~[E]~w~ Realizar Autópsia",
+							locker = "~r~[E]~w~ Armário de Evidências"
+						}
 
-				if Distance < Config.Marker.InteractDistance then
-					local ActionText = {
-						lab = "~r~[E]~w~ Analisar Evidências",
-						autopsy = "~r~[E]~w~ Realizar Autópsia",
-						locker = "~r~[E]~w~ Armário de Evidências"
-					}
+						DrawText3D(Lx, Ly, Lz, ActionText[Entry.action] or "~r~[E]~w~ Interagir")
 
-					DrawText3D(Loc.Coords.x, Loc.Coords.y, Loc.Coords.z, ActionText[Entry.action] or "~r~[E]~w~ Interagir")
-
-					if IsControlJustPressed(0, 38) then
-						HandleLocationAction(Entry.action)
+						if IsControlJustPressed(0, 38) then
+							HandleLocationAction(Entry.action)
+						end
 					end
 				end
 			end

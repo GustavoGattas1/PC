@@ -167,6 +167,7 @@ function ResolveEvidenceCoords(Coords, EvidenceType, ExistingList)
 
 	local Spread = Config.EvidenceSpread or {}
 	local MinDist = Spread.MinDistance or 1.0
+	local MinDistSq = MinDist * MinDist
 	local Range = GetSpreadRange(EvidenceType)
 	local Result = SpreadCoords(Coords, EvidenceType)
 
@@ -177,7 +178,9 @@ function ResolveEvidenceCoords(Coords, EvidenceType, ExistingList)
 
 		for _, Evidence in pairs(ExistingList) do
 			if Evidence.coords and not Evidence.collected then
-				if CoordsDistance2D(Result, Evidence.coords) < MinDist then
+				local Dx = (Result.x or 0) - (Evidence.coords.x or 0)
+				local Dy = (Result.y or 0) - (Evidence.coords.y or 0)
+				if (Dx * Dx + Dy * Dy) < MinDistSq then
 					TooClose = true
 					break
 				end
