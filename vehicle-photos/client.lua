@@ -1,143 +1,75 @@
------------------------------------------------------------------------------------------------------------------------------------------
--- VRP
------------------------------------------------------------------------------------------------------------------------------------------
-local Tunnel = module("vrp", "lib/Tunnel")
 local Proxy = module("vrp", "lib/Proxy")
 vRP = Proxy.getInterface("vRP")
 
------------------------------------------------------------------------------------------------------------------------------------------
--- ESTADO
------------------------------------------------------------------------------------------------------------------------------------------
-local Capturing = false
-local StopRequested = false
+local Busy = false
+local StopFlag = false
+local SavedPlayer = nil
 local StudioCam = nil
 local StudioVehicle = nil
-local StudioModelHash = nil
-local StudioProps = {}
-local SavedPosition = nil
-local ProcessCallback = nil
-local SaveCallbacks = {}
-local ExistsCallback = {}
-local ExistsRequestId = 0
-local SaveRequestId = 0
+local LoadedHash = nil
+local ScreenshotPromise = nil
 
-local function IsValidModel(Model)
-	local Hash = joaat(Model)
-	return Hash ~= 0 and IsModelInCdimage(Hash) and IsModelAVehicle(Hash)
+local function Notify(Type, Message, Time)
+	local N = Config.Notify
+	TriggerEvent("Notify", N.Title, Message, N[Type] or N.Info, Time or 5000)
 end
 
------------------------------------------------------------------------------------------------------------------------------------------
--- HUD / VISUAL
------------------------------------------------------------------------------------------------------------------------------------------
-local HiddenComponents = {
-	1, 2, 3, 4, 5, 6, 7, 8, 9, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22
-}
-
-local function HideHud(Toggle)
-	for i = 1, #HiddenComponents do
-		if Toggle then
-			HideHudComponentThisFrame(HiddenComponents[i])
-		end
+local function HideHudThisFrame()
+	local Components = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22 }
+	for i = 1, #Components do
+		HideHudComponentThisFrame(Components[i])
 	end
-
-	DisplayRadar(not Toggle)
-	DisplayHud(not Toggle)
+	DisplayRadar(false)
+	DisplayHud(false)
 end
 
-local function WaitWithHud(Ms)
+local function WaitMs(Ms)
 	local Start = GetGameTimer()
 	while GetGameTimer() - Start < Ms do
-		HideHud(true)
+		HideHudThisFrame()
 		Wait(0)
 	end
 end
 
-local function ApplyStudioVisuals()
-	local Studio = Config.Studio
-	NetworkOverrideClockTime(Studio.Time.Hour, Studio.Time.Minute, Studio.Time.Second or 0)
-	SetWeatherTypeNow(Studio.Weather)
-	SetWeatherTypePersist(Studio.Weather)
-	SetWind(Studio.Wind or 0.0)
-
-	if Studio.Timecycle then
-		SetTimecycleModifier(Studio.Timecycle)
-		SetTimecycleModifierStrength(Studio.TimecycleStrength or 0.85)
-	end
+local function ApplyStudioWorld()
+	local S = Config.Studio
+	NetworkOverrideClockTime(S.Time.Hour, S.Time.Minute, S.Time.Second or 0)
+	SetWeatherTypeNow(S.Weather)
+	SetWeatherTypePersist(S.Weather)
+	SetWind(0.0)
+	SetTimecycleModifier(S.Timecycle)
+	SetTimecycleModifierStrength(S.TimecycleStrength or 0.45)
 end
 
-local function ClearStudioVisuals()
+local function ClearStudioWorld()
 	ClearTimecycleModifier()
 	ClearExtraTimecycleModifier()
 end
 
------------------------------------------------------------------------------------------------------------------------------------------
--- ESTÚDIO
------------------------------------------------------------------------------------------------------------------------------------------
-local function LoadModel(Hash)
-	if not IsModelValid(Hash) then return false end
-
-	local Timeout = GetGameTimer() + (Config.Capture.Load and Config.Capture.Load.ModelTimeout or 30000)
-	RequestModel(Hash)
-
-	while not HasModelLoaded(Hash) do
-		if GetGameTimer() > Timeout then
-			return false
-		end
-		Wait(10)
-	end
-
-	return true
+local function SavePlayerState()
+	local Ped = PlayerPedId()
+	SavedPlayer = {
+		coords = GetEntityCoords(Ped),
+		heading = GetEntityHeading(Ped)
+	}
 end
 
-local function WaitForVehicleFullyLoaded(Vehicle, Hash)
-	if not Vehicle or not DoesEntityExist(Vehicle) then
-		return false
+local function RestorePlayerState()
+	local Ped = PlayerPedId()
+	SetEntityVisible(Ped, true, false)
+	SetEntityCollision(Ped, true, true)
+	FreezeEntityPosition(Ped, false)
+
+	if SavedPlayer then
+		SetEntityCoords(Ped, SavedPlayer.coords.x, SavedPlayer.coords.y, SavedPlayer.coords.z, false, false, false, false)
+		SetEntityHeading(Ped, SavedPlayer.heading)
+		SavedPlayer = nil
 	end
-
-	local Load = Config.Capture.Load or {}
-	local Studio = Config.Studio.Coords
-	local CollisionTimeout = GetGameTimer() + (Load.CollisionTimeout or 20000)
-
-	SetEntityLoadCollisionFlag(Vehicle, true)
-	SetFocusEntity(Vehicle)
-	RequestCollisionAtCoord(Studio.x, Studio.y, Studio.z)
-
-	if Load.UseSceneLoad ~= false then
-		NewLoadSceneStart(Studio.x, Studio.y, Studio.z, 0.0, 0.0, 0.0, Load.StreamingRadius or 50.0, 0)
-		local SceneTimeout = GetGameTimer() + (Load.SceneTimeout or 15000)
-		while IsNewLoadSceneActive() and GetGameTimer() < SceneTimeout do
-			HideHud(true)
-			SetFocusEntity(Vehicle)
-			Wait(0)
-		end
-	end
-
-	while GetGameTimer() < CollisionTimeout do
-		if HasCollisionLoadedAroundEntity(Vehicle) and not IsEntityWaitingForWorldCollision(Vehicle) then
-			break
-		end
-		HideHud(true)
-		SetFocusEntity(Vehicle)
-		RequestCollisionAtCoord(Studio.x, Studio.y, Studio.z)
-		Wait(0)
-	end
-
-	local MinFrames = Load.MinRenderFrames or 240
-	for _ = 1, MinFrames do
-		HideHud(true)
-		SetFocusEntity(Vehicle)
-		Wait(0)
-	end
-
-	WaitWithHud(Load.SettleDelay or 5000)
-	ClearFocus()
-
-	return true
 end
 
-local function CleanupStudio()
+local function DestroyStudio()
 	if StudioCam then
-		RenderScriptCams(false, false, 0, true, true)
+		RenderScriptCams(false, true, 500, true, true)
 		DestroyCam(StudioCam, false)
 		StudioCam = nil
 	end
@@ -147,383 +79,330 @@ local function CleanupStudio()
 		StudioVehicle = nil
 	end
 
-	if StudioModelHash then
-		SetModelAsNoLongerNeeded(StudioModelHash)
-		StudioModelHash = nil
+	if LoadedHash then
+		SetModelAsNoLongerNeeded(LoadedHash)
+		LoadedHash = nil
 	end
 
-	for i = 1, #StudioProps do
-		if DoesEntityExist(StudioProps[i]) then
-			DeleteEntity(StudioProps[i])
+	ClearStudioWorld()
+end
+
+local function LoadVehicleModel(Hash)
+	if not IsModelInCdimage(Hash) or not IsModelAVehicle(Hash) then
+		return false
+	end
+
+	RequestModel(Hash)
+	local Deadline = GetGameTimer() + Config.Timing.ModelLoadTimeout
+	while not HasModelLoaded(Hash) do
+		if GetGameTimer() > Deadline then
+			return false
 		end
+		Wait(10)
 	end
-	StudioProps = {}
 
-	ClearStudioVisuals()
+	return true
 end
 
------------------------------------------------------------------------------------------------------------------------------------------
--- CÂMERA 3/4
------------------------------------------------------------------------------------------------------------------------------------------
-local function IsMotorcycle(Model)
-	return IsThisModelABike(Model) or IsThisModelAQuadbike(Model)
-end
+local function SetupCamera(Vehicle)
+	local Coords = GetEntityCoords(Vehicle)
+	local MinDim, MaxDim = GetModelDimensions(GetEntityModel(Vehicle))
+	local Size = math.max(MaxDim.x - MinDim.x, MaxDim.y - MinDim.y, MaxDim.z - MinDim.z, 2.0)
+	local Dist = Size * Config.Camera.DistanceMultiplier
 
-local function GetCameraSettings(Model)
-	if IsMotorcycle(Model) then
-		return Config.Motorcycle
-	end
-	return Config.Camera
-end
-
-local function CalculateCameraDistance(Model, Settings)
-	local MinDim, MaxDim = GetModelDimensions(Model)
-	local SizeX = MaxDim.x - MinDim.x
-	local SizeY = MaxDim.y - MinDim.y
-	local SizeZ = MaxDim.z - MinDim.z
-	local MaxSize = math.max(SizeX, SizeY, SizeZ, 1.0)
-
-	local Fov = Settings.Fov or 38.0
-	local Fill = Settings.FillRatio or 0.70
-	local FovRad = Fov * math.pi / 180.0
-
-	return (MaxSize / (2.0 * math.tan(FovRad / 2.0))) / Fill
-end
-
-local function SetupCamera(Vehicle, Model)
-	local Settings = GetCameraSettings(Model)
-	local Distance = CalculateCameraDistance(Model, Settings)
-
-	local VehCoords = GetEntityCoords(Vehicle)
-	local Heading = math.rad(Config.Camera.VehicleHeading or 45.0)
-
-	local OffsetX = Settings.OffsetX or -3.2
-	local OffsetY = Settings.OffsetY or 3.2
-	local OffsetZ = Settings.OffsetZ or 0.65
-
-	local CamX = VehCoords.x + (math.cos(Heading) * OffsetX - math.sin(Heading) * OffsetY) * (Distance / 4.0)
-	local CamY = VehCoords.y + (math.sin(Heading) * OffsetX + math.cos(Heading) * OffsetY) * (Distance / 4.0)
-	local CamZ = VehCoords.z + OffsetZ + (Distance * 0.08)
+	local CamPos = GetOffsetFromEntityInWorldCoords(
+		Vehicle,
+		-Dist * Config.Camera.SideOffset,
+		Dist * Config.Camera.SideOffset,
+		Size * Config.Camera.HeightOffset
+	)
 
 	if StudioCam then
 		DestroyCam(StudioCam, false)
 	end
 
 	StudioCam = CreateCam("DEFAULT_SCRIPTED_CAMERA", true)
-	SetCamCoord(StudioCam, CamX, CamY, CamZ)
-	PointCamAtCoord(StudioCam, VehCoords.x, VehCoords.y, VehCoords.z + (Settings.AimOffsetZ or 0.35))
-	SetCamFov(StudioCam, Settings.Fov or 38.0)
+	SetCamCoord(StudioCam, CamPos.x, CamPos.y, CamPos.z)
+	PointCamAtCoord(StudioCam, Coords.x, Coords.y, Coords.z + (Size * 0.25))
+	SetCamFov(StudioCam, Config.Camera.Fov)
 	SetCamActive(StudioCam, true)
-	RenderScriptCams(true, false, 0, true, true)
+	RenderScriptCams(true, true, 500, true, true)
 end
 
------------------------------------------------------------------------------------------------------------------------------------------
--- SPAWN VEÍCULO
------------------------------------------------------------------------------------------------------------------------------------------
-local function SpawnStudioVehicle(Model)
-	local Hash = joaat(Model)
-	if not IsValidModel(Model) then
-		return nil, "Modelo inválido"
-	end
+local function WaitVehicleReady(Vehicle)
+	local S = Config.Studio.Coords
+	SetEntityLoadCollisionFlag(Vehicle, true)
+	SetFocusEntity(Vehicle)
+	RequestCollisionAtCoord(S.x, S.y, S.z)
 
-	if not LoadModel(Hash) then
-		return nil, "Falha ao carregar modelo"
-	end
-
-	local Studio = Config.Studio.Coords
-	CleanupStudio()
-
-	local Ped = PlayerPedId()
-	SavedPosition = {
-		coords = GetEntityCoords(Ped),
-		heading = GetEntityHeading(Ped)
-	}
-
-	SetEntityCoords(Ped, Studio.x, Studio.y, Studio.z - 10.0, false, false, false, false)
-	SetEntityVisible(Ped, false, false)
-	FreezeEntityPosition(Ped, true)
-
-	ApplyStudioVisuals()
-
-	StudioVehicle = CreateVehicle(Hash, Studio.x, Studio.y, Studio.z, Config.Camera.VehicleHeading or 45.0, false, false)
-
-	if not DoesEntityExist(StudioVehicle) then
-		SetModelAsNoLongerNeeded(Hash)
-		return nil, "Falha ao spawnar"
-	end
-
-	SetEntityAsMissionEntity(StudioVehicle, true, true)
-	SetEntityCoords(StudioVehicle, Studio.x, Studio.y, Studio.z, false, false, false, false)
-	FreezeEntityPosition(StudioVehicle, true)
-	SetVehicleDirtLevel(StudioVehicle, 0.0)
-	SetVehicleEngineOn(StudioVehicle, false, true, false)
-	SetVehicleDoorsLocked(StudioVehicle, 2)
-
-	if Config.Plate.Hide then
-		SetVehicleNumberPlateText(StudioVehicle, Config.Plate.Text or "")
-	end
-
-	SetVehicleModKit(StudioVehicle, 0)
-	SetVehicleWindowTint(StudioVehicle, 1)
-
-	StudioModelHash = Hash
-	SetupCamera(StudioVehicle, Hash)
-
-	return StudioVehicle, nil, Hash
-end
-
-local function RestorePlayer()
-	local Ped = PlayerPedId()
-	SetEntityVisible(Ped, true, false)
-	FreezeEntityPosition(Ped, false)
-
-	if SavedPosition then
-		SetEntityCoords(Ped, SavedPosition.coords.x, SavedPosition.coords.y, SavedPosition.coords.z, false, false, false, false)
-		SetEntityHeading(Ped, SavedPosition.heading)
-		SavedPosition = nil
-	end
-end
-
------------------------------------------------------------------------------------------------------------------------------------------
--- SCREENSHOT
------------------------------------------------------------------------------------------------------------------------------------------
-local function HasScreenshotResource()
-	return GetResourceState(Config.Capture.ScreenshotResource) == "started"
-end
-
-local function NormalizeScreenshotData(Data)
-	if not Data or Data == "" then return nil end
-	if Data:find("^data:image/") then
-		return Data
-	end
-	return "data:image/png;base64," .. Data
-end
-
-local function RequestScreenshot()
-	if not HasScreenshotResource() then
-		VP_NotifyClient("Error", Config.Lang.NoScreenshot)
-		return nil
-	end
-
-	local P = promise.new()
-	local Resolved = false
-
-	local function Finish(Data)
-		if Resolved then return end
-		Resolved = true
-		ProcessCallback = nil
-		P:resolve(Data)
-	end
-
-	ProcessCallback = Finish
-
-	SetTimeout(Config.Capture.ScreenshotTimeout or 15000, function()
-		if not Resolved then
-			VP_NotifyClient("Error", "Timeout ao capturar screenshot.")
-			Finish(nil)
+	local Deadline = GetGameTimer() + Config.Timing.StreamTimeout
+	while GetGameTimer() < Deadline do
+		if HasCollisionLoadedAroundEntity(Vehicle) and not IsEntityWaitingForWorldCollision(Vehicle) then
+			break
 		end
-	end)
-
-	exports[Config.Capture.ScreenshotResource]:requestScreenshot({ encoding = "png" }, function(Data)
-		SendNUIMessage({
-			action = "process",
-			image = NormalizeScreenshotData(Data),
-			width = Config.Image.Width,
-			height = Config.Image.Height,
-			maxKB = Config.Image.MaxSizeKB,
-			quality = Config.Image.Quality
-		})
-	end)
-
-	return Citizen.Await(P)
-end
-
-local function SendImageToServer(Model, ImageData, RequestId)
-	local Clean = ImageData:gsub("^data:image/%a+;base64,", "")
-
-	if TriggerLatentServerEvent then
-		TriggerLatentServerEvent("vehicle-photos:SaveImage", Config.Capture.LatentBps or 500000, Model, Clean, RequestId)
-		return
-	end
-
-	local ChunkSize = Config.Capture.ChunkSize or 48000
-	local Total = math.ceil(#Clean / ChunkSize)
-
-	TriggerServerEvent("vehicle-photos:SaveBegin", Model, RequestId, Total)
-
-	for Index = 1, Total do
-		local Start = (Index - 1) * ChunkSize + 1
-		local Chunk = Clean:sub(Start, Start + ChunkSize - 1)
-		TriggerServerEvent("vehicle-photos:SaveChunk", RequestId, Index, Chunk)
+		HideHudThisFrame()
+		SetFocusEntity(Vehicle)
 		Wait(0)
 	end
 
-	TriggerServerEvent("vehicle-photos:SaveCommit", Model, RequestId)
+	for _ = 1, Config.Timing.RenderFrames do
+		HideHudThisFrame()
+		SetFocusEntity(Vehicle)
+		Wait(0)
+	end
+
+	WaitMs(Config.Timing.SettleAfterLoad)
+	ClearFocus()
 end
 
-RegisterNUICallback("processed", function(Data, Cb)
-	if ProcessCallback then
-		if Data.error then
-			ProcessCallback(nil)
+local function SpawnVehicle(Model)
+	local Hash = joaat(Model)
+	if not LoadVehicleModel(Hash) then
+		return nil, "modelo inválido ou timeout"
+	end
+
+	DestroyStudio()
+	SavePlayerState()
+
+	local Ped = PlayerPedId()
+	local S = Config.Studio.Coords
+
+	SetEntityCoords(Ped, S.x, S.y, S.z - 50.0, false, false, false, false)
+	SetEntityVisible(Ped, false, false)
+	SetEntityCollision(Ped, false, false)
+	FreezeEntityPosition(Ped, true)
+
+	ApplyStudioWorld()
+
+	StudioVehicle = CreateVehicle(Hash, S.x, S.y, S.z, S.w, false, false)
+	if not DoesEntityExist(StudioVehicle) then
+		return nil, "falha ao spawnar"
+	end
+
+	LoadedHash = Hash
+	SetEntityAsMissionEntity(StudioVehicle, true, true)
+	SetEntityCoords(StudioVehicle, S.x, S.y, S.z, false, false, false, false)
+	FreezeEntityPosition(StudioVehicle, true)
+	SetVehicleDirtLevel(StudioVehicle, 0.0)
+	SetVehicleEngineOn(StudioVehicle, false, true, false)
+	SetVehicleNumberPlateText(StudioVehicle, "")
+	SetVehicleModKit(StudioVehicle, 0)
+
+	SetupCamera(StudioVehicle)
+	WaitVehicleReady(StudioVehicle)
+	WaitMs(Config.Timing.BeforePhoto)
+
+	return StudioVehicle
+end
+
+local function HasScreenshot()
+	return GetResourceState(Config.Capture.ScreenshotResource) == "started"
+end
+
+RegisterNUICallback("photoReady", function(Data, Cb)
+	if ScreenshotPromise then
+		if Data.ok and Data.image then
+			ScreenshotPromise:resolve(Data.image)
 		else
-			ProcessCallback(Data.data)
+			ScreenshotPromise:resolve(nil)
 		end
-		ProcessCallback = nil
+		ScreenshotPromise = nil
 	end
 	Cb("ok")
 end)
 
------------------------------------------------------------------------------------------------------------------------------------------
--- CAPTURA
------------------------------------------------------------------------------------------------------------------------------------------
-local function CaptureModel(Model)
-	StopRequested = false
-
-	local Vehicle, Error, Hash = SpawnStudioVehicle(Model)
-	if not Vehicle then
-		VP_NotifyClient("Error", (Config.Lang.Failed):format(Model) .. " — " .. (Error or ""))
-		RestorePlayer()
-		CleanupStudio()
-		return false
+local function CaptureScreenshot()
+	if not HasScreenshot() then
+		Notify("Error", Config.Lang.NoScreenshot)
+		return nil
 	end
 
-	VP_NotifyClient("Info", (Config.Lang.Loading):format(Model), 4000)
-
-	if not WaitForVehicleFullyLoaded(Vehicle, Hash) then
-		VP_NotifyClient("Error", (Config.Lang.LoadFailed):format(Model))
-		RestorePlayer()
-		CleanupStudio()
-		return false
-	end
-
-	WaitWithHud(Config.Capture.DelayBeforeShot or 5000)
-
-	local ImageData = RequestScreenshot()
-
-	WaitWithHud(Config.Capture.DelayAfterShot or 8000)
-
-	RestorePlayer()
-	CleanupStudio()
-
-	if not ImageData then
-		VP_NotifyClient("Error", (Config.Lang.Failed):format(Model))
-		return false
-	end
-
-	SaveRequestId = SaveRequestId + 1
-	local RequestId = SaveRequestId
 	local P = promise.new()
+	ScreenshotPromise = P
+	local Done = false
 
-	SaveCallbacks[RequestId] = function(Ok)
-		P:resolve(Ok)
-	end
+	SetTimeout(Config.Timing.ScreenshotTimeout, function()
+		if not Done then
+			Done = true
+			if ScreenshotPromise then
+				ScreenshotPromise:resolve(nil)
+				ScreenshotPromise = nil
+			end
+		end
+	end)
 
-	SendImageToServer(Model, ImageData, RequestId)
+	exports[Config.Capture.ScreenshotResource]:requestScreenshot({ encoding = "png" }, function(Data)
+		if Done then return end
+		SendNUIMessage({
+			action = "process",
+			image = Data,
+			width = Config.Image.Width,
+			height = Config.Image.Height,
+			maxKB = Config.Image.MaxKB
+		})
+	end)
 
-	local Ok = Citizen.Await(P)
-	if not Ok then
-		VP_NotifyClient("Error", (Config.Lang.SaveError):format(Model, "verifique o console do servidor"))
-		return false
-	end
-
-	return true
+	local Result = Citizen.Await(P)
+	Done = true
+	return Result
 end
 
-local function CheckExists(Model)
-	if not Config.Capture.SkipExisting then return false end
+local SaveCallbacks = {}
+local ExistsCallbacks = {}
+local RequestCounter = 0
 
-	ExistsRequestId = ExistsRequestId + 1
-	local Id = ExistsRequestId
-	local P = promise.new()
-
-	ExistsCallback[Id] = function(Exists)
-		P:resolve(Exists)
-	end
-
-	TriggerServerEvent("vehicle-photos:CheckExists", Model, Id)
-	return Citizen.Await(P)
+local function NextRequestId()
+	RequestCounter = RequestCounter + 1
+	return RequestCounter
 end
 
-RegisterNetEvent("vehicle-photos:SaveResult")
-AddEventHandler("vehicle-photos:SaveResult", function(SavedModel, Ok, Result, RequestId)
+RegisterNetEvent("vehicle-photos:client:saveResult")
+AddEventHandler("vehicle-photos:client:saveResult", function(RequestId, Ok)
 	if SaveCallbacks[RequestId] then
 		SaveCallbacks[RequestId](Ok)
 		SaveCallbacks[RequestId] = nil
 	end
 end)
 
-RegisterNetEvent("vehicle-photos:ExistsResult")
-AddEventHandler("vehicle-photos:ExistsResult", function(RequestId, Exists)
-	if ExistsCallback[RequestId] then
-		ExistsCallback[RequestId](Exists)
-		ExistsCallback[RequestId] = nil
+RegisterNetEvent("vehicle-photos:client:existsResult")
+AddEventHandler("vehicle-photos:client:existsResult", function(RequestId, Exists)
+	if ExistsCallbacks[RequestId] then
+		ExistsCallbacks[RequestId](Exists)
+		ExistsCallbacks[RequestId] = nil
 	end
 end)
 
------------------------------------------------------------------------------------------------------------------------------------------
--- BATCH
------------------------------------------------------------------------------------------------------------------------------------------
-RegisterNetEvent("vehicle-photos:StartBatch")
-AddEventHandler("vehicle-photos:StartBatch", function(List)
-	if Capturing then return end
+local function SavePhoto(Model, Base64)
+	local P = promise.new()
+	local RequestId = GetGameTimer()
 
-	Capturing = true
-	StopRequested = false
-
-	VP_NotifyClient("Info", (Config.Lang.Started):format(#List))
-
-	local Saved = 0
-
-	for i = 1, #List do
-		if StopRequested then break end
-
-		local Model = List[i]
-
-		if CheckExists(Model) then
-			VP_NotifyClient("Info", (Config.Lang.Skipped):format(Model), 2000)
-		else
-			VP_NotifyClient("Info", (Config.Lang.Progress):format(i, #List, Model), 3000)
-
-			if CaptureModel(Model) then
-				Saved = Saved + 1
-				VP_NotifyClient("Success", (Config.Lang.Saved):format(Model), 2000)
-			end
-		end
-
-		Wait(Config.Capture.DelayBetweenVehicles or 1200)
+	SaveCallbacks[RequestId] = function(Ok)
+		P:resolve(Ok)
 	end
 
-	Capturing = false
-	TriggerServerEvent("vehicle-photos:Finished", Saved)
-	VP_NotifyClient("Success", (Config.Lang.Done):format(Saved), 8000)
-end)
+	if TriggerLatentServerEvent then
+		TriggerLatentServerEvent("vehicle-photos:server:save", 500000, RequestId, Model, Base64)
+	else
+		TriggerServerEvent("vehicle-photos:server:save", RequestId, Model, Base64)
+	end
 
-RegisterNetEvent("vehicle-photos:CaptureSingle")
-AddEventHandler("vehicle-photos:CaptureSingle", function(Model)
-	if Capturing then
-		VP_NotifyClient("Warning", Config.Lang.AlreadyRunning)
+	return Citizen.Await(P)
+end
+
+local function FileExists(Model)
+	local P = promise.new()
+	local RequestId = GetGameTimer() + 1
+
+	ExistsCallbacks[RequestId] = function(Exists)
+		P:resolve(Exists)
+	end
+
+	TriggerServerEvent("vehicle-photos:server:exists", RequestId, Model)
+	return Citizen.Await(P)
+end
+
+local function CaptureOne(Model)
+	if StopFlag then return false end
+
+	Notify("Info", Config.Lang.Loading:format(Model), 4000)
+
+	local Vehicle, Err = SpawnVehicle(Model)
+	if not Vehicle then
+		Notify("Error", Config.Lang.Failed:format(Model .. " (" .. (Err or "?") .. ")"))
+		RestorePlayerState()
+		DestroyStudio()
+		return false
+	end
+
+	local Image = CaptureScreenshot()
+	WaitMs(Config.Timing.AfterPhoto)
+
+	RestorePlayerState()
+	DestroyStudio()
+
+	if not Image then
+		Notify("Error", Config.Lang.Failed:format(Model))
+		return false
+	end
+
+	if not SavePhoto(Model, Image) then
+		Notify("Error", Config.Lang.SaveError:format(Model))
+		return false
+	end
+
+	return true
+end
+
+RegisterNetEvent("vehicle-photos:client:captureAll")
+AddEventHandler("vehicle-photos:client:captureAll", function(List)
+	if Busy then
+		Notify("Warning", Config.Lang.AlreadyRunning)
 		return
 	end
 
-	Capturing = true
-	if CaptureModel(Model) then
-		VP_NotifyClient("Success", (Config.Lang.SingleDone):format(Model))
+	Busy = true
+	StopFlag = false
+
+	Notify("Info", Config.Lang.Started:format(#List))
+	local Saved = 0
+
+	for i = 1, #List do
+		if StopFlag then break end
+
+		local Model = string.lower(List[i])
+
+		if Config.Capture.SkipExisting and FileExists(Model) then
+			Notify("Info", Config.Lang.Skipped:format(Model), 3000)
+		else
+			Notify("Info", Config.Lang.Progress:format(i, #List, Model), 4000)
+			if CaptureOne(Model) then
+				Saved = Saved + 1
+				Notify("Success", Config.Lang.Saved:format(Model), 3000)
+			end
+		end
+
+		Wait(Config.Timing.BetweenVehicles)
 	end
-	Capturing = false
+
+	Busy = false
+	TriggerServerEvent("vehicle-photos:server:finished")
+	Notify("Success", Config.Lang.Done:format(Saved), 8000)
 end)
 
-RegisterNetEvent("vehicle-photos:Stop")
-AddEventHandler("vehicle-photos:Stop", function()
-	StopRequested = true
-	Capturing = false
-	RestorePlayer()
-	CleanupStudio()
+RegisterNetEvent("vehicle-photos:client:captureOne")
+AddEventHandler("vehicle-photos:client:captureOne", function(Model)
+	if Busy then
+		Notify("Warning", Config.Lang.AlreadyRunning)
+		return
+	end
+
+	Busy = true
+	StopFlag = false
+
+	if CaptureOne(string.lower(Model)) then
+		Notify("Success", Config.Lang.SingleDone:format(Model))
+	end
+
+	Busy = false
+	TriggerServerEvent("vehicle-photos:server:finished")
+end)
+
+RegisterNetEvent("vehicle-photos:client:stop")
+AddEventHandler("vehicle-photos:client:stop", function()
+	StopFlag = true
+	Busy = false
+	RestorePlayerState()
+	DestroyStudio()
 end)
 
 exports("CaptureVehicle", function(Model)
-	return CaptureModel(VP_NormalizeModel(Model))
+	if Busy then return false end
+	Busy = true
+	local Ok = CaptureOne(string.lower(tostring(Model)))
+	Busy = false
+	return Ok
 end)
 
 exports("IsCapturing", function()
-	return Capturing
+	return Busy
 end)

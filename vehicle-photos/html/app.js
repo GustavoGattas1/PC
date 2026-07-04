@@ -1,76 +1,60 @@
-/**
- * Processa screenshot: redimensiona 16:9, comprime PNG < 300KB
- */
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
-function compressToTarget(canvas, maxKB, qualityStart) {
-	return new Promise((resolve) => {
-		let quality = qualityStart || 0.92;
+function toBase64(img, width, height, maxKB) {
+	canvas.width = width;
+	canvas.height = height;
 
-		const tryExport = () => {
-			const dataUrl = canvas.toDataURL("image/png", quality);
-			const sizeKB = Math.ceil((dataUrl.length * 3) / 4 / 1024);
+	ctx.fillStyle = "#1a1a1e";
+	ctx.fillRect(0, 0, width, height);
 
-			if (sizeKB <= maxKB || quality <= 0.4) {
-				resolve(dataUrl);
-				return;
-			}
+	const targetRatio = width / height;
+	const srcRatio = img.width / img.height;
+	let sx = 0, sy = 0, sw = img.width, sh = img.height;
 
-			quality -= 0.08;
-			tryExport();
-		};
+	if (srcRatio > targetRatio) {
+		sw = img.height * targetRatio;
+		sx = (img.width - sw) / 2;
+	} else {
+		sh = img.width / targetRatio;
+		sy = (img.height - sh) / 2;
+	}
 
-		tryExport();
+	ctx.drawImage(img, sx, sy, sw, sh, 0, 0, width, height);
+
+	let data = canvas.toDataURL("image/png");
+	const sizeKB = Math.ceil((data.length * 3) / 4 / 1024);
+
+	if (sizeKB > maxKB) {
+		data = canvas.toDataURL("image/jpeg", 0.85);
+	}
+
+	return data.replace(/^data:image\/\w+;base64,/, "");
+}
+
+function send(ok, image) {
+	fetch("https://vehicle-photos/photoReady", {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify({ ok: ok, image: image || "" })
 	});
 }
 
-window.addEventListener("message", async (event) => {
-	const { action, image, width, height, maxKB, quality } = event.data || {};
-
-	if (action !== "process") return;
+window.addEventListener("message", (event) => {
+	const data = event.data || {};
+	if (data.action !== "process") return;
 
 	const img = new Image();
-	img.onload = async () => {
-		canvas.width = width || 800;
-		canvas.height = height || 450;
-
-		// Fundo cinza escuro (caso bordas apareçam)
-		ctx.fillStyle = "#1a1a1e";
-		ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-		// Crop central 16:9 da imagem original
-		const targetRatio = canvas.width / canvas.height;
-		const srcRatio = img.width / img.height;
-
-		let sx = 0, sy = 0, sw = img.width, sh = img.height;
-
-		if (srcRatio > targetRatio) {
-			sw = img.height * targetRatio;
-			sx = (img.width - sw) / 2;
-		} else {
-			sh = img.width / targetRatio;
-			sy = (img.height - sh) / 2;
+	img.onload = () => {
+		try {
+			const result = toBase64(img, data.width || 800, data.height || 450, data.maxKB || 300);
+			send(true, result);
+		} catch (e) {
+			send(false);
 		}
-
-		ctx.drawImage(img, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
-
-		const result = await compressToTarget(canvas, maxKB || 300, quality || 0.88);
-
-		fetch(`https://vehicle-photos/processed`, {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ data: result })
-		});
 	};
+	img.onerror = () => send(false);
 
-	img.onerror = () => {
-		fetch(`https://vehicle-photos/processed`, {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ error: true })
-		});
-	};
-
-	img.src = image;
+	const src = data.image || "";
+	img.src = src.startsWith("data:") ? src : "data:image/png;base64," + src;
 });

@@ -1,130 +1,86 @@
------------------------------------------------------------------------------------------------------------------------------------------
--- VEHICLE PHOTOS — CONFIGURAÇÃO
------------------------------------------------------------------------------------------------------------------------------------------
 Config = {}
 
-Config.Debug = false
-
 -----------------------------------------------------------------------------------------------------------------------------------------
--- PERMISSÃO (apenas staff)
+-- PERMISSÃO
 -----------------------------------------------------------------------------------------------------------------------------------------
 Config.Groups = { "Admin" }
 
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- COMANDOS
 -----------------------------------------------------------------------------------------------------------------------------------------
-Config.Command = "fotosveiculos"
-Config.CommandSingle = "fotoveiculo"
+Config.CommandAll = "fotosveiculos"
+Config.CommandOne = "fotoveiculo"
 Config.CommandStop = "fotosveiculosstop"
 
 -----------------------------------------------------------------------------------------------------------------------------------------
--- IMAGEM DE SAÍDA
+-- IMAGEM FINAL
 -----------------------------------------------------------------------------------------------------------------------------------------
 Config.Image = {
 	Width = 800,
 	Height = 450,
-	Format = "png",
-	MaxSizeKB = 300,
-	Quality = 0.88
+	MaxKB = 300
 }
 
 -----------------------------------------------------------------------------------------------------------------------------------------
--- ESTÚDIO FOTOGRÁFICO
+-- ESTÚDIO (céu — sem props, sem chão visível)
 -----------------------------------------------------------------------------------------------------------------------------------------
 Config.Studio = {
-	Coords = vec4(-1267.0, -3013.0, 1500.0, 0.0),
+	Coords = vector4(-1267.0, -3013.0, 1500.0, 45.0),
 	Time = { Hour = 12, Minute = 0, Second = 0 },
 	Weather = "CLEAR",
-	Wind = 0.0,
 	Timecycle = "NG_blackout",
-	TimecycleStrength = 0.42
+	TimecycleStrength = 0.45
 }
 
 -----------------------------------------------------------------------------------------------------------------------------------------
--- CÂMERA — ÂNGULO 3/4 DE FRENTE
+-- CÂMERA
 -----------------------------------------------------------------------------------------------------------------------------------------
 Config.Camera = {
-	OffsetX = -3.2,
-	OffsetY = 3.2,
-	OffsetZ = 0.65,
-	AimOffsetZ = 0.35,
-	Fov = 38.0,
-	FillRatio = 0.70,
-	VehicleHeading = 45.0
-}
-
-Config.Motorcycle = {
-	OffsetX = -2.4,
-	OffsetY = 2.4,
-	OffsetZ = 0.55,
-	AimOffsetZ = 0.45,
-	Fov = 42.0,
-	FillRatio = 0.72
+	Fov = 40.0,
+	DistanceMultiplier = 2.6,
+	HeightOffset = 0.45,
+	SideOffset = 0.75
 }
 
 -----------------------------------------------------------------------------------------------------------------------------------------
--- PLACA
+-- TEMPOS (milissegundos)
 -----------------------------------------------------------------------------------------------------------------------------------------
-Config.Plate = {
-	Text = "PHOTO",
-	Hide = true
+Config.Timing = {
+	ModelLoadTimeout = 30000,
+	StreamTimeout = 20000,
+	RenderFrames = 300,
+	SettleAfterLoad = 5000,
+	BeforePhoto = 5000,
+	AfterPhoto = 5000,
+	BetweenVehicles = 2000,
+	ScreenshotTimeout = 30000
 }
 
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- CAPTURA
--- Tempos em MILISSEGUNDOS (1000 = 1 segundo)
 -----------------------------------------------------------------------------------------------------------------------------------------
 Config.Capture = {
-	-- Tempo extra DEPOIS do carregamento completo, antes da foto
-	DelayBeforeShot = 5000,
-	-- Tempo com o carro visível DEPOIS da foto, antes de trocar
-	DelayAfterShot = 8000,
-	-- Pausa entre um veículo e outro no lote
-	DelayBetweenVehicles = 3000,
 	SkipExisting = true,
-	ScreenshotResource = "screenshot-basic",
-	ScreenshotTimeout = 30000,
-	LatentBps = 500000,
-	ChunkSize = 48000,
-
-	-- Carregamento completo do veículo antes de fotografar
-	Load = {
-		ModelTimeout = 30000,       -- tempo máximo para baixar o modelo (30s)
-		CollisionTimeout = 20000,   -- tempo máximo para colisão/streaming (20s)
-		SceneTimeout = 15000,       -- tempo máximo da cena HD (15s)
-		MinRenderFrames = 300,      -- frames renderizados (~5s a 60fps)
-		SettleDelay = 5000,         -- espera extra após streaming (5s)
-		StreamingRadius = 50.0,
-		UseSceneLoad = true
-	}
+	ScreenshotResource = "screenshot-basic"
 }
 
 -----------------------------------------------------------------------------------------------------------------------------------------
--- ORIGEM DA LISTA DE VEÍCULOS
+-- LISTA DE VEÍCULOS
 -----------------------------------------------------------------------------------------------------------------------------------------
 Config.Sources = {
 	Manual = true,
-	VRPVehicleList = false,
-	LojaVip = true,
-	VehiclesFile = true
+	File = true,
+	LojaVip = true
 }
 
 Config.Vehicles = {
-	"akuma",
-	"bati",
-	"double",
-	"pcj",
-	"sanchez",
-	"shotaro",
 	"adder",
 	"zentorno",
 	"t20",
-	"nero"
+	"bati",
+	"akuma"
 }
 
------------------------------------------------------------------------------------------------------------------------------------------
--- PASTA DE SAÍDA
------------------------------------------------------------------------------------------------------------------------------------------
 Config.OutputFolder = "output/vehicles"
 
 -----------------------------------------------------------------------------------------------------------------------------------------
@@ -141,18 +97,16 @@ Config.Notify = {
 Config.Lang = {
 	NoPermission = "Sem permissão.",
 	AlreadyRunning = "Captura já em andamento.",
-	NotRunning = "Nenhuma captura em andamento.",
-	Started = "Iniciando captura de %s veículo(s)...",
-	Progress = "Foto %s/%s — %s",
+	Started = "Iniciando %s veículo(s)...",
 	Loading = "Carregando %s...",
-	LoadFailed = "Falha ao carregar %s completamente.",
+	Progress = "Foto %s/%s — %s",
 	Saved = "Salvo: %s.png",
-	Skipped = "Pulado (já existe): %s",
+	Skipped = "Já existe: %s",
 	Failed = "Falhou: %s",
-	Done = "Concluído! %s fotos salvas em output/vehicles/",
-	NoVehicles = "Nenhum veículo encontrado na lista.",
-	NoScreenshot = "Instale o resource screenshot-basic para capturar imagens.",
-	SaveError = "Erro ao salvar %s: %s",
+	Done = "Concluído! %s fotos salvas.",
 	Stopped = "Captura interrompida.",
+	NoVehicles = "Nenhum veículo na lista.",
+	NoScreenshot = "Instale e inicie o screenshot-basic.",
+	SaveError = "Erro ao salvar %s.",
 	SingleDone = "Foto salva: %s.png"
 }
