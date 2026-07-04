@@ -12,6 +12,7 @@ local Capturing = false
 local StopRequested = false
 local StudioCam = nil
 local StudioVehicle = nil
+local StudioModelHash = nil
 local StudioProps = {}
 local SavedPosition = nil
 local ProcessCallback = nil
@@ -74,12 +75,63 @@ end
 -----------------------------------------------------------------------------------------------------------------------------------------
 local function LoadModel(Hash)
 	if not IsModelValid(Hash) then return false end
+
+	local Timeout = GetGameTimer() + (Config.Capture.Load and Config.Capture.Load.ModelTimeout or 30000)
 	RequestModel(Hash)
-	local Timeout = GetGameTimer() + 5000
+
 	while not HasModelLoaded(Hash) do
-		if GetGameTimer() > Timeout then return false end
+		if GetGameTimer() > Timeout then
+			return false
+		end
 		Wait(10)
 	end
+
+	return true
+end
+
+local function WaitForVehicleFullyLoaded(Vehicle, Hash)
+	if not Vehicle or not DoesEntityExist(Vehicle) then
+		return false
+	end
+
+	local Load = Config.Capture.Load or {}
+	local Studio = Config.Studio.Coords
+	local CollisionTimeout = GetGameTimer() + (Load.CollisionTimeout or 20000)
+
+	SetEntityLoadCollisionFlag(Vehicle, true)
+	SetFocusEntity(Vehicle)
+	RequestCollisionAtCoord(Studio.x, Studio.y, Studio.z)
+
+	if Load.UseSceneLoad ~= false then
+		NewLoadSceneStart(Studio.x, Studio.y, Studio.z, 0.0, 0.0, 0.0, Load.StreamingRadius or 50.0, 0)
+		local SceneTimeout = GetGameTimer() + (Load.SceneTimeout or 15000)
+		while IsNewLoadSceneActive() and GetGameTimer() < SceneTimeout do
+			HideHud(true)
+			SetFocusEntity(Vehicle)
+			Wait(0)
+		end
+	end
+
+	while GetGameTimer() < CollisionTimeout do
+		if HasCollisionLoadedAroundEntity(Vehicle) and not IsEntityWaitingForWorldCollision(Vehicle) then
+			break
+		end
+		HideHud(true)
+		SetFocusEntity(Vehicle)
+		RequestCollisionAtCoord(Studio.x, Studio.y, Studio.z)
+		Wait(0)
+	end
+
+	local MinFrames = Load.MinRenderFrames or 240
+	for _ = 1, MinFrames do
+		HideHud(true)
+		SetFocusEntity(Vehicle)
+		Wait(0)
+	end
+
+	WaitWithHud(Load.SettleDelay or 5000)
+	ClearFocus()
+
 	return true
 end
 
@@ -93,6 +145,11 @@ local function CleanupStudio()
 	if StudioVehicle and DoesEntityExist(StudioVehicle) then
 		DeleteEntity(StudioVehicle)
 		StudioVehicle = nil
+	end
+
+	if StudioModelHash then
+		SetModelAsNoLongerNeeded(StudioModelHash)
+		StudioModelHash = nil
 	end
 
 	for i = 1, #StudioProps do
@@ -209,10 +266,10 @@ local function SpawnStudioVehicle(Model)
 	SetVehicleModKit(StudioVehicle, 0)
 	SetVehicleWindowTint(StudioVehicle, 1)
 
-	SetModelAsNoLongerNeeded(Hash)
+	StudioModelHash = Hash
 	SetupCamera(StudioVehicle, Hash)
 
-	return StudioVehicle
+	return StudioVehicle, nil, Hash
 end
 
 local function RestorePlayer()
@@ -322,7 +379,7 @@ end)
 local function CaptureModel(Model)
 	StopRequested = false
 
-	local Vehicle, Error = SpawnStudioVehicle(Model)
+	local Vehicle, Error, Hash = SpawnStudioVehicle(Model)
 	if not Vehicle then
 		VP_NotifyClient("Error", (Config.Lang.Failed):format(Model) .. " — " .. (Error or ""))
 		RestorePlayer()
@@ -330,11 +387,20 @@ local function CaptureModel(Model)
 		return false
 	end
 
-	WaitWithHud(Config.Capture.DelayBeforeShot or 15000)
+	VP_NotifyClient("Info", (Config.Lang.Loading):format(Model), 4000)
+
+	if not WaitForVehicleFullyLoaded(Vehicle, Hash) then
+		VP_NotifyClient("Error", (Config.Lang.LoadFailed):format(Model))
+		RestorePlayer()
+		CleanupStudio()
+		return false
+	end
+
+	WaitWithHud(Config.Capture.DelayBeforeShot or 5000)
 
 	local ImageData = RequestScreenshot()
 
-	WaitWithHud(Config.Capture.DelayAfterShot or 10000)
+	WaitWithHud(Config.Capture.DelayAfterShot or 8000)
 
 	RestorePlayer()
 	CleanupStudio()
