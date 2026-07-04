@@ -9,3 +9,4 @@ Repositório de scripts para servidor FiveM.
 | [iml-evidencias](iml-evidencias/) | Sistema completo de IML e evidências forenses para Creative Uncharted |
 | [loja-vip](loja-vip/) | Loja VIP completa — veículos, casas, planos VIP, packs e NUI moderna (`/loja`) |
 | [sistema-wall](sistema-wall/) | Sistema completo de Wall (ESP) para staff — informações de jogadores em tempo real (`/wall`) |
+| [vehicle-photos](vehicle-photos/) | Estúdio automático de fotos de veículos 16:9 para NUI (`/fotosveiculos`) |
