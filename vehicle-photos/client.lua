@@ -322,10 +322,11 @@ local function CaptureModel(Model)
 		return false
 	end
 
-	Wait(Config.Capture.DelayBeforeShot or 800)
+	Wait(Config.Capture.DelayBeforeShot or 5000)
 
+	local HudHideMs = Config.Capture.DelayHudHide or 3000
 	CreateThread(function()
-		local Timeout = GetGameTimer() + 3000
+		local Timeout = GetGameTimer() + HudHideMs
 		while GetGameTimer() < Timeout do
 			HideHud(true)
 			Wait(0)
@@ -333,6 +334,8 @@ local function CaptureModel(Model)
 	end)
 
 	local ImageData = RequestScreenshot()
+
+	Wait(Config.Capture.DelayAfterShot or 0)
 
 	RestorePlayer()
 	CleanupStudio()

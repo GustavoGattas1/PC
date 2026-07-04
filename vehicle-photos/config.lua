@@ -92,8 +92,14 @@ Config.Plate = {
 -- CAPTURA
 -----------------------------------------------------------------------------------------------------------------------------------------
 Config.Capture = {
-	DelayBeforeShot = 800,
-	DelayBetweenVehicles = 1200,
+	-- Tempo com o carro visível ANTES de tirar a foto (ms)
+	DelayBeforeShot = 5000,
+	-- Tempo com o carro visível DEPOIS da foto, antes de sumir (ms)
+	DelayAfterShot = 2000,
+	-- Tempo escondendo HUD antes/durante a captura (ms)
+	DelayHudHide = 3000,
+	-- Pausa entre veículos no /fotosveiculos (ms)
+	DelayBetweenVehicles = 3000,
 	SkipExisting = true,
 	ScreenshotResource = "screenshot-basic",
 	ScreenshotTimeout = 15000,
