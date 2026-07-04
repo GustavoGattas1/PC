@@ -1,0 +1,35 @@
+# Um spawn name por linha. Linhas com # são ignoradas.
+# Adicione aqui TODOS os veículos da sua base.
+
+akuma
+bati
+double
+pcj
+sanchez
+shotaro
+hakuchou
+vindicator
+cliffhanger
+defiler
+
+adder
+zentorno
+t20
+nero
+osiris
+turismor
+entityxf
+vacca
+sultanrs
+insurgent
+volatus
+seashark
+
+sultan
+elegy2
+jester
+massacro
+
+bison
+rumpo
+speedo
