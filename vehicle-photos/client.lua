@@ -43,6 +43,14 @@ local function HideHud(Toggle)
 	DisplayHud(not Toggle)
 end
 
+local function WaitWithHud(Ms)
+	local Start = GetGameTimer()
+	while GetGameTimer() - Start < Ms do
+		HideHud(true)
+		Wait(0)
+	end
+end
+
 local function ApplyStudioVisuals()
 	local Studio = Config.Studio
 	NetworkOverrideClockTime(Studio.Time.Hour, Studio.Time.Minute, Studio.Time.Second or 0)
@@ -322,20 +330,11 @@ local function CaptureModel(Model)
 		return false
 	end
 
-	Wait(Config.Capture.DelayBeforeShot or 5000)
-
-	local HudHideMs = Config.Capture.DelayHudHide or 3000
-	CreateThread(function()
-		local Timeout = GetGameTimer() + HudHideMs
-		while GetGameTimer() < Timeout do
-			HideHud(true)
-			Wait(0)
-		end
-	end)
+	WaitWithHud(Config.Capture.DelayBeforeShot or 15000)
 
 	local ImageData = RequestScreenshot()
 
-	Wait(Config.Capture.DelayAfterShot or 0)
+	WaitWithHud(Config.Capture.DelayAfterShot or 10000)
 
 	RestorePlayer()
 	CleanupStudio()

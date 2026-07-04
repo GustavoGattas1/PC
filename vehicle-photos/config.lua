@@ -92,10 +92,11 @@ Config.Plate = {
 -- CAPTURA
 -----------------------------------------------------------------------------------------------------------------------------------------
 Config.Capture = {
-	DelayBeforeShot = 5000,
-	DelayAfterShot = 3000,
-	DelayHudHide = 5000,
-	DelayBetweenVehicles = 0,
+	-- Segundos com o carro na tela ANTES de capturar (15000 = 15s)
+	DelayBeforeShot = 15000,
+	-- Segundos com o carro na tela DEPOIS de capturar, antes de sumir (10000 = 10s)
+	DelayAfterShot = 10000,
+	DelayBetweenVehicles = 2000,
 	SkipExisting = true,
 	ScreenshotResource = "screenshot-basic",
 	ScreenshotTimeout = 15000,
