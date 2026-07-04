@@ -274,7 +274,7 @@ end)
 
 local function SavePhoto(Model, Base64)
 	local P = promise.new()
-	local RequestId = GetGameTimer()
+	local RequestId = NextRequestId()
 
 	SaveCallbacks[RequestId] = function(Ok)
 		P:resolve(Ok)
@@ -291,7 +291,7 @@ end
 
 local function FileExists(Model)
 	local P = promise.new()
-	local RequestId = GetGameTimer() + 1
+	local RequestId = NextRequestId()
 
 	ExistsCallbacks[RequestId] = function(Exists)
 		P:resolve(Exists)
