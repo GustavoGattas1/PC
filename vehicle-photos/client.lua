@@ -62,7 +62,7 @@ local function ClearStudioVisuals()
 end
 
 -----------------------------------------------------------------------------------------------------------------------------------------
--- ESTÚDIO — PROPS
+-- ESTÚDIO
 -----------------------------------------------------------------------------------------------------------------------------------------
 local function LoadModel(Hash)
 	if not IsModelValid(Hash) then return false end
@@ -73,42 +73,6 @@ local function LoadModel(Hash)
 		Wait(10)
 	end
 	return true
-end
-
-local function SpawnStudioProps(Coords)
-	local Studio = Config.Studio
-
-	if Studio.Platform and Studio.Platform.Enabled then
-		if LoadModel(Studio.Platform.Model) then
-			local Obj = CreateObject(Studio.Platform.Model, Coords.x, Coords.y, Coords.z - 1.0, false, false, false)
-			if DoesEntityExist(Obj) then
-				SetEntityHeading(Obj, 0.0)
-				FreezeEntityPosition(Obj, true)
-				SetEntityCollision(Obj, false, false)
-				StudioProps[#StudioProps + 1] = Obj
-			end
-			SetModelAsNoLongerNeeded(Studio.Platform.Model)
-		end
-	end
-
-	if Studio.Backdrop and Studio.Backdrop.Enabled then
-		if LoadModel(Studio.Backdrop.Model) then
-			local Obj = CreateObject(
-				Studio.Backdrop.Model,
-				Coords.x,
-				Coords.y - (Studio.Backdrop.Distance or 6.0),
-				Coords.z + (Studio.Backdrop.Height or 0.0),
-				false, false, false
-			)
-			if DoesEntityExist(Obj) then
-				SetEntityHeading(Obj, 0.0)
-				FreezeEntityPosition(Obj, true)
-				SetEntityCollision(Obj, false, false)
-				StudioProps[#StudioProps + 1] = Obj
-			end
-			SetModelAsNoLongerNeeded(Studio.Backdrop.Model)
-		end
-	end
 end
 
 local function CleanupStudio()
@@ -215,7 +179,6 @@ local function SpawnStudioVehicle(Model)
 	FreezeEntityPosition(Ped, true)
 
 	ApplyStudioVisuals()
-	SpawnStudioProps(Studio)
 
 	StudioVehicle = CreateVehicle(Hash, Studio.x, Studio.y, Studio.z, Config.Camera.VehicleHeading or 45.0, false, false)
 
@@ -225,7 +188,7 @@ local function SpawnStudioVehicle(Model)
 	end
 
 	SetEntityAsMissionEntity(StudioVehicle, true, true)
-	SetVehicleOnGroundProperly(StudioVehicle)
+	SetEntityCoords(StudioVehicle, Studio.x, Studio.y, Studio.z, false, false, false, false)
 	FreezeEntityPosition(StudioVehicle, true)
 	SetVehicleDirtLevel(StudioVehicle, 0.0)
 	SetVehicleEngineOn(StudioVehicle, false, true, false)
@@ -263,21 +226,43 @@ local function HasScreenshotResource()
 	return GetResourceState(Config.Capture.ScreenshotResource) == "started"
 end
 
+local function NormalizeScreenshotData(Data)
+	if not Data or Data == "" then return nil end
+	if Data:find("^data:image/") then
+		return Data
+	end
+	return "data:image/png;base64," .. Data
+end
+
 local function RequestScreenshot()
 	if not HasScreenshotResource() then
 		VP_NotifyClient("Error", Config.Lang.NoScreenshot)
-		return false
+		return nil
 	end
 
 	local P = promise.new()
-	ProcessCallback = function(Data)
+	local Resolved = false
+
+	local function Finish(Data)
+		if Resolved then return end
+		Resolved = true
+		ProcessCallback = nil
 		P:resolve(Data)
 	end
+
+	ProcessCallback = Finish
+
+	SetTimeout(Config.Capture.ScreenshotTimeout or 15000, function()
+		if not Resolved then
+			VP_NotifyClient("Error", "Timeout ao capturar screenshot.")
+			Finish(nil)
+		end
+	end)
 
 	exports[Config.Capture.ScreenshotResource]:requestScreenshot({ encoding = "png" }, function(Data)
 		SendNUIMessage({
 			action = "process",
-			image = "data:image/png;base64," .. Data,
+			image = NormalizeScreenshotData(Data),
 			width = Config.Image.Width,
 			height = Config.Image.Height,
 			maxKB = Config.Image.MaxSizeKB,
@@ -286,6 +271,29 @@ local function RequestScreenshot()
 	end)
 
 	return Citizen.Await(P)
+end
+
+local function SendImageToServer(Model, ImageData, RequestId)
+	local Clean = ImageData:gsub("^data:image/%a+;base64,", "")
+
+	if TriggerLatentServerEvent then
+		TriggerLatentServerEvent("vehicle-photos:SaveImage", Config.Capture.LatentBps or 500000, Model, Clean, RequestId)
+		return
+	end
+
+	local ChunkSize = Config.Capture.ChunkSize or 48000
+	local Total = math.ceil(#Clean / ChunkSize)
+
+	TriggerServerEvent("vehicle-photos:SaveBegin", Model, RequestId, Total)
+
+	for Index = 1, Total do
+		local Start = (Index - 1) * ChunkSize + 1
+		local Chunk = Clean:sub(Start, Start + ChunkSize - 1)
+		TriggerServerEvent("vehicle-photos:SaveChunk", RequestId, Index, Chunk)
+		Wait(0)
+	end
+
+	TriggerServerEvent("vehicle-photos:SaveCommit", Model, RequestId)
 end
 
 RegisterNUICallback("processed", function(Data, Cb)
@@ -342,8 +350,15 @@ local function CaptureModel(Model)
 		P:resolve(Ok)
 	end
 
-	TriggerServerEvent("vehicle-photos:SaveImage", Model, ImageData, RequestId)
-	return Citizen.Await(P)
+	SendImageToServer(Model, ImageData, RequestId)
+
+	local Ok = Citizen.Await(P)
+	if not Ok then
+		VP_NotifyClient("Error", (Config.Lang.SaveError):format(Model, "verifique o console do servidor"))
+		return false
+	end
+
+	return true
 end
 
 local function CheckExists(Model)

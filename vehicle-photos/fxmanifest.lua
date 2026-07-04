@@ -5,7 +5,7 @@ lua54 "yes"
 name "vehicle-photos"
 author "Creative Uncharted"
 description "Estúdio automático de fotos de veículos para NUI — 16:9, fundo escuro, ângulo 3/4"
-version "1.0.0"
+version "1.0.1"
 
 shared_scripts {
 	"@vrp/lib/Utils.lua",

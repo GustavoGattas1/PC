@@ -9,6 +9,7 @@ vRP = Proxy.getInterface("vRP")
 -- VARIÁVEIS
 -----------------------------------------------------------------------------------------------------------------------------------------
 local Capturing = {}
+local PendingSaves = {}
 
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- PERMISSÃO
@@ -29,6 +30,7 @@ end
 local B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 
 local function Base64Decode(Data)
+	if not Data or Data == "" then return nil end
 	Data = Data:gsub("[^" .. B64 .. "=]", "")
 	return (Data:gsub(".", function(x)
 		if x == "=" then return "" end
@@ -47,32 +49,73 @@ local function Base64Decode(Data)
 	end))
 end
 
+local function CleanBase64(Data)
+	if not Data then return nil end
+	local Clean = Data
+	while Clean:find("^data:image/") do
+		Clean = Clean:gsub("^data:image/%a+;base64,", "")
+	end
+	return Clean
+end
+
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- SALVAR ARQUIVO
 -----------------------------------------------------------------------------------------------------------------------------------------
-local function GetOutputPath(Model)
-	local Resource = GetCurrentResourceName()
-	local Base = GetResourcePath(Resource)
-	return Base .. "/" .. Config.OutputFolder .. "/" .. Model .. ".png"
+local ResourceName = GetCurrentResourceName()
+
+local function GetRelativePath(Model)
+	return Config.OutputFolder .. "/" .. Model .. ".png"
 end
 
-local function FileExists(Path)
-	local File = io.open(Path, "rb")
+local function GetAbsolutePath(Model)
+	return GetResourcePath(ResourceName) .. "/" .. GetRelativePath(Model)
+end
+
+local function EnsureOutputFolder()
+	local Base = GetResourcePath(ResourceName) .. "/" .. Config.OutputFolder
+	os.execute('mkdir "' .. Base:gsub("/", "\\") .. '" 2>nul')
+	os.execute('mkdir -p "' .. Base .. '" 2>/dev/null')
+end
+
+local function FileExists(Model)
+	local Relative = GetRelativePath(Model)
+	if LoadResourceFile(ResourceName, Relative) then
+		return true
+	end
+
+	local File = io.open(GetAbsolutePath(Model), "rb")
 	if File then
 		File:close()
 		return true
 	end
+
 	return false
 end
 
 local function SaveImage(Model, Base64Data)
-	local Clean = Base64Data:gsub("^data:image/%a+;base64,", "")
-	local Path = GetOutputPath(Model)
-	local Binary = Base64Decode(Clean)
-	local File = io.open(Path, "wb")
+	local Clean = CleanBase64(Base64Data)
+	if not Clean or Clean == "" then
+		return false, "Dados de imagem vazios."
+	end
 
+	local Binary = Base64Decode(Clean)
+	if not Binary or #Binary == 0 then
+		return false, "Falha ao decodificar base64."
+	end
+
+	EnsureOutputFolder()
+
+	local Relative = GetRelativePath(Model)
+	local Saved = SaveResourceFile(ResourceName, Relative, Binary, #Binary)
+
+	if Saved then
+		return true, Relative
+	end
+
+	local Path = GetAbsolutePath(Model)
+	local File = io.open(Path, "wb")
 	if not File then
-		return false, "Não foi possível criar o arquivo."
+		return false, "Não foi possível criar o arquivo em " .. Relative
 	end
 
 	File:write(Binary)
@@ -80,13 +123,30 @@ local function SaveImage(Model, Base64Data)
 	return true, Path
 end
 
+local function FinishSave(Source, Model, RequestId, Ok, Result)
+	if Ok then
+		TriggerClientEvent("vehicle-photos:SaveResult", Source, Model, true, Result, RequestId)
+	else
+		VP_NotifyServer(Source, "Error", (Config.Lang.SaveError):format(Model, Result or "erro desconhecido"))
+		TriggerClientEvent("vehicle-photos:SaveResult", Source, Model, false, Result, RequestId)
+	end
+end
+
+local function CanSave(Source)
+	local Passport = vRP.Passport(Source)
+	return Passport and HasPermission(Passport)
+end
+
+CreateThread(function()
+	EnsureOutputFolder()
+end)
+
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- COLETAR LISTA DE VEÍCULOS
 -----------------------------------------------------------------------------------------------------------------------------------------
 local function LoadFromFile()
 	local Models = {}
-	local Resource = GetCurrentResourceName()
-	local Path = GetResourcePath(Resource) .. "/vehicles.txt"
+	local Path = GetResourcePath(ResourceName) .. "/vehicles.txt"
 	local File = io.open(Path, "r")
 
 	if not File then return Models end
@@ -146,27 +206,82 @@ local function BuildVehicleList()
 end
 
 -----------------------------------------------------------------------------------------------------------------------------------------
--- EVENTOS
+-- EVENTOS — SALVAR IMAGEM
 -----------------------------------------------------------------------------------------------------------------------------------------
 RegisterNetEvent("vehicle-photos:SaveImage")
 AddEventHandler("vehicle-photos:SaveImage", function(Model, Base64Data, RequestId)
 	local Source = source
-	local Passport = vRP.Passport(Source)
-
-	if not Passport or not HasPermission(Passport) then return end
+	if not CanSave(Source) then return end
 
 	Model = VP_NormalizeModel(Model)
 	if not Model or not Base64Data then return end
 
 	local Ok, Result = SaveImage(Model, Base64Data)
-	TriggerClientEvent("vehicle-photos:SaveResult", Source, Model, Ok, Result, RequestId)
+	FinishSave(Source, Model, RequestId, Ok, Result)
+end)
+
+RegisterNetEvent("vehicle-photos:SaveBegin")
+AddEventHandler("vehicle-photos:SaveBegin", function(Model, RequestId, TotalChunks)
+	local Source = source
+	if not CanSave(Source) then return end
+
+	Model = VP_NormalizeModel(Model)
+	if not Model or not RequestId or not TotalChunks then return end
+
+	PendingSaves[RequestId] = {
+		source = Source,
+		model = Model,
+		total = TotalChunks,
+		chunks = {},
+		received = 0
+	}
+end)
+
+RegisterNetEvent("vehicle-photos:SaveChunk")
+AddEventHandler("vehicle-photos:SaveChunk", function(RequestId, Index, Chunk)
+	local Source = source
+	local Pending = PendingSaves[RequestId]
+	if not Pending or Pending.source ~= Source or not Chunk then return end
+
+	Pending.chunks[Index] = Chunk
+	Pending.received = Pending.received + 1
+end)
+
+RegisterNetEvent("vehicle-photos:SaveCommit")
+AddEventHandler("vehicle-photos:SaveCommit", function(Model, RequestId)
+	local Source = source
+	local Pending = PendingSaves[RequestId]
+	PendingSaves[RequestId] = nil
+
+	if not Pending or Pending.source ~= Source then return end
+
+	Model = VP_NormalizeModel(Model)
+	if not Model or Pending.model ~= Model then return end
+
+	if Pending.received ~= Pending.total then
+		FinishSave(Source, Model, RequestId, false, "Transferência incompleta (" .. Pending.received .. "/" .. Pending.total .. ").")
+		return
+	end
+
+	local Parts = {}
+	for Index = 1, Pending.total do
+		local Chunk = Pending.chunks[Index]
+		if not Chunk then
+			FinishSave(Source, Model, RequestId, false, "Chunk " .. Index .. " ausente.")
+			return
+		end
+		Parts[#Parts + 1] = Chunk
+	end
+
+	local Ok, Result = SaveImage(Model, table.concat(Parts))
+	FinishSave(Source, Model, RequestId, Ok, Result)
 end)
 
 RegisterNetEvent("vehicle-photos:CheckExists")
 AddEventHandler("vehicle-photos:CheckExists", function(Model, RequestId)
 	local Source = source
 	Model = VP_NormalizeModel(Model)
-	local Exists = Model and FileExists(GetOutputPath(Model)) or false
+	local Exists = Model and FileExists(Model) or false
 	TriggerClientEvent("vehicle-photos:ExistsResult", Source, RequestId, Exists)
 end)
 
@@ -229,7 +344,14 @@ AddEventHandler("vehicle-photos:Finished", function()
 end)
 
 AddEventHandler("playerDropped", function()
-	Capturing[source] = nil
+	local Source = source
+	Capturing[Source] = nil
+
+	for RequestId, Pending in pairs(PendingSaves) do
+		if Pending.source == Source then
+			PendingSaves[RequestId] = nil
+		end
+	end
 end)
 
 -----------------------------------------------------------------------------------------------------------------------------------------
@@ -237,5 +359,5 @@ end)
 -----------------------------------------------------------------------------------------------------------------------------------------
 exports("GetVehicleList", BuildVehicleList)
 exports("GetOutputPath", function(Model)
-	return GetOutputPath(VP_NormalizeModel(Model))
+	return GetAbsolutePath(VP_NormalizeModel(Model))
 end)

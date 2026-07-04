@@ -36,33 +36,16 @@ Config.Image = {
 -- ESTÚDIO FOTOGRÁFICO
 -----------------------------------------------------------------------------------------------------------------------------------------
 Config.Studio = {
-	-- Local isolado (céu / void — sem interferência do mapa)
-	Coords = vec4(-1267.0, -3013.0, 14.0, 0.0),
+	-- Estúdio no céu (sem chão/aeroporto visível — só fundo limpo)
+	Coords = vec4(-1267.0, -3013.0, 1500.0, 0.0),
 
-	-- Meio-dia
 	Time = { Hour = 12, Minute = 0, Second = 0 },
-
 	Weather = "CLEAR",
 	Wind = 0.0,
 
-	-- Modificador visual para fundo escuro/cinza
-	Timecycle = "MP_corona_heist",
-	TimecycleStrength = 0.85,
-
-	-- Plataforma cinza escuro (prop)
-	Platform = {
-		Enabled = true,
-		Model = `prop_mp_barrier_02b`,
-		Scale = 8.0
-	},
-
-	-- Parede de fundo cinza
-	Backdrop = {
-		Enabled = true,
-		Model = `prop_mp_barrier_02b`,
-		Distance = 6.0,
-		Height = 4.0
-	}
+	-- Fundo escuro/cinza via filtro visual (sem props físicos)
+	Timecycle = "NG_blackout",
+	TimecycleStrength = 0.42
 }
 
 -----------------------------------------------------------------------------------------------------------------------------------------
@@ -112,7 +95,12 @@ Config.Capture = {
 	DelayBeforeShot = 800,
 	DelayBetweenVehicles = 1200,
 	SkipExisting = true,
-	ScreenshotResource = "screenshot-basic"
+	ScreenshotResource = "screenshot-basic",
+	ScreenshotTimeout = 15000,
+	-- Transferência lenta para base64 grande (evita erro de rede)
+	LatentBps = 500000,
+	-- Tamanho de cada chunk se latent não estiver disponível
+	ChunkSize = 48000
 }
 
 -----------------------------------------------------------------------------------------------------------------------------------------
@@ -178,6 +166,7 @@ Config.Lang = {
 	Done = "Concluído! %s fotos salvas em output/vehicles/",
 	NoVehicles = "Nenhum veículo encontrado na lista.",
 	NoScreenshot = "Instale o resource screenshot-basic para capturar imagens.",
+	SaveError = "Erro ao salvar %s: %s",
 	Stopped = "Captura interrompida.",
 	SingleDone = "Foto salva: %s.png"
 }
