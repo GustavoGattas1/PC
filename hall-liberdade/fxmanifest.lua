@@ -12,6 +12,7 @@ files {
     'client/ui/index.html',
     'client/ui/javascript/**/*.js',
     'client/ui/images/**/*.svg',
+    'client/ui/images/**/*.png',
     'client/ui/css/**/*.css',
     'client/ui/fonts/**/*.woff2',
     'client/dui/index.html',

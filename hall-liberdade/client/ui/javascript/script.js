@@ -13,6 +13,8 @@ let seekHiding = false
 let lastUrl = null
 let allowAllSources = false
 
+const DEFAULT_THUMB = '/client/ui/images/thumbnail-default.png'
+
 const urlCheck = document.createElement('input')
 urlCheck.type = 'url'
 
@@ -189,7 +191,7 @@ async function addToQueue() {
             const og = doc.querySelector('meta[property="og:image"]')
             const thumb = avatar
                 ? avatar.getAttribute('src').replace('50x50.png', '300x300.png')
-                : (og ? og.getAttribute('content') : '/client/ui/images/frame.svg')
+                : (og ? og.getAttribute('content') : DEFAULT_THUMB)
 
             pendingQueue = true
             await nui('urlAdded', {
@@ -217,7 +219,7 @@ async function addToQueue() {
             const og = doc.querySelector('meta[property="og:image"]')
             const thumb = avatar
                 ? avatar.getAttribute('src').replace('50x50.png', '300x300.png')
-                : (og ? og.getAttribute('content') : '/client/ui/images/frame.svg')
+                : (og ? og.getAttribute('content') : DEFAULT_THUMB)
 
             let title = doc.title.replace(/ - Twitch$/, '').replace(/ on Twitch$/, '')
             let channel = 'Twitch'
@@ -263,7 +265,7 @@ async function addToQueue() {
 
             pendingQueue = true
             await nui('urlAdded', {
-                thumbnailUrl: og ? og.getAttribute('content') : '/client/ui/images/frame.svg',
+                thumbnailUrl: og ? og.getAttribute('content') : DEFAULT_THUMB,
                 thumbnailTitle: lang.twitchClip || 'Clip da Twitch',
                 title: clipId,
                 icon: 'fab fa-twitch icon',
@@ -276,7 +278,7 @@ async function addToQueue() {
     } else if (allowAllSources && urlCheck.validity.valid) {
         pendingQueue = true
         await nui('urlAdded', {
-            thumbnailUrl: '/client/ui/images/frame.svg',
+            thumbnailUrl: DEFAULT_THUMB,
             thumbnailTitle: lang.frame || 'Mídia',
             title: url,
             icon: 'fas fa-film icon',

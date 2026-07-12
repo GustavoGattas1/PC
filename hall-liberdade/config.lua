@@ -6,8 +6,8 @@ config = {
 
     ['lang'] = {
         -- Interface do tablet
-        ['brandTitle'] = 'Hall Liberdade',
-        ['brandSub'] = 'Controle de Palco',
+        ['brandTitle'] = 'Gustavo DJ Produções',
+        ['brandSub'] = 'Hall Liberdade',
         ['queueTitle'] = 'Fila de Reprodução',
         ['effectsTitle'] = 'Efeitos',
         ['nowPlaying'] = 'Tocando agora',
