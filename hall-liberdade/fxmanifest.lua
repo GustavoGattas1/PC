@@ -14,7 +14,11 @@ files {
     'client/ui/images/**/*.svg',
     'client/ui/images/**/*.png',
     'client/ui/css/**/*.css',
+    'client/ui/fonts/**/*.eot',
     'client/ui/fonts/**/*.woff2',
+    'client/ui/fonts/**/*.woff',
+    'client/ui/fonts/**/*.ttf',
+    'client/ui/fonts/**/*.svg',
     'client/dui/index.html',
     'client/dui/images/**/*.png',
     'client/dui/javascript/**/*.js'

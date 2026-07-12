@@ -12,8 +12,10 @@ let stopped = false
 let seekHiding = false
 let lastUrl = null
 let allowAllSources = false
+let eventsBound = false
 
 const DEFAULT_THUMB = '/client/ui/images/thumbnail-default.png'
+const TWITCH_RESERVED = new Set(['videos', 'clip', 'clips', 'directory', 'settings', 'downloads'])
 
 const urlCheck = document.createElement('input')
 urlCheck.type = 'url'
@@ -47,17 +49,6 @@ function formatTime(seconds) {
     const m = Math.floor(seconds / 60)
     const s = seconds - m * 60
     return `${m > 9 ? m : '0' + m}:${s > 9 ? s : '0' + s}`
-}
-
-function setCtrlVisibility(id, visible, autoOnly = false) {
-    const el = els[id]
-    if (!el) return
-    if (!visible) {
-        el.classList.add('hidden-ctrl')
-    } else {
-        el.classList.remove('hidden-ctrl')
-        if (autoOnly) el.style.opacity = '1'
-    }
 }
 
 const CONTROL_BUTTONS = {
@@ -122,19 +113,25 @@ function updateQueueEmpty(count) {
 
 function parseMediaUrl(url) {
     const yt = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i)
-    const twitchCh = url.match(/^(?:https?:\/\/)?(?:www\.|go\.)?twitch\.tv\/([A-z0-9_]+)($|\?)/i)
     const twitchVid = url.match(/^(?:https?:\/\/)?(?:www\.|go\.)?twitch\.tv\/videos\/([0-9]+)($|\?)/i)
     const twitchClip = url.match(/^(?:(?:^(?:https?:\/\/)?clips\.twitch\.tv\/([A-z0-9_-]+)(?:$|\?))|(?:^(?:https?:\/\/)?(?:www\.|go\.)?twitch\.tv\/(?:[A-z0-9_-]+)\/clip\/([A-z0-9_-]+)($|\?)))/i)
+    const twitchChMatch = url.match(/^(?:https?:\/\/)?(?:www\.|go\.)?twitch\.tv\/([A-z0-9_]+)($|\?)/i)
+    const twitchCh = twitchChMatch && !TWITCH_RESERVED.has(twitchChMatch[1].toLowerCase()) ? twitchChMatch : null
     return { yt, twitchCh, twitchVid, twitchClip }
 }
 
 function getSceneIdentifier(url) {
     const p = parseMediaUrl(url)
     if (p.yt?.[1]) return `YouTube:${p.yt[1]}`
-    if (p.twitchCh?.[1]) return `TwitchChannel:${p.twitchCh[1]}`
     if (p.twitchVid?.[1]) return `TwitchVideo:${p.twitchVid[1]}`
-    if (p.twitchClip?.[1]) return `TwitchClip:${p.twitchClip[1]}`
+    if (p.twitchClip?.[1] || p.twitchClip?.[2]) return `TwitchClip:${p.twitchClip[1] || p.twitchClip[2]}`
+    if (p.twitchCh?.[1]) return `TwitchChannel:${p.twitchCh[1]}`
     return ''
+}
+
+function clearQueueFetchers() {
+    els.queue.querySelectorAll('.queue-element.fetching').forEach(el => el.remove())
+    updateQueueEmpty(els.queue.querySelectorAll('.queue-element:not(.fetching)').length)
 }
 
 async function addToQueue() {
@@ -168,44 +165,22 @@ async function addToQueue() {
                     icon: 'fab fa-youtube icon',
                     url: `https://www.youtube.com/watch?v=${p.yt[1]}`
                 })
+            } else {
+                spin.remove()
+                updateQueueEmpty(els.queue.querySelectorAll('.queue-element:not(.fetching)').length)
+                toast(lang.invalidYouTubeUrl || lang.invalidUrl)
             }
         } catch {
             spin.remove()
+            updateQueueEmpty(els.queue.querySelectorAll('.queue-element:not(.fetching)').length)
             toast(lang.invalidYouTubeUrl || lang.invalidUrl)
-        }
-    } else if (p.twitchCh?.[1]) {
-        const spin = document.createElement('div')
-        spin.className = 'queue-element fetching'
-        spin.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'
-        els.queue.appendChild(spin)
-
-        try {
-            const res = await fetch(`https://m.twitch.tv/${p.twitchCh[1]}`)
-            const html = await res.text()
-            const doc = new DOMParser().parseFromString(html, 'text/html')
-            const avatar = doc.querySelector('img.tw-image-avatar')
-            const og = doc.querySelector('meta[property="og:image"]')
-            const thumb = avatar
-                ? avatar.getAttribute('src').replace('50x50.png', '300x300.png')
-                : (og ? og.getAttribute('content') : DEFAULT_THUMB)
-
-            pendingQueue = true
-            await nui('urlAdded', {
-                thumbnailUrl: thumb,
-                thumbnailTitle: p.twitchCh[1],
-                title: lang.liveFeed || 'Transmissão ao vivo',
-                icon: 'fab fa-twitch icon',
-                url: `https://www.twitch.tv/${p.twitchCh[1]}`
-            })
-        } catch {
-            spin.remove()
-            toast(lang.invalidTwitchUrl || lang.invalidUrl)
         }
     } else if (p.twitchVid?.[1]) {
         const spin = document.createElement('div')
         spin.className = 'queue-element fetching'
         spin.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'
         els.queue.appendChild(spin)
+        updateQueueEmpty(els.queue.children.length)
 
         try {
             const res = await fetch(`https://www.twitch.tv/videos/${p.twitchVid[1]}`)
@@ -244,6 +219,7 @@ async function addToQueue() {
             })
         } catch {
             spin.remove()
+            updateQueueEmpty(els.queue.querySelectorAll('.queue-element:not(.fetching)').length)
             toast(lang.invalidTwitchUrl || lang.invalidUrl)
         }
     } else if (p.twitchClip && (p.twitchClip[1] || p.twitchClip[2])) {
@@ -252,6 +228,7 @@ async function addToQueue() {
         spin.className = 'queue-element fetching'
         spin.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'
         els.queue.appendChild(spin)
+        updateQueueEmpty(els.queue.children.length)
 
         try {
             const res = await fetch(`https://clips.twitch.tv/embed?clip=${clipId}`)
@@ -269,6 +246,37 @@ async function addToQueue() {
             })
         } catch {
             spin.remove()
+            updateQueueEmpty(els.queue.querySelectorAll('.queue-element:not(.fetching)').length)
+            toast(lang.invalidTwitchUrl || lang.invalidUrl)
+        }
+    } else if (p.twitchCh?.[1]) {
+        const spin = document.createElement('div')
+        spin.className = 'queue-element fetching'
+        spin.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'
+        els.queue.appendChild(spin)
+        updateQueueEmpty(els.queue.children.length)
+
+        try {
+            const res = await fetch(`https://m.twitch.tv/${p.twitchCh[1]}`)
+            const html = await res.text()
+            const doc = new DOMParser().parseFromString(html, 'text/html')
+            const avatar = doc.querySelector('img.tw-image-avatar')
+            const og = doc.querySelector('meta[property="og:image"]')
+            const thumb = avatar
+                ? avatar.getAttribute('src').replace('50x50.png', '300x300.png')
+                : (og ? og.getAttribute('content') : DEFAULT_THUMB)
+
+            pendingQueue = true
+            await nui('urlAdded', {
+                thumbnailUrl: thumb,
+                thumbnailTitle: p.twitchCh[1],
+                title: lang.liveFeed || 'Transmissão ao vivo',
+                icon: 'fab fa-twitch icon',
+                url: `https://www.twitch.tv/${p.twitchCh[1]}`
+            })
+        } catch {
+            spin.remove()
+            updateQueueEmpty(els.queue.querySelectorAll('.queue-element:not(.fetching)').length)
             toast(lang.invalidTwitchUrl || lang.invalidUrl)
         }
     } else if (allowAllSources && urlCheck.validity.valid) {
@@ -288,6 +296,9 @@ async function addToQueue() {
 }
 
 function bindEvents() {
+    if (eventsBound) return
+    eventsBound = true
+
     els.close.addEventListener('click', () => nui('hideUi'))
     els.addButton.addEventListener('click', addToQueue)
     els.addInput.addEventListener('keydown', e => { if (e.key === 'Enter') addToQueue() })
@@ -581,6 +592,13 @@ window.addEventListener('message', e => {
 
         case 'cs-hall:error':
             toast(e.data.error, 'error')
+            pendingSync = false
+            pendingQueue = false
+            pendingSeek = false
+            clearQueueFetchers()
+            if (els.seek) {
+                els.seek.disabled = false
+            }
             break
     }
 })
