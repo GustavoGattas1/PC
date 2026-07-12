@@ -114,10 +114,6 @@ function setEnabled(el, state) {
     if (state === true) el.classList.add('enabled')
     else if (state === false) el.classList.add('disabled')
 }
-    el.classList.remove('enabled', 'disabled')
-    if (state === true) el.classList.add('enabled')
-    else if (state === false) el.classList.add('disabled')
-}
 
 function updateQueueEmpty(count) {
     els.queueEmpty.classList.toggle('hidden', count > 0)
