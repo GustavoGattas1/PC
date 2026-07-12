@@ -58,7 +58,60 @@ function setCtrlVisibility(id, visible, autoOnly = false) {
     }
 }
 
+const CONTROL_BUTTONS = {
+    scenesEnabled: { el: 'scenes-enabled', tip: 'scenes', label: 'scenesShort' },
+    bassSmoke: { el: 'bass-smoke', tip: 'bassSmoke', label: 'bassSmokeShort' },
+    bassSparklers: { el: 'bass-sparklers', tip: 'bassSparklers', label: 'bassSparklersShort' },
+    triggerSmoke: { el: 'trigger-smoke', tip: 'triggerSmoke', label: 'triggerSmokeShort' },
+    triggerSparklers: { el: 'trigger-sparklers', tip: 'triggerSparklers', label: 'triggerSparklersShort' },
+    whiteSpotlights: { el: 'white-spotlights', tip: 'whiteSpotlights', label: 'whiteSpotlightsShort' },
+    dynamicSpotlights: { el: 'dynamic-spotlights', tip: 'dynamicSpotlights', label: 'dynamicSpotlightsShort' },
+    photorythmicSpotlights: { el: 'photorythmic-spotlights', tip: 'photorythmicSpotlights', label: 'photorythmicSpotlightsShort' },
+    videoToggle: { el: 'video-toggle', tip: 'videoToggle', label: 'videoToggleShort' },
+    screenControl: { el: 'screen-control', tip: 'screenControl', label: 'screenControlShort' },
+    remoteControl: { el: 'remote-control', tip: 'remoteControl', label: 'remoteControlShort' }
+}
+
+function t(key, fallback = '') {
+    return lang[key] || fallback
+}
+
+function applyLanguage() {
+    $('brand-title').textContent = t('brandTitle', 'Hall Liberdade')
+    $('brand-sub').textContent = t('brandSub', 'Controle de Palco')
+    $('queue-title').innerHTML = `<i class="fas fa-list-ul"></i> ${t('queueTitle', 'Fila de Reprodução')}`
+    $('effects-title').innerHTML = `<i class="fas fa-sliders-h"></i> ${t('effectsTitle', 'Efeitos')}`
+    $('now-label').textContent = t('nowPlaying', 'Tocando agora')
+    $('close').title = t('close', 'Fechar (ESC)')
+    els.addButton.title = t('addToQueue', 'Adicionar à fila')
+    els.addInput.placeholder = allowAllSources ? t('allUrlPlaceholder') : t('urlPlaceholder')
+    els.queueEmpty.querySelector('p').textContent = t('emptyQueue')
+    els.queueEmpty.querySelector('small').textContent = t('emptyQueueHint')
+    els.playButton.title = t('play')
+    els.stopButton.title = t('stop')
+    els.skipButton.title = t('skip')
+    els.loopButton.title = t('loop')
+    els.volumeControl.title = t('volume')
+    els.volume.setAttribute('aria-label', t('volume'))
+
+    for (const cfg of Object.values(CONTROL_BUTTONS)) {
+        const btn = $(cfg.el)
+        if (!btn) continue
+        btn.title = t(cfg.tip)
+        const span = btn.querySelector('[data-label]')
+        if (span) span.textContent = t(cfg.label)
+    }
+}
+
+function updatePlayButtonTitle(isPlaying) {
+    els.playButton.title = isPlaying ? t('pause') : t('play')
+}
+
 function setEnabled(el, state) {
+    el.classList.remove('enabled', 'disabled')
+    if (state === true) el.classList.add('enabled')
+    else if (state === false) el.classList.add('disabled')
+}
     el.classList.remove('enabled', 'disabled')
     if (state === true) el.classList.add('enabled')
     else if (state === false) el.classList.add('disabled')
@@ -142,7 +195,7 @@ async function addToQueue() {
             await nui('urlAdded', {
                 thumbnailUrl: thumb,
                 thumbnailTitle: p.twitchCh[1],
-                title: lang.liveFeed || 'Ao vivo',
+                title: lang.liveFeed || 'Transmissão ao vivo',
                 icon: 'fab fa-twitch icon',
                 url: `https://www.twitch.tv/${p.twitchCh[1]}`
             })
@@ -211,7 +264,7 @@ async function addToQueue() {
             pendingQueue = true
             await nui('urlAdded', {
                 thumbnailUrl: og ? og.getAttribute('content') : '/client/ui/images/frame.svg',
-                thumbnailTitle: lang.twitchClip || 'Clip',
+                thumbnailTitle: lang.twitchClip || 'Clip da Twitch',
                 title: clipId,
                 icon: 'fab fa-twitch icon',
                 url: `https://clips.twitch.tv/embed?clip=${clipId}`
@@ -224,7 +277,7 @@ async function addToQueue() {
         pendingQueue = true
         await nui('urlAdded', {
             thumbnailUrl: '/client/ui/images/frame.svg',
-            thumbnailTitle: lang.frame || 'Frame',
+            thumbnailTitle: lang.frame || 'Mídia',
             title: url,
             icon: 'fas fa-film icon',
             url
@@ -381,6 +434,7 @@ function handleSync(data) {
     document.querySelectorAll('.enabled, .disabled').forEach(el => el.classList.remove('enabled', 'disabled'))
 
     els.playButton.innerHTML = playing ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>'
+    updatePlayButtonTitle(playing)
     if (playing) els.playButton.classList.add('enabled')
 
     els.volume.value = Math.round(data.media.volume * 100)
@@ -488,9 +542,7 @@ function handleQueue(queue) {
 
 function ready(l) {
     lang = l
-    els.addInput.placeholder = allowAllSources ? (lang.allUrlPlaceholder || 'URL') : (lang.urlPlaceholder || 'URL do YouTube ou Twitch')
-    els.queueEmpty.querySelector('p').textContent = lang.emptyQueue || 'Nenhuma mídia na fila'
-    els.queueEmpty.querySelector('small').textContent = lang.emptyQueueHint || 'Cole um link acima'
+    applyLanguage()
     bindEvents()
 }
 
@@ -505,7 +557,7 @@ window.addEventListener('message', e => {
         case 'cs-hall:show':
             document.body.classList.remove('hidden')
             allowAllSources = e.data.allowAllSources
-            if (lang) els.addInput.placeholder = allowAllSources ? lang.allUrlPlaceholder : lang.urlPlaceholder
+            if (Object.keys(lang).length) applyLanguage()
             break
 
         case 'cs-hall:hide':
