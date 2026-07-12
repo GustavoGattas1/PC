@@ -1,0 +1,1 @@
+-- Verificação de versão desativada — recurso customizado Hall Liberdade
