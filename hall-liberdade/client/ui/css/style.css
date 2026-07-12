@@ -370,7 +370,6 @@ body.hidden { display: none !important; }
 
 .ctrl-btn.disabled {
     opacity: 0.35;
-    pointer-events: none;
 }
 
 .ctrl-btn.hidden-ctrl {
