@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Bodycam — Creative Uncharted</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+	<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+	<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+	<!-- HUD overlay (in-game recording) -->
+	<div id="hud" class="hud hidden">
+		<div class="hud-rec"><span class="rec-dot"></span> REC</div>
+		<div class="hud-line" id="hud-session"></div>
+		<div class="hud-line" id="hud-time"></div>
+		<div class="hud-line" id="hud-officer"></div>
+		<div class="hud-line" id="hud-badge"></div>
+		<div class="hud-line" id="hud-unit"></div>
+		<div class="hud-line" id="hud-gps"></div>
+		<div class="hud-line" id="hud-speed"></div>
+		<div class="hud-line" id="hud-battery"></div>
+		<div class="hud-watermark">AXON BODY 3</div>
+	</div>
+
+	<!-- Review panel -->
+	<div id="app" class="hidden">
+		<div class="panel">
+			<header class="panel-header">
+				<div class="brand">
+					<div class="brand-icon">
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+							<circle cx="12" cy="12" r="3"/>
+							<path d="M12 2v2M12 20v2M2 12h2M20 12h2"/>
+							<rect x="4" y="7" width="16" height="10" rx="2"/>
+						</svg>
+					</div>
+					<div>
+						<h1>Bodycam Forensics</h1>
+						<p id="header-subtitle">Central de Revisão — Creative Uncharted</p>
+					</div>
+				</div>
+				<button class="btn-close" id="btn-close" title="Fechar (ESC)">✕</button>
+			</header>
+
+			<div class="panel-body">
+				<aside class="sidebar">
+					<div class="search-box">
+						<input type="text" id="search-input" placeholder="Buscar sessão, oficial, unidade..." />
+						<select id="filter-select">
+							<option value="all">Todas</option>
+							<option value="bookmarked">Com marcações</option>
+							<option value="long">Longas (+5min)</option>
+						</select>
+					</div>
+					<div class="session-list" id="session-list"></div>
+				</aside>
+
+				<main class="detail">
+					<div id="empty-state" class="empty-state">
+						<div class="empty-icon">📹</div>
+						<h2>Selecione uma gravação</h2>
+						<p>Escolha uma sessão na lista para visualizar eventos, marcações e exportar relatório forense.</p>
+					</div>
+
+					<div id="detail-view" class="detail-view hidden">
+						<div class="detail-header">
+							<div>
+								<span class="session-badge" id="detail-id"></span>
+								<h2 id="detail-officer"></h2>
+								<p id="detail-meta"></p>
+							</div>
+							<div class="detail-actions">
+								<button class="btn btn-secondary" id="btn-export">Exportar Relatório</button>
+								<button class="btn btn-danger hidden" id="btn-delete">Excluir</button>
+							</div>
+						</div>
+
+						<div class="stats-row">
+							<div class="stat-card">
+								<span class="stat-label">Duração</span>
+								<span class="stat-value" id="stat-duration">—</span>
+							</div>
+							<div class="stat-card">
+								<span class="stat-label">Eventos</span>
+								<span class="stat-value" id="stat-events">—</span>
+							</div>
+							<div class="stat-card">
+								<span class="stat-label">Marcações</span>
+								<span class="stat-value" id="stat-bookmarks">—</span>
+							</div>
+							<div class="stat-card">
+								<span class="stat-label">Bateria</span>
+								<span class="stat-value" id="stat-battery">—</span>
+							</div>
+						</div>
+
+						<div class="tabs">
+							<button class="tab active" data-tab="timeline">Linha do Tempo</button>
+							<button class="tab" data-tab="bookmarks">Marcações</button>
+							<button class="tab" data-tab="report">Relatório</button>
+						</div>
+
+						<div class="tab-content" id="tab-timeline">
+							<div class="timeline" id="timeline"></div>
+						</div>
+						<div class="tab-content hidden" id="tab-bookmarks">
+							<div class="timeline" id="bookmarks-list"></div>
+						</div>
+						<div class="tab-content hidden" id="tab-report">
+							<pre class="report-box" id="report-box">Carregue uma sessão para gerar o relatório.</pre>
+						</div>
+					</div>
+				</main>
+			</div>
+		</div>
+	</div>
+
+	<script src="js/app.js"></script>
+</body>
+</html>

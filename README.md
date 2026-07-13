@@ -6,6 +6,7 @@ Repositório de scripts para servidor FiveM.
 
 | Resource | Descrição |
 |----------|-----------|
+| [camera-corporal](camera-corporal/) | Câmera corporal policial — gravação, overlay Axon, eventos, bookmarks e painel forense (`/bodycam`) |
 | [iml-evidencias](iml-evidencias/) | Sistema completo de IML e evidências forenses para Creative Uncharted |
 | [loja-vip](loja-vip/) | Loja VIP completa — veículos, casas, planos VIP, packs e NUI moderna (`/loja`) |
 | [sistema-wall](sistema-wall/) | Sistema completo de Wall (ESP) para staff — informações de jogadores em tempo real (`/wall`) |
