@@ -163,7 +163,7 @@ function BCC_BuildHudState(Session)
 		active = Session.active,
 		recording = Session.recording,
 		sessionId = Session.sessionId,
-		timestamp = os.date("%d/%m/%Y %H:%M:%S"),
+		timestamp = BCC_FormatTimestampNow(),
 		officerName = Session.officerName,
 		badge = Session.badge,
 		unit = Session.unit,

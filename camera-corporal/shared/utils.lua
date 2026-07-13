@@ -53,11 +53,49 @@ function BCC_Round(Number, Decimals)
 	return math.floor(Number * Mult + 0.5) / Mult
 end
 
-function BCC_FormatTimestamp(Unix)
-	if Unix then
-		return os.date("%d/%m/%Y %H:%M:%S", Unix)
+function BCC_UnixToDateTime(Unix)
+	Unix = math.floor(Unix or 0)
+	local SecOfDay = Unix % 86400
+	local Days = math.floor(Unix / 86400)
+	local Hour = math.floor(SecOfDay / 3600)
+	local Min = math.floor((SecOfDay % 3600) / 60)
+	local Sec = SecOfDay % 60
+
+	Days = Days + 719468
+	local Era = math.floor((Days >= 0 and Days or Days - 146096) / 146097)
+	local DoE = Days - Era * 146097
+	local YOE = math.floor((DoE - math.floor(DoE / 1460) + math.floor(DoE / 36524) - math.floor(DoE / 146096)) / 365)
+	local Year = YOE + Era * 400
+	local Doy = DoE - (365 * YOE + math.floor(YOE / 4) - math.floor(YOE / 100))
+	local Mp = math.floor((5 * Doy + 2) / 153)
+	local Day = Doy - math.floor((153 * Mp + 2) / 5) + 1
+	local Month = Mp + 3
+
+	if Month > 12 then
+		Month = Month - 12
+		Year = Year + 1
 	end
-	return os.date("%d/%m/%Y %H:%M:%S")
+
+	return string.format("%02d/%02d/%04d %02d:%02d:%02d", Day, Month, Year, Hour, Min, Sec)
+end
+
+function BCC_FormatTimestamp(Unix)
+	if os and os.date then
+		if Unix then
+			return os.date("%d/%m/%Y %H:%M:%S", Unix)
+		end
+		return os.date("%d/%m/%Y %H:%M:%S")
+	end
+
+	if not Unix and GetCloudTimeAsInt then
+		Unix = GetCloudTimeAsInt()
+	end
+
+	return BCC_UnixToDateTime(Unix or 0)
+end
+
+function BCC_FormatTimestampNow()
+	return BCC_FormatTimestamp()
 end
 
 function BCC_FormatDuration(Seconds)
