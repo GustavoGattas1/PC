@@ -16,6 +16,8 @@ vCLIENT = Tunnel.getInterface("sistema-wall")
 -- VARIÁVEIS
 -----------------------------------------------------------------------------------------------------------------------------------------
 local ActiveWalls = {}
+local LastSyncRequest = {}
+local LastSyncSent = {}
 
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- PERMISSÃO
@@ -182,24 +184,58 @@ end, false)
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- EVENTOS
 -----------------------------------------------------------------------------------------------------------------------------------------
+local function Wall_CanSync(Source)
+	if not ActiveWalls[Source] then return false end
+	if not GetPlayerName(Source) then return false end
+
+	local Now = GetGameTimer()
+	local Cooldown = Config.RequestSyncCooldown or Config.UpdateInterval or 5000
+	local Last = LastSyncSent[Source] or 0
+
+	return (Now - Last) >= Cooldown
+end
+
+local function Wall_ForceSync(Source)
+	if not ActiveWalls[Source] or not GetPlayerName(Source) then return end
+
+	LastSyncSent[Source] = GetGameTimer()
+	TriggerClientEvent("sistema-wall:SyncPlayers", Source, Wall_GetOnlinePlayers())
+end
+
+local function Wall_SendSync(Source)
+	if not Wall_CanSync(Source) then return end
+	Wall_ForceSync(Source)
+end
+
 RegisterNetEvent("sistema-wall:RequestSync")
 AddEventHandler("sistema-wall:RequestSync", function()
 	local Source = source
 	local Passport = vRP.Passport(Source)
 
-	if not Passport or not Wall_HasPermission(Passport) then return end
+	if not Passport or not Wall_HasPermission(Passport) or not ActiveWalls[Source] then return end
 
-	TriggerClientEvent("sistema-wall:SyncPlayers", Source, Wall_GetOnlinePlayers())
+	local Now = GetGameTimer()
+	local Cooldown = Config.RequestSyncCooldown or Config.UpdateInterval or 5000
+	local Last = LastSyncRequest[Source] or 0
+
+	if (Now - Last) < Cooldown then return end
+
+	LastSyncRequest[Source] = Now
+	Wall_SendSync(Source)
 end)
 
 AddEventHandler("playerDropped", function()
 	local Source = source
 	ActiveWalls[Source] = nil
+	LastSyncRequest[Source] = nil
+	LastSyncSent[Source] = nil
 	Wall_Bridge_ClearCache(nil)
 end)
 
 AddEventHandler("Disconnect", function(Passport, Source)
 	ActiveWalls[Source] = nil
+	LastSyncRequest[Source] = nil
+	LastSyncSent[Source] = nil
 	if Passport then
 		Wall_Bridge_ClearCache(Passport)
 	end
@@ -210,11 +246,11 @@ end)
 -----------------------------------------------------------------------------------------------------------------------------------------
 CreateThread(function()
 	while true do
-		Wait(Config.UpdateInterval or 500)
+		Wait(Config.UpdateInterval or 5000)
 
 		for Source, Active in pairs(ActiveWalls) do
 			if Active then
-				TriggerClientEvent("sistema-wall:SyncPlayers", Source, Wall_GetOnlinePlayers())
+				Wall_SendSync(Source)
 			end
 		end
 	end
@@ -230,7 +266,7 @@ AddEventHandler("sistema-wall:SetActive", function(Active)
 	ActiveWalls[Source] = Active == true
 
 	if ActiveWalls[Source] then
-		TriggerClientEvent("sistema-wall:SyncPlayers", Source, Wall_GetOnlinePlayers())
+		Wall_ForceSync(Source)
 	end
 end)
 

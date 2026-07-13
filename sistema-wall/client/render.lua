@@ -218,7 +218,7 @@ CreateThread(function()
 			local PedCoords = GetEntityCoords(Ped)
 			local DrawDistance = Config.DrawDistance
 
-			Sleep = Config.RenderSleep or 0
+			Sleep = Config.RenderSleep or 1
 
 			for _, Player in ipairs(GetActivePlayers()) do
 				local TargetPed = GetPlayerPed(Player)
@@ -278,15 +278,3 @@ CreateThread(function()
 	end
 end)
 
------------------------------------------------------------------------------------------------------------------------------------------
--- SYNC PERIÓDICO DO CLIENTE
------------------------------------------------------------------------------------------------------------------------------------------
-CreateThread(function()
-	while true do
-		Wait(Config.UpdateInterval or 500)
-
-		if WallActive then
-			TriggerServerEvent("sistema-wall:RequestSync")
-		end
-	end
-end)

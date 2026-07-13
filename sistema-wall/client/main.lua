@@ -51,9 +51,9 @@ AddEventHandler("sistema-wall:Toggle", function(Active)
 	TriggerServerEvent("sistema-wall:SetActive", WallActive)
 
 	if WallActive then
-		TriggerServerEvent("sistema-wall:RequestSync")
 		Wall_NotifyClient("success", Config.Lang.WallOn, 3000)
 	else
+		WallPlayers = {}
 		Wall_ClearBlips()
 		Wall_NotifyClient("important", Config.Lang.WallOff, 3000)
 	end

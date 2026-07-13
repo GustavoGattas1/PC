@@ -30,8 +30,11 @@ Config.Key = "DELETE"
 -- DISTÂNCIA E PERFORMANCE
 -----------------------------------------------------------------------------------------------------------------------------------------
 Config.DrawDistance = 250.0
-Config.UpdateInterval = 500
-Config.RenderSleep = 0
+-- Intervalo de sync servidor->cliente (ms). Valores baixos saturam a rede e causam timeout.
+Config.UpdateInterval = 5000
+-- Intervalo mínimo entre pedidos manuais de sync (ms)
+Config.RequestSyncCooldown = 5000
+Config.RenderSleep = 1
 
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- EXIBIÇÃO DE INFORMAÇÕES
