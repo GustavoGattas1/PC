@@ -2,10 +2,14 @@ const RESOURCE = typeof GetParentResourceName === "function" ? GetParentResource
 
 let state = {
 	sessions: [],
+	live: [],
 	selectedSession: null,
 	supervisor: false,
+	canWatch: false,
 	currentTab: "timeline",
-	detail: null
+	currentSection: "live",
+	detail: null,
+	liveTimer: null
 };
 
 const $ = (sel) => document.querySelector(sel);
@@ -30,24 +34,83 @@ function formatDuration(seconds) {
 
 function eventIcon(type) {
 	const icons = {
-		weapon_drawn: "🔫",
-		weapon_fired: "💥",
-		pursuit: "🚔",
-		siren: "🚨",
-		damage: "🩹",
-		bookmark: "📌",
-		session_start: "▶️",
-		snapshot: "📍"
+		weapon_drawn: "🔫", weapon_fired: "💥", pursuit: "🚔", siren: "🚨",
+		damage: "🩹", bookmark: "📌", session_start: "▶️", snapshot: "📍"
 	};
 	return icons[type] || "●";
+}
+
+function switchSection(section) {
+	state.currentSection = section;
+	$$(".nav-btn").forEach((b) => b.classList.toggle("active", b.dataset.section === section));
+	$("#section-live").classList.toggle("hidden", section !== "live");
+	$("#section-archive").classList.toggle("hidden", section !== "archive");
+}
+
+function renderLiveGrid() {
+	const grid = $("#live-grid");
+	const empty = $("#live-empty");
+	grid.innerHTML = "";
+
+	$("#stat-live-count").textContent = state.live.length;
+
+	if (!state.canWatch) {
+		grid.innerHTML = `<div class="no-access">Apenas supervisores podem assistir feeds ao vivo.</div>`;
+		empty.classList.add("hidden");
+		return;
+	}
+
+	if (!state.live.length) {
+		empty.classList.remove("hidden");
+		return;
+	}
+
+	empty.classList.add("hidden");
+
+	state.live.forEach((officer) => {
+		const card = document.createElement("div");
+		card.className = "live-card";
+		card.innerHTML = `
+			<div class="live-card-head">
+				<span class="live-rec">● REC</span>
+				<span class="live-elapsed">${formatDuration(officer.elapsed)}</span>
+			</div>
+			<div class="live-card-body">
+				<h3>${officer.officerName}</h3>
+				<p class="live-unit">${officer.unit || "—"} · ${officer.badge || ""}</p>
+				<div class="live-meta">
+					<span>🚗 ${officer.speed || 0} km/h</span>
+					<span>🔋 ${Math.floor(officer.battery || 0)}%</span>
+				</div>
+				<p class="live-street">📍 ${officer.street || "—"}</p>
+				<p class="live-weapon">${officer.weapon || "Desarmado"}</p>
+			</div>
+			<button class="btn btn-primary btn-watch" data-source="${officer.source}">Assistir ao vivo</button>
+		`;
+		card.querySelector(".btn-watch").addEventListener("click", () => watchOfficer(officer));
+		grid.appendChild(card);
+	});
+}
+
+async function refreshLive() {
+	if (!state.canWatch) return;
+	const result = await post("getLiveOfficers");
+	state.live = result.officers || [];
+	renderLiveGrid();
+}
+
+async function watchOfficer(officer) {
+	const result = await post("startWatch", { source: officer.source });
+	if (!result.success) return;
 }
 
 function renderSessionList() {
 	const list = $("#session-list");
 	list.innerHTML = "";
+	$("#stat-archive-count").textContent = state.sessions.length;
 
 	if (!state.sessions.length) {
-		list.innerHTML = `<div style="padding:20px;text-align:center;color:rgba(255,255,255,0.4);font-size:0.8rem">Nenhuma gravação encontrada</div>`;
+		list.innerHTML = `<div class="list-empty">Nenhuma gravação encontrada</div>`;
 		return;
 	}
 
@@ -71,12 +134,27 @@ function renderSessionList() {
 async function selectSession(sessionId) {
 	state.selectedSession = sessionId;
 	renderSessionList();
-
 	const result = await post("loadSession", { sessionId });
 	if (!result.success) return;
-
 	state.detail = result;
 	showDetail(result);
+}
+
+function renderArchiveTimeline(events) {
+	const container = $("#archive-timeline");
+	container.innerHTML = "";
+	const items = (events || []).filter((e) => e.type !== "snapshot").slice(0, 40);
+	if (!items.length) return;
+
+	const max = Math.max(...items.map((e) => e.elapsed || 0), 1);
+	items.forEach((event) => {
+		const mark = document.createElement("button");
+		mark.className = `tl-mark type-${event.type}`;
+		mark.style.left = `${((event.elapsed || 0) / max) * 100}%`;
+		mark.title = `${formatDuration(event.elapsed)} — ${event.label}`;
+		mark.textContent = eventIcon(event.type);
+		container.appendChild(mark);
+	});
 }
 
 function showDetail(data) {
@@ -91,36 +169,28 @@ function showDetail(data) {
 	$("#stat-events").textContent = s.eventCount || 0;
 	$("#stat-bookmarks").textContent = s.bookmarkCount || 0;
 	$("#stat-battery").textContent = `${Math.floor(s.batteryEnd || s.batteryStart || 0)}%`;
-
-	const deleteBtn = $("#btn-delete");
-	if (state.supervisor) {
-		deleteBtn.classList.remove("hidden");
-	} else {
-		deleteBtn.classList.add("hidden");
-	}
+	$("#btn-delete").classList.toggle("hidden", !state.supervisor);
 
 	renderTimeline(data.events || []);
 	renderBookmarks(data.bookmarks || []);
+	renderArchiveTimeline(data.events || []);
 }
 
 function renderTimeline(events) {
 	const container = $("#timeline");
 	container.innerHTML = "";
-
-	const filtered = events.filter((e) => e.type !== "snapshot");
-
+	const filtered = (events || []).filter((e) => e.type !== "snapshot");
 	if (!filtered.length) {
-		container.innerHTML = `<div style="padding:20px;color:rgba(255,255,255,0.4);font-size:0.8rem">Nenhum evento registrado nesta sessão.</div>`;
+		container.innerHTML = `<div class="list-empty">Nenhum evento registrado.</div>`;
 		return;
 	}
-
 	filtered.forEach((event) => {
 		const el = document.createElement("div");
 		el.className = `timeline-item type-${event.type}`;
 		el.innerHTML = `
 			<div class="tl-time">${formatDuration(event.elapsed)}</div>
 			<div class="tl-body">
-				<div class="tl-type">${eventIcon(event.type)} ${event.type.replace(/_/g, " ")}</div>
+				<div class="tl-type">${eventIcon(event.type)} ${(event.type || "").replace(/_/g, " ")}</div>
 				<div class="tl-label">${event.label}</div>
 				${event.street ? `<div class="tl-location">📍 ${event.street}</div>` : ""}
 			</div>
@@ -132,12 +202,10 @@ function renderTimeline(events) {
 function renderBookmarks(bookmarks) {
 	const container = $("#bookmarks-list");
 	container.innerHTML = "";
-
 	if (!bookmarks.length) {
-		container.innerHTML = `<div style="padding:20px;color:rgba(255,255,255,0.4);font-size:0.8rem">Nenhuma marcação nesta sessão.</div>`;
+		container.innerHTML = `<div class="list-empty">Nenhuma marcação.</div>`;
 		return;
 	}
-
 	bookmarks.forEach((bm) => {
 		const el = document.createElement("div");
 		el.className = "timeline-item type-bookmark";
@@ -173,29 +241,84 @@ function updateHud(data) {
 	$("#hud-battery").textContent = data.battery !== undefined ? `BAT: ${Math.floor(data.battery)}%` : "";
 }
 
-function openReview(data) {
+function showLiveOverlay(data) {
+	$("#live-overlay").classList.remove("hidden");
+	$("#live-officer-name").textContent = data.officerName || "Oficial";
+	$("#live-unit").textContent = data.unit || "—";
+	$("#live-speed").textContent = `${data.speed || 0} km/h`;
+	$("#live-battery").textContent = `${Math.floor(data.battery || 0)}%`;
+	$("#live-street").textContent = data.street || "—";
+}
+
+function hideLiveOverlay() {
+	$("#live-overlay").classList.add("hidden");
+}
+
+function showPlaybackOverlay(data) {
+	const session = data.session || {};
+	const duration = data.duration || session.duration || 0;
+	$("#playback-overlay").classList.remove("hidden");
+	$("#playback-session-id").textContent = session.sessionId || "BCC";
+	$("#playback-slider").max = Math.max(1, duration);
+	$("#playback-slider").value = data.elapsed || 0;
+	$("#playback-current").textContent = formatDuration(data.elapsed || 0);
+	$("#playback-total").textContent = formatDuration(duration);
+}
+
+function hidePlaybackOverlay() {
+	$("#playback-overlay").classList.add("hidden");
+}
+
+function updatePlaybackOverlay(data) {
+	if (!data) return;
+	$("#playback-slider").value = data.elapsed || 0;
+	$("#playback-current").textContent = formatDuration(data.elapsed || 0);
+	if (data.frame && data.frame.label) {
+		$("#playback-info").textContent = data.frame.label;
+	}
+}
+
+function openDispatch(data) {
 	state.sessions = data.sessions || [];
+	state.live = data.live || [];
 	state.supervisor = data.supervisor || false;
+	state.canWatch = data.canWatch || false;
 	state.selectedSession = null;
 	state.detail = null;
 
 	if (data.officerName) {
-		$("#header-subtitle").textContent = `Central de Revisão — ${data.officerName}`;
+		$("#header-subtitle").textContent = `Operador: ${data.officerName}`;
 	}
+
+	if (!state.canWatch) switchSection("archive");
+	else switchSection("live");
 
 	$("#app").classList.remove("hidden");
 	$("#empty-state").classList.remove("hidden");
 	$("#detail-view").classList.add("hidden");
+	renderLiveGrid();
 	renderSessionList();
+
+	if (state.liveTimer) clearInterval(state.liveTimer);
+	if (state.canWatch) {
+		state.liveTimer = setInterval(refreshLive, 3000);
+	}
 }
 
 function closeAll() {
+	if (state.liveTimer) {
+		clearInterval(state.liveTimer);
+		state.liveTimer = null;
+	}
 	$("#app").classList.add("hidden");
 	$("#hud").classList.add("hidden");
+	hideLiveOverlay();
+	hidePlaybackOverlay();
 	post("close");
 }
 
 $("#btn-close").addEventListener("click", closeAll);
+$("#btn-refresh-live").addEventListener("click", refreshLive);
 
 $("#btn-export").addEventListener("click", async () => {
 	if (!state.selectedSession) return;
@@ -204,6 +327,11 @@ $("#btn-export").addEventListener("click", async () => {
 		$("#report-box").textContent = result.report;
 		switchTab("report");
 	}
+});
+
+$("#btn-playback").addEventListener("click", async () => {
+	if (!state.selectedSession) return;
+	await post("startPlayback", { sessionId: state.selectedSession });
 });
 
 $("#btn-delete").addEventListener("click", async () => {
@@ -220,35 +348,31 @@ $("#btn-delete").addEventListener("click", async () => {
 });
 
 $("#search-input").addEventListener("input", debounce(async (e) => {
-	const query = e.target.value.trim();
-	const filter = $("#filter-select").value;
-	const result = await post("searchSessions", { query, filter });
+	const result = await post("searchSessions", { query: e.target.value.trim(), filter: $("#filter-select").value });
 	state.sessions = result.sessions || [];
 	renderSessionList();
 }, 300));
 
 $("#filter-select").addEventListener("change", async () => {
-	const query = $("#search-input").value.trim();
-	const filter = $("#filter-select").value;
-	const result = await post("searchSessions", { query, filter });
+	const result = await post("searchSessions", { query: $("#search-input").value.trim(), filter: $("#filter-select").value });
 	state.sessions = result.sessions || [];
 	renderSessionList();
 });
 
-$$(".tab").forEach((tab) => {
-	tab.addEventListener("click", () => switchTab(tab.dataset.tab));
+$("#playback-slider").addEventListener("input", (e) => {
+	post("seekPlayback", { elapsed: Number(e.target.value) });
 });
 
+$$(".nav-btn").forEach((btn) => btn.addEventListener("click", () => switchSection(btn.dataset.section)));
+$$(".tab").forEach((tab) => tab.addEventListener("click", () => switchTab(tab.dataset.tab)));
+
 document.addEventListener("keydown", (e) => {
-	if (e.key === "Escape") closeAll();
+	if (e.key === "Escape" && !$("#app").classList.contains("hidden")) closeAll();
 });
 
 function debounce(fn, ms) {
 	let timer;
-	return (...args) => {
-		clearTimeout(timer);
-		timer = setTimeout(() => fn(...args), ms);
-	};
+	return (...args) => { clearTimeout(timer); timer = setTimeout(() => fn(...args), ms); };
 }
 
 window.addEventListener("message", (event) => {
@@ -256,19 +380,30 @@ window.addEventListener("message", (event) => {
 	if (!msg || !msg.action) return;
 
 	switch (msg.action) {
+		case "openDispatch":
 		case "openReview":
-			openReview(msg.data || {});
+			openDispatch(msg.data || {});
 			break;
 		case "close":
 			$("#app").classList.add("hidden");
 			break;
 		case "hud":
-			if (msg.visible && msg.data) {
-				$("#hud").classList.remove("hidden");
-				updateHud(msg.data);
-			} else {
-				$("#hud").classList.add("hidden");
-			}
+			if (msg.visible && msg.data) { $("#hud").classList.remove("hidden"); updateHud(msg.data); }
+			else $("#hud").classList.add("hidden");
+			break;
+		case "liveOverlay":
+			if (msg.visible) showLiveOverlay(msg.data || {});
+			else hideLiveOverlay();
+			break;
+		case "liveOverlayUpdate":
+			showLiveOverlay(msg.data || {});
+			break;
+		case "playbackOverlay":
+			if (msg.visible) showPlaybackOverlay(msg.data || {});
+			else hidePlaybackOverlay();
+			break;
+		case "playbackOverlayUpdate":
+			updatePlaybackOverlay(msg.data);
 			break;
 	}
 });

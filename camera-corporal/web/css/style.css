@@ -104,8 +104,8 @@ body {
 }
 
 .panel {
-	width: min(1100px, 94vw);
-	height: min(720px, 88vh);
+	width: min(1280px, 96vw);
+	height: min(780px, 90vh);
 	background: var(--panel);
 	border: 1px solid var(--border);
 	border-radius: 12px;
@@ -510,3 +510,256 @@ body {
 	background: rgba(255, 255, 255, 0.12);
 	border-radius: 3px;
 }
+
+/* ─── HEADER STATS ─── */
+.header-stats { display: flex; gap: 16px; margin-right: 12px; }
+.header-stat { text-align: center; }
+.header-stat span { display: block; font-family: var(--mono); font-size: 1.2rem; font-weight: 700; color: var(--accent); }
+.header-stat small { font-size: 0.62rem; color: var(--text-muted); letter-spacing: 0.06em; }
+
+/* ─── MAIN NAV ─── */
+.main-nav {
+	display: flex;
+	gap: 8px;
+	padding: 10px 16px;
+	border-bottom: 1px solid var(--border);
+	background: var(--bg);
+}
+
+.nav-btn {
+	flex: 1;
+	padding: 10px;
+	border: 1px solid var(--border);
+	background: var(--surface);
+	color: var(--text-soft);
+	border-radius: 8px;
+	font-family: var(--sans);
+	font-size: 0.85rem;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.15s;
+}
+
+.nav-btn.active, .nav-btn:hover {
+	border-color: var(--accent);
+	color: var(--accent);
+	background: var(--accent-dim);
+}
+
+/* ─── LIVE SECTION ─── */
+.section-live, .section-archive {
+	flex: 1;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+}
+
+.section-archive { flex-direction: row; }
+
+.live-toolbar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 14px 18px;
+	border-bottom: 1px solid var(--border);
+}
+
+.live-toolbar h2 { font-size: 0.95rem; }
+
+.live-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+	gap: 14px;
+	padding: 16px;
+	overflow-y: auto;
+	flex: 1;
+}
+
+.live-card {
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: 10px;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+	transition: border-color 0.15s, transform 0.15s;
+}
+
+.live-card:hover {
+	border-color: rgba(59, 158, 255, 0.4);
+	transform: translateY(-2px);
+}
+
+.live-card-head {
+	display: flex;
+	justify-content: space-between;
+	padding: 10px 12px;
+	background: rgba(255, 59, 59, 0.1);
+	border-bottom: 1px solid var(--border);
+}
+
+.live-rec { color: var(--rec); font-family: var(--mono); font-size: 0.75rem; font-weight: 700; animation: recBlink 1.6s infinite; }
+.live-elapsed { font-family: var(--mono); font-size: 0.72rem; color: var(--text-muted); }
+
+.live-card-body { padding: 12px; flex: 1; }
+.live-card-body h3 { font-size: 0.95rem; margin-bottom: 4px; }
+.live-unit { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 8px; }
+.live-meta { display: flex; gap: 12px; font-size: 0.72rem; color: var(--text-soft); margin-bottom: 6px; }
+.live-street, .live-weapon { font-size: 0.72rem; color: var(--text-muted); margin-top: 4px; }
+
+.btn-watch { margin: 0 12px 12px; width: calc(100% - 24px); }
+.btn-sm { padding: 6px 10px; font-size: 0.75rem; }
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-primary:hover { filter: brightness(1.1); }
+
+.empty-inline, .list-empty, .no-access {
+	padding: 24px;
+	text-align: center;
+	color: var(--text-muted);
+	font-size: 0.85rem;
+}
+
+/* ─── PLAYER SHELL ─── */
+.player-shell { margin-bottom: 16px; }
+
+.player-screen {
+	background: #000;
+	border: 1px solid var(--border);
+	border-radius: 10px;
+	overflow: hidden;
+}
+
+.player-placeholder {
+	height: 140px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	color: var(--text-muted);
+	background: linear-gradient(180deg, #0d1118, #05070b);
+}
+
+.player-placeholder span { font-size: 2rem; opacity: 0.4; margin-bottom: 8px; }
+.player-placeholder p { font-size: 0.78rem; }
+
+.player-timeline {
+	position: relative;
+	height: 36px;
+	background: var(--bg);
+	border-top: 1px solid var(--border);
+}
+
+.tl-mark {
+	position: absolute;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	width: 24px;
+	height: 24px;
+	border: none;
+	border-radius: 4px;
+	background: var(--surface);
+	font-size: 0.7rem;
+	cursor: pointer;
+}
+
+/* ─── LIVE / PLAYBACK OVERLAYS ─── */
+.live-overlay, .playback-overlay {
+	position: fixed;
+	inset: 0;
+	pointer-events: none;
+	z-index: 200;
+}
+
+.live-top, .playback-top {
+	position: absolute;
+	top: 56px;
+	left: 16px;
+	right: 16px;
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
+.live-pill, .playback-pill {
+	font-family: var(--mono);
+	font-size: 0.75rem;
+	font-weight: 700;
+	padding: 6px 10px;
+	border-radius: 6px;
+}
+
+.live-pill { background: rgba(255, 59, 59, 0.85); color: #fff; animation: recBlink 1.2s infinite; }
+.playback-pill { background: rgba(59, 158, 255, 0.85); color: #fff; }
+
+#live-officer-name, #playback-session-id {
+	font-family: var(--mono);
+	font-size: 0.8rem;
+	color: rgba(255, 255, 255, 0.9);
+	text-shadow: 0 1px 4px rgba(0,0,0,0.9);
+}
+
+.live-bottom {
+	position: absolute;
+	bottom: 24px;
+	left: 16px;
+	right: 16px;
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 8px;
+}
+
+.live-bottom div {
+	background: rgba(0, 0, 0, 0.65);
+	border: 1px solid rgba(255,255,255,0.1);
+	border-radius: 8px;
+	padding: 8px 10px;
+}
+
+.live-bottom .lbl {
+	display: block;
+	font-size: 0.58rem;
+	color: rgba(255,255,255,0.45);
+	letter-spacing: 0.05em;
+	margin-bottom: 2px;
+}
+
+.live-bottom span:last-child {
+	font-family: var(--mono);
+	font-size: 0.72rem;
+	color: #fff;
+}
+
+.playback-bar-wrap {
+	position: absolute;
+	bottom: 48px;
+	left: 16px;
+	right: 16px;
+	background: rgba(0,0,0,0.7);
+	border: 1px solid rgba(255,255,255,0.1);
+	border-radius: 10px;
+	padding: 12px;
+	pointer-events: auto;
+}
+
+#playback-slider { width: 100%; accent-color: var(--accent); }
+
+.playback-times {
+	display: flex;
+	justify-content: space-between;
+	font-family: var(--mono);
+	font-size: 0.7rem;
+	color: rgba(255,255,255,0.7);
+	margin-top: 6px;
+}
+
+.playback-info {
+	position: absolute;
+	bottom: 120px;
+	left: 16px;
+	right: 16px;
+	text-align: center;
+	font-size: 0.78rem;
+	color: rgba(255,255,255,0.8);
+	text-shadow: 0 1px 3px #000;
+}
+

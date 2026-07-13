@@ -42,6 +42,9 @@ Config.CommandAliases = { "camcorporal", "bcc" }
 Config.ReviewCommand = "bodycamreview"
 Config.ReviewAliases = { "bccreview", "revisarcam" }
 
+Config.DispatchCommand = "bodycamcentral"
+Config.DispatchAliases = { "bodycamdispatch", "centralcam", "dispatchcam" }
+
 Config.BookmarkKey = "G"
 Config.BookmarkCommand = "bodycammarcar"
 
@@ -80,6 +83,32 @@ Config.Events = {
 }
 
 Config.PursuitMinSpeed = 80.0
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+-- AO VIVO / DISPATCH (estilo scripts premium)
+-----------------------------------------------------------------------------------------------------------------------------------------
+Config.LiveView = {
+	Enabled = true,
+	TelemetryInterval = 2000,
+	RefreshInterval = 3000,
+	WatchFov = 82.0,
+	WatchBone = 31086,
+	WatchOffset = vec3(0.0, 0.08, 0.14),
+	NotifyOfficer = true,
+	HideViewerPed = true,
+	FreezeViewer = true,
+	MaxWatchDistance = 0.0,
+	AllowOfficersWatchPeers = false
+}
+
+Config.Playback = {
+	Enabled = true,
+	Speed = 1.0,
+	StepMs = 50,
+	UseSnapshots = true,
+	CameraHeight = 1.65,
+	CameraSmooth = 8.0
+}
 
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- HUD (overlay estilo Axon Body 3)
@@ -207,7 +236,15 @@ Config.Lang = {
 	AutoStart = "Bodycam ativada automaticamente — em serviço.",
 	AutoStop = "Bodycam desligada — fora de serviço.",
 	PanelBusy = "Feche o painel aberto antes de continuar.",
-	NearReview = "Pressione ~y~E~w~ para acessar revisão de bodycams",
+	NearReview = "Pressione ~y~E~w~ para acessar a Central de Bodycams",
+	DispatchDenied = "Sem permissão para acessar a central de monitoramento.",
+	LiveWatchStart = "Assistindo bodycam ao vivo: ~b~%s~w~.",
+	LiveWatchStop = "Transmissão ao vivo encerrada.",
+	LiveWatched = "Sua bodycam está sendo monitorada por ~b~%s~w~.",
+	OfficerOffline = "Oficial não está mais disponível.",
+	NoLiveFeeds = "Nenhuma bodycam ativa no momento.",
+	PlaybackStart = "Reproduzindo gravação — use ~y~ESC~w~ para sair.",
+	PlaybackStop = "Reprodução encerrada.",
 	EventWeapon = "Arma sacada: %s",
 	EventShot = "Disparo registrado: %s",
 	EventPursuit = "Perseguição em andamento — %s km/h",

@@ -3,14 +3,13 @@
 <head>
 	<meta charset="UTF-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	<title>Bodycam — Creative Uncharted</title>
+	<title>Bodycam Central — Creative Uncharted</title>
 	<link rel="preconnect" href="https://fonts.googleapis.com" />
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 	<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 	<link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-	<!-- HUD overlay (in-game recording) -->
 	<div id="hud" class="hud hidden">
 		<div class="hud-rec"><span class="rec-dot"></span> REC</div>
 		<div class="hud-line" id="hud-session"></div>
@@ -24,95 +23,134 @@
 		<div class="hud-watermark">AXON BODY 3</div>
 	</div>
 
-	<!-- Review panel -->
+	<div id="live-overlay" class="live-overlay hidden">
+		<div class="live-top">
+			<span class="live-pill">● AO VIVO</span>
+			<span id="live-officer-name">Oficial</span>
+		</div>
+		<div class="live-bottom">
+			<div><span class="lbl">UNIDADE</span><span id="live-unit">—</span></div>
+			<div><span class="lbl">VEL</span><span id="live-speed">0 km/h</span></div>
+			<div><span class="lbl">BAT</span><span id="live-battery">100%</span></div>
+			<div><span class="lbl">LOCAL</span><span id="live-street">—</span></div>
+		</div>
+	</div>
+
+	<div id="playback-overlay" class="playback-overlay hidden">
+		<div class="playback-top">
+			<span class="playback-pill">▶ REPRODUÇÃO</span>
+			<span id="playback-session-id">BCC-00000000</span>
+		</div>
+		<div class="playback-bar-wrap">
+			<input type="range" id="playback-slider" min="0" max="100" value="0" />
+			<div class="playback-times">
+				<span id="playback-current">00:00</span>
+				<span id="playback-total">00:00</span>
+			</div>
+		</div>
+		<div class="playback-info" id="playback-info">—</div>
+	</div>
+
 	<div id="app" class="hidden">
 		<div class="panel">
 			<header class="panel-header">
 				<div class="brand">
 					<div class="brand-icon">
 						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-							<circle cx="12" cy="12" r="3"/>
-							<path d="M12 2v2M12 20v2M2 12h2M20 12h2"/>
 							<rect x="4" y="7" width="16" height="10" rx="2"/>
+							<circle cx="12" cy="12" r="3"/>
 						</svg>
 					</div>
 					<div>
-						<h1>Bodycam Forensics</h1>
-						<p id="header-subtitle">Central de Revisão — Creative Uncharted</p>
+						<h1>Bodycam Central</h1>
+						<p id="header-subtitle">Monitoramento & Evidências — Creative Uncharted</p>
 					</div>
 				</div>
-				<button class="btn-close" id="btn-close" title="Fechar (ESC)">✕</button>
+				<div class="header-stats">
+					<div class="header-stat"><span id="stat-live-count">0</span><small>AO VIVO</small></div>
+					<div class="header-stat"><span id="stat-archive-count">0</span><small>GRAVAÇÕES</small></div>
+				</div>
+				<button class="btn-close" id="btn-close">✕</button>
 			</header>
 
+			<nav class="main-nav">
+				<button class="nav-btn active" data-section="live">📡 Ao Vivo</button>
+				<button class="nav-btn" data-section="archive">📼 Gravações</button>
+			</nav>
+
 			<div class="panel-body">
-				<aside class="sidebar">
-					<div class="search-box">
-						<input type="text" id="search-input" placeholder="Buscar sessão, oficial, unidade..." />
-						<select id="filter-select">
-							<option value="all">Todas</option>
-							<option value="bookmarked">Com marcações</option>
-							<option value="long">Longas (+5min)</option>
-						</select>
+				<section id="section-live" class="section-live">
+					<div class="live-toolbar">
+						<h2>Feeds ativos</h2>
+						<button class="btn btn-secondary btn-sm" id="btn-refresh-live">Atualizar</button>
 					</div>
-					<div class="session-list" id="session-list"></div>
-				</aside>
+					<div id="live-grid" class="live-grid"></div>
+					<div id="live-empty" class="empty-inline hidden">Nenhuma bodycam ativa no momento.</div>
+				</section>
 
-				<main class="detail">
-					<div id="empty-state" class="empty-state">
-						<div class="empty-icon">📹</div>
-						<h2>Selecione uma gravação</h2>
-						<p>Escolha uma sessão na lista para visualizar eventos, marcações e exportar relatório forense.</p>
-					</div>
-
-					<div id="detail-view" class="detail-view hidden">
-						<div class="detail-header">
-							<div>
-								<span class="session-badge" id="detail-id"></span>
-								<h2 id="detail-officer"></h2>
-								<p id="detail-meta"></p>
-							</div>
-							<div class="detail-actions">
-								<button class="btn btn-secondary" id="btn-export">Exportar Relatório</button>
-								<button class="btn btn-danger hidden" id="btn-delete">Excluir</button>
-							</div>
+				<section id="section-archive" class="section-archive hidden">
+					<aside class="sidebar">
+						<div class="search-box">
+							<input type="text" id="search-input" placeholder="Buscar oficial, sessão, unidade..." />
+							<select id="filter-select">
+								<option value="all">Todas</option>
+								<option value="bookmarked">Com marcações</option>
+								<option value="long">Longas (+5min)</option>
+							</select>
 						</div>
+						<div class="session-list" id="session-list"></div>
+					</aside>
 
-						<div class="stats-row">
-							<div class="stat-card">
-								<span class="stat-label">Duração</span>
-								<span class="stat-value" id="stat-duration">—</span>
-							</div>
-							<div class="stat-card">
-								<span class="stat-label">Eventos</span>
-								<span class="stat-value" id="stat-events">—</span>
-							</div>
-							<div class="stat-card">
-								<span class="stat-label">Marcações</span>
-								<span class="stat-value" id="stat-bookmarks">—</span>
-							</div>
-							<div class="stat-card">
-								<span class="stat-label">Bateria</span>
-								<span class="stat-value" id="stat-battery">—</span>
-							</div>
+					<main class="detail">
+						<div id="empty-state" class="empty-state">
+							<div class="empty-icon">📼</div>
+							<h2>Selecione uma gravação</h2>
+							<p>Visualize eventos, reproduza a rota da patrulha e exporte relatório forense completo.</p>
 						</div>
 
-						<div class="tabs">
-							<button class="tab active" data-tab="timeline">Linha do Tempo</button>
-							<button class="tab" data-tab="bookmarks">Marcações</button>
-							<button class="tab" data-tab="report">Relatório</button>
-						</div>
+						<div id="detail-view" class="detail-view hidden">
+							<div class="detail-header">
+								<div>
+									<span class="session-badge" id="detail-id"></span>
+									<h2 id="detail-officer"></h2>
+									<p id="detail-meta"></p>
+								</div>
+								<div class="detail-actions">
+									<button class="btn btn-primary" id="btn-playback">▶ Reproduzir</button>
+									<button class="btn btn-secondary" id="btn-export">Exportar</button>
+									<button class="btn btn-danger hidden" id="btn-delete">Excluir</button>
+								</div>
+							</div>
 
-						<div class="tab-content" id="tab-timeline">
-							<div class="timeline" id="timeline"></div>
+							<div class="player-shell">
+								<div class="player-screen">
+									<div class="player-placeholder">
+										<span>▶</span>
+										<p>Clique em Reproduzir para assistir a gravação in-game</p>
+									</div>
+									<div class="player-timeline" id="archive-timeline"></div>
+								</div>
+							</div>
+
+							<div class="stats-row">
+								<div class="stat-card"><span class="stat-label">Duração</span><span class="stat-value" id="stat-duration">—</span></div>
+								<div class="stat-card"><span class="stat-label">Eventos</span><span class="stat-value" id="stat-events">—</span></div>
+								<div class="stat-card"><span class="stat-label">Marcações</span><span class="stat-value" id="stat-bookmarks">—</span></div>
+								<div class="stat-card"><span class="stat-label">Bateria</span><span class="stat-value" id="stat-battery">—</span></div>
+							</div>
+
+							<div class="tabs">
+								<button class="tab active" data-tab="timeline">Linha do Tempo</button>
+								<button class="tab" data-tab="bookmarks">Marcações</button>
+								<button class="tab" data-tab="report">Relatório</button>
+							</div>
+
+							<div class="tab-content" id="tab-timeline"><div class="timeline" id="timeline"></div></div>
+							<div class="tab-content hidden" id="tab-bookmarks"><div class="timeline" id="bookmarks-list"></div></div>
+							<div class="tab-content hidden" id="tab-report"><pre class="report-box" id="report-box">Carregue uma sessão para gerar o relatório.</pre></div>
 						</div>
-						<div class="tab-content hidden" id="tab-bookmarks">
-							<div class="timeline" id="bookmarks-list"></div>
-						</div>
-						<div class="tab-content hidden" id="tab-report">
-							<pre class="report-box" id="report-box">Carregue uma sessão para gerar o relatório.</pre>
-						</div>
-					</div>
-				</main>
+					</main>
+				</section>
 			</div>
 		</div>
 	</div>

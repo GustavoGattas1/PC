@@ -128,6 +128,32 @@ end, false)
 RegisterKeyMapping(Config.Command, "Alternar Câmera Corporal", "keyboard", "F9")
 RegisterKeyMapping(Config.BookmarkCommand, "Marcar Incidente (Bodycam)", "keyboard", Config.BookmarkKey)
 
+local function RegisterDispatchCommand(Name)
+	RegisterCommand(Name, function()
+		if BCC_IsNuiOpen() then
+			BCC_CloseNui()
+			return
+		end
+
+		if BCC_IsWatchingLive() then
+			BCC_StopLiveWatch(true)
+			return
+		end
+
+		local Result = vSERVER.OpenDispatch()
+		if Result and Result.success then
+			BCC_OpenDispatch(Result)
+		else
+			BCC_Notify("negado", Result and Result.message or Config.Lang.DispatchDenied)
+		end
+	end, false)
+end
+
+RegisterDispatchCommand(Config.DispatchCommand)
+for _, Alias in ipairs(Config.DispatchAliases or {}) do
+	RegisterDispatchCommand(Alias)
+end
+
 local function RegisterReviewCommand(Name)
 	RegisterCommand(Name, function()
 		if BCC_IsNuiOpen() then
@@ -137,7 +163,7 @@ local function RegisterReviewCommand(Name)
 
 		local Result = vSERVER.OpenReview()
 		if Result and Result.success then
-			BCC_OpenReview(Result)
+			BCC_OpenDispatch(Result)
 		else
 			BCC_Notify("negado", Result and Result.message or Config.Lang.ReviewDenied)
 		end
@@ -175,7 +201,7 @@ CreateThread(function()
 					BCC_DrawHelpText(Config.Lang.NearReview)
 
 					if IsControlJustPressed(0, 38) then
-						ExecuteCommand(Config.ReviewCommand)
+						ExecuteCommand(Config.DispatchCommand)
 					end
 				end
 			end

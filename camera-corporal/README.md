@@ -1,19 +1,19 @@
 # Câmera Corporal Policial
 
-Sistema profissional de **bodycam** para servidores FiveM com base **vRP / Creative Uncharted**. Gravação com overlay estilo Axon Body 3, detecção automática de eventos, marcações de incidente e painel forense de revisão.
+Sistema profissional de **bodycam** para servidores FiveM com base **vRP / Creative Uncharted**. Gravação com overlay estilo Axon Body 3, **monitoramento ao vivo**, reprodução de gravações, detecção automática de eventos e central forense completa.
 
 ## Funcionalidades
 
 | Recurso | Descrição |
 |---------|-----------|
-| Overlay HUD | REC piscando, timestamp, oficial, crachá, unidade, GPS, velocidade e bateria |
-| Gravação inteligente | Logs de arma sacada, disparos, perseguição, sirene, dano e snapshots periódicos |
-| Marcações | Tecla `G` ou `/bodycammarcar` para marcar incidentes na gravação |
-| Bateria simulada | Drenagem realista com alerta de bateria baixa e desligamento automático |
-| Prop físico | Câmera corporal visível no peito do uniforme |
-| Painel de revisão | NUI moderna com linha do tempo, marcações e exportação de relatório |
-| Supervisores | Comandantes podem revisar gravações de todos os oficiais |
-| Auto start/stop | Liga ao entrar em serviço e desliga ao sair (configurável) |
+| **Central Bodycam** | Painel unificado com abas Ao Vivo e Gravações (`/bodycamcentral`) |
+| **Ao vivo** | Supervisores assistem a POV da bodycam de oficiais em tempo real |
+| **Reprodução** | Player in-game que percorre a rota gravada com timeline de eventos |
+| Overlay HUD | REC, timestamp, oficial, crachá, unidade, GPS, velocidade e bateria |
+| Gravação inteligente | Logs de arma, disparos, perseguição, sirene, dano e snapshots |
+| Marcações | Tecla `G` ou `/bodycammarcar` para marcar incidentes |
+| Painel forense | Linha do tempo, marcações, exportação de relatório |
+| Supervisores | Comandantes monitoram ao vivo e revisam todas as gravações |
 
 ## Instalação
 
@@ -32,17 +32,21 @@ ensure camera-corporal
 | Comando | Descrição |
 |---------|-----------|
 | `/bodycam` | Liga/desliga a câmera corporal |
+| `/bodycamcentral` | Abre a central (ao vivo + gravações) |
+| `/bodycamreview` | Alias da central de gravações |
 | `/bodycammarcar` | Marca um incidente na gravação ativa |
-| `/bodycamreview` | Abre o painel de revisão de gravações |
 | `F9` | Atalho para alternar bodycam |
 | `G` | Atalho para marcar incidente |
+| `ESC` | Sair do modo ao vivo ou reprodução |
 
 ## Configuração
 
 Edite `config.lua` para ajustar:
 
 - **Config.Groups** — grupos policiais com acesso
-- **Config.SupervisorGroups** — quem pode revisar gravações de outros
+- **Config.SupervisorGroups** — quem pode ver ao vivo e revisar gravações de outros
+- **Config.LiveView** — telemetria, FOV da câmera, notificar oficial monitorado
+- **Config.Playback** — velocidade e suavidade da reprodução
 - **Config.Item** — item obrigatório (`nil` para desativar)
 - **Config.Recording** — duração máxima, bateria, snapshots
 - **Config.Events** — quais eventos detectar automaticamente

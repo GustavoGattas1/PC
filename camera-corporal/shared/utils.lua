@@ -130,6 +130,27 @@ function BCC_CoordsToString(Coords)
 	return string.format("%.2f, %.2f, %.2f", Coords.x or 0, Coords.y or 0, Coords.z or 0)
 end
 
+function BCC_ParseCoords(Value)
+	if type(Value) == "table" then
+		return {
+			x = tonumber(Value.x) or 0.0,
+			y = tonumber(Value.y) or 0.0,
+			z = tonumber(Value.z) or 0.0
+		}
+	end
+
+	if type(Value) ~= "string" then return nil end
+
+	local X, Y, Z = Value:match("([%-%d%.]+)%s*,%s*([%-%d%.]+)%s*,%s*([%-%d%.]+)")
+	if not X then return nil end
+
+	return {
+		x = tonumber(X) or 0.0,
+		y = tonumber(Y) or 0.0,
+		z = tonumber(Z) or 0.0
+	}
+end
+
 function BCC_TableCopy(Original)
 	if type(Original) ~= "table" then return Original end
 	local Copy = {}

@@ -15,7 +15,7 @@ vCLIENT = Tunnel.getInterface("camera-corporal")
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- ESTADO
 -----------------------------------------------------------------------------------------------------------------------------------------
-local ActiveSessions = {}
+ActiveSessions = {}
 
 -----------------------------------------------------------------------------------------------------------------------------------------
 -- PERMISSÕES
@@ -109,7 +109,11 @@ function BCC.StartSession()
 	ActiveSessions[Passport] = {
 		sessionId = SessionId,
 		source = Source,
-		startedAt = os.time()
+		startedAt = os.time(),
+		officerName = OfficerName,
+		unit = Unit,
+		badge = Badge,
+		telemetry = {}
 	}
 
 	return {
@@ -123,28 +127,7 @@ function BCC.StartSession()
 end
 
 function BCC.OpenReview()
-	local Source = source
-	local Passport = vRP.Passport(Source)
-
-	if not Passport or not BCC_HasPermission(Passport) then
-		return { success = false, message = Config.Lang.ReviewDenied }
-	end
-
-	local AllAccess = BCC_IsSupervisor(Passport)
-	local Rows = BCC_DB_GetSessions(Passport, 50, AllAccess)
-	local Sessions = {}
-
-	for _, Row in ipairs(Rows) do
-		Sessions[#Sessions + 1] = BCC_DB_FormatSession(Row)
-	end
-
-	return {
-		success = true,
-		sessions = Sessions,
-		supervisor = AllAccess,
-		officerName = BCC_Bridge_GetPlayerName(Passport),
-		passport = Passport
-	}
+	return BCC.OpenDispatch()
 end
 
 function BCC.GetSessionDetails(SessionId)
@@ -174,7 +157,8 @@ function BCC.GetSessionDetails(SessionId)
 			street = Event.street,
 			speed = Event.speed,
 			elapsed = Event.elapsed,
-			timestamp = Event.created_at
+			timestamp = Event.created_at,
+			metadata = Event.metadata
 		}
 	end
 
