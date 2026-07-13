@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/libraries/font-awesome.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <script>['dragover', 'drop'].forEach(e => window.addEventListener(e, ev => ev.preventDefault(), false))</script>
+</head>
+<body class="hidden">
+    <div id="app">
+        <header class="header">
+            <div class="brand">
+                <div class="brand-icon"><img src="images/brand.png" alt="Gustavo DJ Produções" /></div>
+                <div class="brand-text">
+                    <span id="brand-title" class="brand-title">Hall Liberdade</span>
+                    <span id="brand-sub" class="brand-sub">Controle de Palco</span>
+                </div>
+            </div>
+            <button id="close" class="icon-btn" title="Fechar (ESC)"><i class="fas fa-times"></i></button>
+        </header>
+
+        <div class="toolbar">
+            <div class="url-input-wrap">
+                <i class="fas fa-link url-icon"></i>
+                <input type="text" id="add-input" autocomplete="off" spellcheck="false" />
+                <button id="add-button" class="add-btn" title="Adicionar à fila"><i class="fas fa-plus"></i></button>
+            </div>
+        </div>
+
+        <main class="main">
+            <section class="queue-section">
+                <div class="section-head">
+                    <h2 id="queue-title"><i class="fas fa-list-ul"></i> Fila de Reprodução</h2>
+                    <span id="queue-count" class="badge">0</span>
+                </div>
+                <div id="queue" class="queue-list"></div>
+                <div id="queue-empty" class="queue-empty">
+                    <i class="fas fa-music"></i>
+                    <p>Nenhuma mídia na fila</p>
+                    <small>Cole um link do YouTube ou Twitch acima</small>
+                </div>
+            </section>
+
+            <aside class="controls-section">
+                <div class="section-head"><h2 id="effects-title"><i class="fas fa-sliders-h"></i> Efeitos</h2></div>
+                <div id="controls-container" class="controls-grid">
+                    <button id="scenes-enabled" class="ctrl-btn"><i class="fas fa-star-and-crescent"></i><span data-label="scenesShort"></span></button>
+                    <button id="bass-smoke" class="ctrl-btn"><i class="fas fa-smog"></i><span data-label="bassSmokeShort"></span></button>
+                    <button id="bass-sparklers" class="ctrl-btn"><i class="fas fa-burn"></i><span data-label="bassSparklersShort"></span></button>
+                    <button id="trigger-smoke" class="ctrl-btn"><i class="fas fa-cloud"></i><span data-label="triggerSmokeShort"></span></button>
+                    <button id="trigger-sparklers" class="ctrl-btn"><i class="fas fa-fire-alt"></i><span data-label="triggerSparklersShort"></span></button>
+                    <button id="white-spotlights" class="ctrl-btn"><i class="fas fa-lightbulb"></i><span data-label="whiteSpotlightsShort"></span></button>
+                    <button id="dynamic-spotlights" class="ctrl-btn"><i class="fas fa-palette"></i><span data-label="dynamicSpotlightsShort"></span></button>
+                    <button id="photorythmic-spotlights" class="ctrl-btn"><i class="fas fa-wave-square"></i><span data-label="photorythmicSpotlightsShort"></span></button>
+                    <button id="video-toggle" class="ctrl-btn"><i class="fas fa-photo-video"></i><span data-label="videoToggleShort"></span></button>
+                    <button id="screen-control" class="ctrl-btn"><i class="fas fa-tv"></i><span data-label="screenControlShort"></span></button>
+                    <button id="remote-control" class="ctrl-btn"><i class="fas fa-mobile-alt"></i><span data-label="remoteControlShort"></span></button>
+                </div>
+            </aside>
+        </main>
+
+        <div id="seek-control" class="seek-bar hidden">
+            <span id="start-seek-text" class="time-label">00:00</span>
+            <input type="range" id="seek" min="0" max="0" value="0" step="1">
+            <span id="end-seek-text" class="time-label">00:00</span>
+        </div>
+
+        <footer id="player" class="player">
+            <div id="player-container" class="player-inner">
+                <div id="media-info" class="now-playing">
+                    <div id="media-image" class="media-thumb"></div>
+                    <div class="media-meta">
+                        <span id="now-label" class="now-label">Tocando agora</span>
+                        <div id="media-title" class="media-title"></div>
+                    </div>
+                </div>
+
+                <div class="transport">
+                    <button id="play-button" class="transport-btn primary" title="Reproduzir"><i class="fas fa-play"></i></button>
+                    <button id="stop-button" class="transport-btn" title="Parar"><i class="fas fa-stop"></i></button>
+                    <button id="skip-button" class="transport-btn" title="Pular faixa"><i class="fas fa-step-forward"></i></button>
+                    <button id="loop-button" class="transport-btn" title="Repetir"><i class="fas fa-redo"></i></button>
+                </div>
+
+                <div id="volume-control" class="volume-wrap" title="Volume">
+                    <i class="fas fa-volume-up volume-icon" aria-hidden="true"></i>
+                    <input type="range" id="volume" min="0" max="150" value="50" step="1" aria-label="Volume">
+                    <span id="volume-text" class="volume-label">50%</span>
+                </div>
+            </div>
+        </footer>
+
+        <div id="spinner" class="spinner"><i class="fas fa-spinner fa-spin"></i></div>
+        <div id="toast-container" class="toast-container"></div>
+    </div>
+
+    <script src="javascript/script.js"></script>
+</body>
+</html>
