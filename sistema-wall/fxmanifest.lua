@@ -5,7 +5,7 @@ lua54 "yes"
 name "sistema-wall"
 author "Creative Uncharted"
 description "Sistema completo de Wall (ESP) para staff — informações de jogadores em tempo real"
-version "1.1.1"
+version "1.2.0"
 
 shared_scripts {
 	"@vrp/lib/Utils.lua",

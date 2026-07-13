@@ -1,18 +1,22 @@
 -----------------------------------------------------------------------------------------------------------------------------------------
--- RENDERIZAÇÃO DO WALL
+-- RENDERIZAÇÃO DO WALL (otimizado — baixo consumo)
 -----------------------------------------------------------------------------------------------------------------------------------------
 local PlayerBlips = {}
 local InfoLines = {}
 local StatsParts = {}
+local CachedPlayers = {}
+local CachedPlayersAt = 0
 
 local Display = Config.Display
 local Colors = Config.Colors
-local DrawDistance = Config.DrawDistance
+local DrawDistance = Config.DrawDistance or 120.0
 local DrawDistanceSq = DrawDistance * DrawDistance
-local HeadOffset = Config.HeadOffset or 0.35
-local TextScale = Config.TextScale or 0.22
-local TextLineSpacing = Config.TextLineSpacing or 0.014
+local TextScale = Config.TextScale or 0.20
+local TextLineSpacing = Config.TextLineSpacing or 0.012
 local LowHealth = Config.LowHealthThreshold or 120
+local RenderSleep = Config.RenderSleep or 200
+local IdleSleep = Config.IdleSleep or 2000
+local PlayerListRefresh = Config.PlayerListRefresh or 500
 
 local ShowPassport = Display.Passport
 local ShowSteam = Display.SteamName
@@ -27,7 +31,7 @@ local ShowLine = Display.Line
 local ShowSkeleton = Display.Skeleton
 local ShowBlip = Display.Blip
 local ShowSelf = Display.Self
-local ShowNpcs = Display.Npcs
+local ShowHudBadge = Display.HudBadge
 
 local LineColor = Colors.Line
 local SkeletonColor = Colors.Skeleton
@@ -51,6 +55,17 @@ local function ClearTable(T)
 	end
 end
 
+local function RefreshPlayerList()
+	local Now = GetGameTimer()
+	if (Now - CachedPlayersAt) < PlayerListRefresh then
+		return CachedPlayers
+	end
+
+	CachedPlayers = GetActivePlayers()
+	CachedPlayersAt = Now
+	return CachedPlayers
+end
+
 local function DrawText3D(x, y, z, Lines, R, G, B, A)
 	local OnScreen, ScreenX, ScreenY = World3dToScreen2d(x, y, z)
 	if not OnScreen then return end
@@ -61,12 +76,12 @@ local function DrawText3D(x, y, z, Lines, R, G, B, A)
 	SetTextCentre(true)
 
 	for i = 1, #Lines do
-		local Scale = math.max(0.18, TextScale - ((i - 1) * 0.02))
+		local Scale = math.max(0.16, TextScale - ((i - 1) * 0.018))
 		SetTextScale(Scale, Scale)
 		SetTextColour(R, G, B, A)
 		SetTextEntry("STRING")
 		AddTextComponentString(Lines[i])
-		DrawText(ScreenX, ScreenY - 0.03 - ((i - 1) * TextLineSpacing))
+		DrawText(ScreenX, ScreenY - 0.028 - ((i - 1) * TextLineSpacing))
 	end
 end
 
@@ -82,19 +97,6 @@ local function GetColor(Health, IsSelf, IsStaff, IsDead)
 	return ColorAlive
 end
 
-local function DrawLineToTarget(Px, Py, Pz, Tx, Ty, Tz)
-	DrawLine(Px, Py, Pz, Tx, Ty, Tz, LineColor[1], LineColor[2], LineColor[3], LineColor[4])
-end
-
-local function DrawSkeleton(Ped)
-	for i = 1, #SkeletonBones do
-		local Pair = SkeletonBones[i]
-		local Bone1 = GetPedBoneCoords(Ped, Pair[1], 0.0, 0.0, 0.0)
-		local Bone2 = GetPedBoneCoords(Ped, Pair[2], 0.0, 0.0, 0.0)
-		DrawLine(Bone1.x, Bone1.y, Bone1.z, Bone2.x, Bone2.y, Bone2.z, SkeletonColor[1], SkeletonColor[2], SkeletonColor[3], SkeletonColor[4])
-	end
-end
-
 function Wall_ClearBlips()
 	for ServerId, Blip in pairs(PlayerBlips) do
 		if DoesBlipExist(Blip) then
@@ -102,22 +104,6 @@ function Wall_ClearBlips()
 		end
 		PlayerBlips[ServerId] = nil
 	end
-end
-
-local function UpdateBlip(ServerId, Ped, Name)
-	local Blip = PlayerBlips[ServerId]
-	if not Blip or not DoesBlipExist(Blip) then
-		Blip = AddBlipForEntity(Ped)
-		SetBlipSprite(Blip, 1)
-		SetBlipScale(Blip, 0.7)
-		SetBlipColour(Blip, 3)
-		SetBlipAsShortRange(Blip, false)
-		PlayerBlips[ServerId] = Blip
-	end
-
-	BeginTextCommandSetBlipName("STRING")
-	AddTextComponentString(Name)
-	EndTextCommandSetBlipName(Blip)
 end
 
 local function BuildInfoLines(ServerId, Ped, Distance, PlayerData)
@@ -186,7 +172,7 @@ local function BuildInfoLines(ServerId, Ped, Distance, PlayerData)
 end
 
 -----------------------------------------------------------------------------------------------------------------------------------------
--- LOOP PRINCIPAL (render + HUD em um único thread)
+-- LOOP PRINCIPAL
 -----------------------------------------------------------------------------------------------------------------------------------------
 CreateThread(function()
 	while true do
@@ -194,13 +180,12 @@ CreateThread(function()
 			if next(PlayerBlips) then
 				Wall_ClearBlips()
 			end
-			Wait(1000)
+			Wait(IdleSleep)
 		else
 			local Ped = PlayerPedId()
 			local PedCoords = GetEntityCoords(Ped)
 			local Px, Py, Pz = PedCoords.x, PedCoords.y, PedCoords.z
-			local VisibleCount = 0
-			local Players = GetActivePlayers()
+			local Players = RefreshPlayerList()
 
 			for i = 1, #Players do
 				local PlayerId = Players[i]
@@ -216,50 +201,62 @@ CreateThread(function()
 						local DistSq = Dx * Dx + Dy * Dy + Dz * Dz
 
 						if DistSq <= DrawDistanceSq then
-							VisibleCount = VisibleCount + 1
+							local Distance = ShowDistance and math.sqrt(DistSq) or 0.0
 							local PlayerData = WallPlayers[ServerId]
 							local Health = GetEntityHealth(TargetPed)
-							local Lines, IsDead = BuildInfoLines(ServerId, TargetPed, math.sqrt(DistSq), PlayerData)
-							local Color = GetColor(Health, IsSelf, PlayerData and PlayerData.staff, IsDead)
-							local Hx, Hy, Hz = Wall_GetHeadCoords(TargetPed)
+							local Lines, IsDead = BuildInfoLines(ServerId, TargetPed, Distance, PlayerData)
 
 							if #Lines > 0 then
+								local Color = GetColor(Health, IsSelf, PlayerData and PlayerData.staff, IsDead)
+								local Hx, Hy, Hz = Wall_GetHeadCoords(TargetPed)
 								DrawText3D(Hx, Hy, Hz, Lines, Color[1], Color[2], Color[3], Color[4])
-							end
 
-							if ShowLine and not IsSelf then
-								DrawLineToTarget(Px, Py, Pz, Hx, Hy, Hz)
+								if ShowLine and not IsSelf then
+									DrawLine(Px, Py, Pz, Hx, Hy, Hz, LineColor[1], LineColor[2], LineColor[3], LineColor[4])
+								end
 							end
 
 							if ShowSkeleton then
-								DrawSkeleton(TargetPed)
+								for b = 1, #SkeletonBones do
+									local Pair = SkeletonBones[b]
+									local Bone1 = GetPedBoneCoords(TargetPed, Pair[1], 0.0, 0.0, 0.0)
+									local Bone2 = GetPedBoneCoords(TargetPed, Pair[2], 0.0, 0.0, 0.0)
+									DrawLine(Bone1.x, Bone1.y, Bone1.z, Bone2.x, Bone2.y, Bone2.z, SkeletonColor[1], SkeletonColor[2], SkeletonColor[3], SkeletonColor[4])
+								end
 							end
 
 							if ShowBlip then
-								UpdateBlip(ServerId, TargetPed, (PlayerData and (PlayerData.steam or PlayerData.name)) or ("#" .. ServerId))
+								local Blip = PlayerBlips[ServerId]
+								if not Blip or not DoesBlipExist(Blip) then
+									Blip = AddBlipForEntity(TargetPed)
+									SetBlipSprite(Blip, 1)
+									SetBlipScale(Blip, 0.6)
+									SetBlipAsShortRange(Blip, true)
+									PlayerBlips[ServerId] = Blip
+								end
 							end
 						elseif ShowBlip then
 							local Blip = PlayerBlips[ServerId]
-							if Blip then
-								if DoesBlipExist(Blip) then
-									RemoveBlip(Blip)
-								end
-								PlayerBlips[ServerId] = nil
+							if Blip and DoesBlipExist(Blip) then
+								RemoveBlip(Blip)
 							end
+							PlayerBlips[ServerId] = nil
 						end
 					end
 				end
 			end
 
-			SetTextFont(4)
-			SetTextScale(0.32, 0.32)
-			SetTextColour(100, 200, 255, 200)
-			SetTextOutline()
-			SetTextEntry("STRING")
-			AddTextComponentString("~b~WALL ATIVO~w~ | " .. VisibleCount .. " jogador(es)")
-			DrawText(0.015, 0.02)
+			if ShowHudBadge then
+				SetTextFont(4)
+				SetTextScale(0.30, 0.30)
+				SetTextColour(100, 200, 255, 180)
+				SetTextOutline()
+				SetTextEntry("STRING")
+				AddTextComponentString("~b~WALL")
+				DrawText(0.015, 0.02)
+			end
 
-			Wait(Config.RenderSleep or 0)
+			Wait(RenderSleep)
 		end
 	end
 end)

@@ -15,6 +15,7 @@ Tunnel.bindInterface("sistema-wall", Wall)
 -- VARIÁVEIS
 -----------------------------------------------------------------------------------------------------------------------------------------
 local ActiveWalls = {}
+local ActiveCount = 0
 local CachedPlayers = {}
 local CachedPlayersDirty = true
 local ShowCharacterName = Config.Display.Name
@@ -31,6 +32,16 @@ local function GetPlayerGroup(Passport)
 		if vRP.HasGroup(Passport, Config.Groups[i]) then
 			return Config.Groups[i]
 		end
+	end
+end
+
+local function SetWallActive(Source, Active)
+	if Active and not ActiveWalls[Source] then
+		ActiveWalls[Source] = true
+		ActiveCount = ActiveCount + 1
+	elseif not Active and ActiveWalls[Source] then
+		ActiveWalls[Source] = nil
+		ActiveCount = math.max(0, ActiveCount - 1)
 	end
 end
 
@@ -87,6 +98,7 @@ local function GetPlayerCache()
 end
 
 local function BroadcastPlayerCache()
+	if ActiveCount <= 0 then return end
 	local Players = GetPlayerCache()
 	for Source, Active in pairs(ActiveWalls) do
 		if Active then
@@ -115,8 +127,9 @@ RegisterCommand(Config.Command, function(Source)
 		return
 	end
 
-	ActiveWalls[Source] = not ActiveWalls[Source]
-	TriggerClientEvent("sistema-wall:Toggle", Source, ActiveWalls[Source])
+	local NewState = not ActiveWalls[Source]
+	SetWallActive(Source, NewState)
+	TriggerClientEvent("sistema-wall:Toggle", Source, NewState)
 end, false)
 
 -----------------------------------------------------------------------------------------------------------------------------------------
@@ -136,21 +149,25 @@ AddEventHandler("sistema-wall:SetActive", function(Active)
 	local Passport = vRP.Passport(Source)
 	if not Passport or not HasPermission(Passport) then return end
 
-	ActiveWalls[Source] = Active == true
+	SetWallActive(Source, Active == true)
 	if ActiveWalls[Source] then
 		TriggerClientEvent("sistema-wall:SyncPlayers", Source, GetPlayerCache())
 	end
 end)
 
+AddEventHandler("playerJoining", function()
+	CachedPlayersDirty = true
+end)
+
 AddEventHandler("playerDropped", function()
 	local Source = source
-	ActiveWalls[Source] = nil
+	SetWallActive(Source, false)
 	CachedPlayers[Source] = nil
 	CachedPlayersDirty = true
 end)
 
 AddEventHandler("Disconnect", function(Passport, Source)
-	ActiveWalls[Source] = nil
+	SetWallActive(Source, false)
 	CachedPlayers[Source] = nil
 	CachedPlayersDirty = true
 	if Wall_Bridge_ClearCache then
@@ -159,23 +176,13 @@ AddEventHandler("Disconnect", function(Passport, Source)
 end)
 
 -----------------------------------------------------------------------------------------------------------------------------------------
--- SYNC PERIÓDICO
+-- SYNC PERIÓDICO (só reenvia cache — não reconstrói a cada tick)
 -----------------------------------------------------------------------------------------------------------------------------------------
 CreateThread(function()
-	local Interval = Config.UpdateInterval or 500
+	local Interval = Config.UpdateInterval or 8000
 	while true do
 		Wait(Interval)
-
-		local HasActive = false
-		for _, Active in pairs(ActiveWalls) do
-			if Active then
-				HasActive = true
-				break
-			end
-		end
-
-		if HasActive then
-			CachedPlayersDirty = true
+		if ActiveCount > 0 then
 			BroadcastPlayerCache()
 		end
 	end

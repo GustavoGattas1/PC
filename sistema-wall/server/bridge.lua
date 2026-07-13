@@ -9,7 +9,7 @@ vRP = Proxy.getInterface("vRP")
 -- BRIDGE — RESOLUÇÃO DE NOMES VIA BANCO
 -----------------------------------------------------------------------------------------------------------------------------------------
 local CharacterCache = {}
-local CACHE_TTL = 5000
+local CACHE_TTL = 60000
 local DB = Config.Database
 
 local function CacheKey(Passport)
