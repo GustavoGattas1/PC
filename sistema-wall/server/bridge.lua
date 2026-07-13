@@ -12,18 +12,35 @@ local CharacterCache = {}
 local CACHE_TTL = 5000
 local DB = Config.Database
 
+local function CacheKey(Passport)
+	return tostring(Passport)
+end
+
 local function CacheNow()
 	return GetGameTimer and GetGameTimer() or (os.time() * 1000)
 end
 
-vRP.Prepare("wall/GetCharacter", [[
-	SELECT Name, Lastname FROM characters WHERE id = @passport LIMIT 1
-]])
+function Wall_Bridge_ClearCache(Passport)
+	if Passport then
+		CharacterCache[CacheKey(Passport)] = nil
+	else
+		CharacterCache = {}
+	end
+end
+
+if vRP and vRP.Prepare then
+	vRP.Prepare("wall/GetCharacter", [[
+		SELECT Name, Lastname FROM characters WHERE id = @passport LIMIT 1
+	]])
+end
 
 function Wall_Bridge_GetPlayerName(Passport)
 	if not Passport then return nil end
+	if not vRP or not vRP.Query then
+		return "Jogador #" .. CacheKey(Passport)
+	end
 
-	local Key = tostring(Passport)
+	local Key = CacheKey(Passport)
 	local Entry = CharacterCache[Key]
 	local Now = CacheNow()
 
@@ -48,10 +65,4 @@ function Wall_Bridge_GetPlayerName(Passport)
 
 	CharacterCache[Key] = { name = Full, time = Now }
 	return Full
-end
-
-function Wall_Bridge_ClearCache(Passport)
-	if Passport then
-		CharacterCache[tostring(Passport)] = nil
-	end
 end

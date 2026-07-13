@@ -153,7 +153,7 @@ AddEventHandler("Disconnect", function(Passport, Source)
 	ActiveWalls[Source] = nil
 	CachedPlayers[Source] = nil
 	CachedPlayersDirty = true
-	if Passport then
+	if Wall_Bridge_ClearCache then
 		Wall_Bridge_ClearCache(Passport)
 	end
 end)
