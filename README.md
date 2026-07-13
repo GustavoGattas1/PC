@@ -9,3 +9,4 @@ Repositório de scripts para servidor FiveM.
 | [iml-evidencias](iml-evidencias/) | Sistema completo de IML e evidências forenses para Creative Uncharted |
 | [loja-vip](loja-vip/) | Loja VIP completa — veículos, casas, planos VIP, packs e NUI moderna (`/loja`) |
 | [sistema-wall](sistema-wall/) | Sistema completo de Wall (ESP) para staff — informações de jogadores em tempo real (`/wall`) |
+| [bbs_bodycam](bbs_bodycam/) | Bodycam BBS (Big Bang Studios) integrado à base vRP / Creative Uncharted |
