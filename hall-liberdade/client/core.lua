@@ -1271,6 +1271,75 @@ function L89_1()
   end
 end
 GetSparklersColor = L89_1
+function EnsureSmokeMachinesLoaded()
+  local areaKey, entry, idx, cfg, handle, forward, right, up, position
+  areaKey = L19_1
+  if not areaKey then
+    return
+  end
+  if #L3_1 > 0 then
+    return
+  end
+  entry = config.entries[areaKey]
+  if not entry or not entry.smokers then
+    return
+  end
+  for idx = 1, #entry.smokers do
+    cfg = Copy(entry.smokers[idx])
+    RequestAssetPtfx(cfg.fx.library, "\"" .. areaKey .. "\" - smoker index: " .. idx)
+    RequestAssetModel(cfg.hash, "\"" .. areaKey .. "\" - smoker index: " .. idx)
+    handle = CreateSpeakerOrSmokeOrSparklersMachine(cfg)
+    if handle and HasNamedPtfxAssetLoaded(cfg.fx.library) then
+      forward, right, up, position = GetEntityMatrix(handle)
+      cfg.forward = forward
+      cfg.right = right
+      cfg.up = up
+      cfg.position = position
+      cfg.handle = handle
+      cfg.smokes = {
+        {
+          position = position + up * 0.25,
+          handles = {}
+        },
+        {
+          position = position + forward * -3.0 + up * 0.5,
+          handles = {}
+        }
+      }
+      table.insert(L3_1, cfg)
+    end
+  end
+end
+function EnsureSparklerMachinesLoaded()
+  local areaKey, entry, idx, cfg, handle, forward, right, up, position
+  areaKey = L19_1
+  if not areaKey then
+    return
+  end
+  if #L4_1 > 0 then
+    return
+  end
+  entry = config.entries[areaKey]
+  if not entry or not entry.sparklers then
+    return
+  end
+  for idx = 1, #entry.sparklers do
+    cfg = Copy(entry.sparklers[idx])
+    RequestAssetPtfx(cfg.fx.library, "\"" .. areaKey .. "\" - sparkler index: " .. idx)
+    RequestAssetModel(cfg.hash, "\"" .. areaKey .. "\" - sparkler index: " .. idx)
+    handle = CreateSpeakerOrSmokeOrSparklersMachine(cfg)
+    if handle and HasNamedPtfxAssetLoaded(cfg.fx.library) then
+      forward, right, up, position = GetEntityMatrix(handle)
+      cfg.handles = {}
+      cfg.forward = forward
+      cfg.right = right
+      cfg.up = up
+      cfg.position = position
+      cfg.handle = handle
+      table.insert(L4_1, cfg)
+    end
+  end
+end
 function L89_1(A0_2, A1_2)
   local L2_2, L3_2, L4_2, L5_2, L6_2, L7_2, L8_2, L9_2, L10_2, L11_2, L12_2, L13_2, L14_2, L15_2, L16_2, L17_2
   L2_2 = L51_1
@@ -1286,6 +1355,18 @@ function L89_1(A0_2, A1_2)
   if L2_2 then
     L2_2 = true
     L51_1 = L2_2
+    L2_2 = L3_1
+    L2_2 = #L2_2
+    if L2_2 < 1 then
+      L2_2 = EnsureSmokeMachinesLoaded
+      L2_2()
+      L2_2 = L3_1
+      L2_2 = #L2_2
+      if L2_2 < 1 then
+        L51_1 = false
+        do return end
+      end
+    end
     L2_2 = 1
     L3_2 = L3_1
     L3_2 = #L3_2
@@ -1400,29 +1481,31 @@ function L89_1(A0_2, A1_2)
                   L14_4 = 0
                   L15_4 = 1
                   L3_4 = L3_4(L4_4, L5_4, L6_4, L7_4, L8_4, L9_4, L10_4, L11_4, L12_4, L13_4, L14_4, L15_4)
-                  L1_4(L2_4, L3_4)
-                  L1_4 = SetParticleFxLoopedColour
-                  L3_4 = L5_2
-                  L2_4 = L3_1
-                  L2_4 = L2_4[L3_4]
-                  L2_4 = L2_4.smokes
-                  L3_4 = L3_3
-                  L2_4 = L2_4[L3_4]
-                  L2_4 = L2_4.handles
-                  L4_4 = L5_2
-                  L3_4 = L3_1
-                  L3_4 = L3_4[L4_4]
-                  L3_4 = L3_4.smokes
-                  L4_4 = L3_3
-                  L3_4 = L3_4[L4_4]
-                  L3_4 = L3_4.handles
-                  L3_4 = #L3_4
-                  L2_4 = L2_4[L3_4]
-                  L3_4 = L0_4[1]
-                  L4_4 = L0_4[2]
-                  L5_4 = L0_4[3]
-                  L6_4 = 0
-                  L1_4(L2_4, L3_4, L4_4, L5_4, L6_4)
+                  if L3_4 and 0 ~= L3_4 then
+                    L1_4(L2_4, L3_4)
+                    L1_4 = SetParticleFxLoopedColour
+                    L3_4 = L5_2
+                    L2_4 = L3_1
+                    L2_4 = L2_4[L3_4]
+                    L2_4 = L2_4.smokes
+                    L3_4 = L3_3
+                    L2_4 = L2_4[L3_4]
+                    L2_4 = L2_4.handles
+                    L4_4 = L5_2
+                    L3_4 = L3_1
+                    L3_4 = L3_4[L4_4]
+                    L3_4 = L3_4.smokes
+                    L4_4 = L3_3
+                    L3_4 = L3_4[L4_4]
+                    L3_4 = L3_4.handles
+                    L3_4 = #L3_4
+                    L2_4 = L2_4[L3_4]
+                    L3_4 = L0_4[1]
+                    L4_4 = L0_4[2]
+                    L5_4 = L0_4[3]
+                    L6_4 = 0
+                    L1_4(L2_4, L3_4, L4_4, L5_4, L6_4)
+                  end
                 end
                 L8_3(L9_3)
               end
@@ -1535,6 +1618,18 @@ function L89_1(A0_2, A1_2)
   if L2_2 then
     L2_2 = true
     L52_1 = L2_2
+    L2_2 = L4_1
+    L2_2 = #L2_2
+    if L2_2 < 1 then
+      L2_2 = EnsureSparklerMachinesLoaded
+      L2_2()
+      L2_2 = L4_1
+      L2_2 = #L2_2
+      if L2_2 < 1 then
+        L52_1 = false
+        do return end
+      end
+    end
     L2_2 = 1
     L3_2 = L4_1
     L3_2 = #L3_2
@@ -1620,23 +1715,25 @@ function L89_1(A0_2, A1_2)
             L14_3 = 0
             L15_3 = 1
             L3_3 = L3_3(L4_3, L5_3, L6_3, L7_3, L8_3, L9_3, L10_3, L11_3, L12_3, L13_3, L14_3, L15_3)
-            L1_3(L2_3, L3_3)
-            L1_3 = SetParticleFxLoopedColour
-            L3_3 = L5_2
-            L2_3 = L4_1
-            L2_3 = L2_3[L3_3]
-            L2_3 = L2_3.handles
-            L4_3 = L5_2
-            L3_3 = L4_1
-            L3_3 = L3_3[L4_3]
-            L3_3 = L3_3.handles
-            L3_3 = #L3_3
-            L2_3 = L2_3[L3_3]
-            L3_3 = L0_3[1]
-            L4_3 = L0_3[2]
-            L5_3 = L0_3[3]
-            L6_3 = 0
-            L1_3(L2_3, L3_3, L4_3, L5_3, L6_3)
+            if L3_3 and 0 ~= L3_3 then
+              L1_3(L2_3, L3_3)
+              L1_3 = SetParticleFxLoopedColour
+              L3_3 = L5_2
+              L2_3 = L4_1
+              L2_3 = L2_3[L3_3]
+              L2_3 = L2_3.handles
+              L4_3 = L5_2
+              L3_3 = L4_1
+              L3_3 = L3_3[L4_3]
+              L3_3 = L3_3.handles
+              L3_3 = #L3_3
+              L2_3 = L2_3[L3_3]
+              L3_3 = L0_3[1]
+              L4_3 = L0_3[2]
+              L5_3 = L0_3[3]
+              L6_3 = 0
+              L1_3(L2_3, L3_3, L4_3, L5_3, L6_3)
+            end
           end
           L10_2(L11_2)
         end
@@ -2466,6 +2563,10 @@ function L89_1(A0_2)
   ::lbl_8::
   L1_2 = true
   L59_1 = L1_2
+  L1_2 = false
+  L51_1 = L1_2
+  L1_2 = false
+  L52_1 = L1_2
   L1_2 = config
   L1_2 = L1_2.entries
   L1_2 = L1_2[A0_2]
@@ -3325,9 +3426,9 @@ function L89_1(A0_2)
     for L8_2 = L5_2, L6_2, L7_2 do
       L9_2 = StopParticleFxLooped
       L10_2 = L4_1
-      L10_2 = L10_2[L8_2]
+      L10_2 = L10_2[L4_2]
       L10_2 = L10_2.handles
-      L11_2 = ii
+      L11_2 = L8_2
       L10_2 = L10_2[L11_2]
       L11_2 = false
       L9_2(L10_2, L11_2)
@@ -3554,6 +3655,10 @@ function L89_1(A0_2)
   L21_1 = L1_2
   L1_2 = false
   L50_1 = L1_2
+  L1_2 = false
+  L51_1 = L1_2
+  L1_2 = false
+  L52_1 = L1_2
   L1_2 = false
   L40_1 = L1_2
   L1_2 = false
@@ -5943,24 +6048,32 @@ L89_1(L90_1, L91_1)
 L89_1 = RegisterNetEvent
 L90_1 = "cs-hall:smoke"
 function L91_1(A0_2, A1_2)
-  local L2_2, L3_2
+  local L2_2, L3_2, L4_2
   L2_2 = L19_1
   if A0_2 == L2_2 then
-    L2_2 = DoSmoke
-    L3_2 = A1_2
-    L2_2(L3_2)
+    L2_2 = pcall
+    L3_2 = DoSmoke
+    L4_2 = A1_2
+    L2_2, L3_2 = L2_2(L3_2, L4_2)
+    if not L2_2 then
+      L51_1 = false
+    end
   end
 end
 L89_1(L90_1, L91_1)
 L89_1 = RegisterNetEvent
 L90_1 = "cs-hall:sparklers"
 function L91_1(A0_2, A1_2)
-  local L2_2, L3_2
+  local L2_2, L3_2, L4_2
   L2_2 = L19_1
   if A0_2 == L2_2 then
-    L2_2 = DoSparklers
-    L3_2 = A1_2
-    L2_2(L3_2)
+    L2_2 = pcall
+    L3_2 = DoSparklers
+    L4_2 = A1_2
+    L2_2, L3_2 = L2_2(L3_2, L4_2)
+    if not L2_2 then
+      L52_1 = false
+    end
   end
 end
 L89_1(L90_1, L91_1)
@@ -6162,8 +6275,7 @@ function L91_1(A0_2, A1_2, A2_2, A3_2)
     L6_2 = L6_2[L7_2]
     L6_2 = L6_2.bass
     L6_2 = L6_2.smoke
-    L6_2 = not L6_2
-    L6_2 = L6_2 and L6_2
+    L6_2 = nil ~= L6_2 and false ~= L6_2
     L5_2.hasAutoSmokers = L6_2
     L6_2 = config
     L6_2 = L6_2.entries
@@ -6176,8 +6288,7 @@ function L91_1(A0_2, A1_2, A2_2, A3_2)
     L6_2 = L6_2[L7_2]
     L6_2 = L6_2.bass
     L6_2 = L6_2.sparklers
-    L6_2 = not L6_2
-    L6_2 = L6_2 and L6_2
+    L6_2 = nil ~= L6_2 and false ~= L6_2
     L5_2.hasAutoSparklers = L6_2
     L6_2 = L2_1
     L6_2 = #L6_2
