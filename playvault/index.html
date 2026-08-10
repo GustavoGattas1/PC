@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PlayVault — Biblioteca multiplataforma</title>
-  <meta name="description" content="Launcher moderno com catálogo de Xbox, PlayStation e clássicos. Interface demo sem ROMs." />
+  <title>PlayVault — Launcher caseiro multiplataforma</title>
+  <meta name="description" content="Launcher local com dezenas de consoles. Coloque seus dumps em roms/ e jogue em casa." />
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
@@ -20,101 +20,99 @@
       </a>
       <nav class="nav-links" aria-label="Principal">
         <a href="#inicio" data-nav="landing">Início</a>
-        <a href="#plataformas">Plataformas</a>
-        <a href="#recursos">Recursos</a>
+        <a href="#plataformas">Consoles</a>
+        <a href="#como">Como usar</a>
         <a href="#biblioteca" data-nav="library">Biblioteca</a>
       </nav>
       <div class="nav-actions">
-        <button class="btn btn-ghost" type="button" data-nav="library">Abrir biblioteca</button>
-        <button class="btn btn-primary" type="button" data-nav="library">Jogar agora</button>
+        <span id="launcher-badge" class="launcher-badge">Checando launcher…</span>
+        <button class="btn btn-primary" type="button" data-nav="library">Biblioteca</button>
       </div>
     </header>
 
-    <!-- LANDING -->
     <div id="view-landing" class="view active">
       <section class="hero" id="inicio">
         <div class="hero-media" aria-hidden="true"></div>
         <div class="hero-content">
           <h1 class="hero-brand"><span>PlayVault</span></h1>
-          <p class="lede">Do retrô ao Series X e ao PS5.</p>
+          <p class="lede">O máximo de consoles num launcher caseiro.</p>
           <p>
-            Um launcher moderno para Xbox, PlayStation e clássicos — da primeira geração aos exclusivos atuais.
+            Catálogo curado + importação automática das suas pastas de ROMs/ISOs.
+            Xbox, PlayStation, Nintendo, Sega, Arcade e mais — para jogar em casa.
           </p>
           <div class="hero-cta">
-            <button class="btn btn-primary btn-lg" type="button" data-nav="library">Entrar na biblioteca</button>
-            <a class="btn btn-ghost btn-lg" href="#plataformas">Ver plataformas</a>
+            <button class="btn btn-primary btn-lg" type="button" data-nav="library">Abrir biblioteca</button>
+            <a class="btn btn-ghost btn-lg" href="#como">Como montar</a>
           </div>
         </div>
       </section>
 
       <section id="plataformas">
         <div class="section-head">
-          <h2>Todas as eras. Um só hub.</h2>
-          <p>Filtre por geração — dos fliperamas aos exclusivos atuais de Xbox e PlayStation.</p>
+          <h2>30+ sistemas num só hub.</h2>
+          <p id="platform-count">Carregando plataformas…</p>
         </div>
-        <div class="platforms">
-          <article class="platform-chip"><strong>Xbox Series X|S</strong><span>Geração atual</span></article>
-          <article class="platform-chip"><strong>Xbox One</strong><span>2013–2020</span></article>
-          <article class="platform-chip"><strong>Xbox 360</strong><span>HD clássicos</span></article>
-          <article class="platform-chip"><strong>Xbox</strong><span>Original</span></article>
-          <article class="platform-chip"><strong>PlayStation 5</strong><span>Exclusivos atuais</span></article>
-          <article class="platform-chip"><strong>PlayStation 4</strong><span>Biblioteca enorme</span></article>
-          <article class="platform-chip"><strong>PS3 / PS2 / PS1</strong><span>Três gerações Sony</span></article>
-          <article class="platform-chip"><strong>Retrô</strong><span>SNES, N64, Arcade…</span></article>
+        <div class="platforms" id="landing-platforms">
+          <article class="platform-chip"><strong>Microsoft</strong><span>Xbox · 360 · One · Series</span></article>
+          <article class="platform-chip"><strong>Sony</strong><span>PS1 → PS5 · PSP · Vita</span></article>
+          <article class="platform-chip"><strong>Nintendo</strong><span>NES → Switch · portáteis</span></article>
+          <article class="platform-chip"><strong>Sega</strong><span>Master · Mega · Saturn · DC</span></article>
+          <article class="platform-chip"><strong>Arcade</strong><span>MAME · Neo Geo</span></article>
+          <article class="platform-chip"><strong>Clássicos</strong><span>Atari · PCE · MSX · WS</span></article>
         </div>
       </section>
 
-      <section id="recursos">
+      <section id="como">
         <div class="section-head">
-          <h2>Feito para jogar sem fricção.</h2>
-          <p>Shell moderno com busca, filtros por plataforma, save states simulados e ficha do jogo.</p>
+          <h2>Como jogar de verdade em casa</h2>
+          <p>O PlayVault não vem com ROMs. Você coloca dumps dos jogos que possui e aponta os emuladores.</p>
         </div>
         <div class="features">
           <article class="feature">
             <div class="feature-icon">01</div>
-            <h3>Catálogo unificado</h3>
-            <p>Xbox e PlayStation lado a lado — do mais antigo ao mais atual — com busca instantânea.</p>
+            <h3>Instale emuladores</h3>
+            <p>RetroArch (retrô), PCSX2 (PS2), Dolphin (GC/Wii), RPCS3 (PS3), Xenia (360), etc.</p>
           </article>
           <article class="feature">
             <div class="feature-icon">02</div>
-            <h3>Save a qualquer momento</h3>
-            <p>Fluxo de save/load no painel do jogo, no estilo launcher premium.</p>
+            <h3>Coloque seus dumps</h3>
+            <p>Pastas em <code>roms/nes</code>, <code>roms/ps2</code>, <code>roms/xbox360</code>… O launcher detecta sozinho.</p>
           </article>
           <article class="feature">
             <div class="feature-icon">03</div>
-            <h3>Pronto para controle</h3>
-            <p>UI pensada para gamepad: cards grandes, contraste alto e navegação clara.</p>
+            <h3>Suba o launcher</h3>
+            <p><code>python3 launcher/server.py</code> → abra a UI → clique em Jogar.</p>
           </article>
         </div>
+        <p class="notice" style="margin-top:1.5rem;max-width:70ch">
+          PS4 / PS5 / Xbox One / Series X|S não têm emulação PC madura. Para esses, use o console ou Game Pass / PS Plus.
+          Switch exige firmware dumpado do seu próprio console.
+        </p>
       </section>
 
       <div class="cta-band">
-        <h2>Abra a biblioteca e explore Xbox + PlayStation.</h2>
-        <button class="btn btn-accent btn-lg" type="button" data-nav="library">Explorar jogos</button>
+        <h2>Biblioteca pronta. ROMs suas.</h2>
+        <button class="btn btn-accent btn-lg" type="button" data-nav="library">Ver catálogo completo</button>
       </div>
 
       <footer class="footer">
-        <p><strong>PlayVault</strong> é uma interface demo de launcher/biblioteca. Não inclui ROMs, ISOs, dumps nem downloads de jogos.</p>
-        <p>Títulos listados são apenas metadados de catálogo para demonstração de UI. Respeite direitos autorais e use apenas software e mídia que você possui legalmente.</p>
-        <p>© 2026 PlayVault · Demo UI</p>
+        <p><strong>Uso pessoal.</strong> PlayVault é um launcher local. Não inclui e não baixa ROMs/ISOs/BIOS.</p>
+        <p>Use apenas dumps de mídia que você possui. Respeite direitos autorais.</p>
+        <p>© 2026 PlayVault</p>
       </footer>
     </div>
 
-    <!-- LIBRARY -->
     <div id="view-library" class="view">
       <div class="library-page">
         <div class="library-layout">
           <aside class="sidebar">
             <div>
-              <div style="display:flex;justify-content:space-between;align-items:center;gap:0.5rem;">
-                <h3>Plataformas</h3>
-                <button id="toggle-filters" class="btn btn-ghost mobile-filters" type="button" style="padding:0.4rem 0.8rem;font-size:0.8rem;">Filtros</button>
-              </div>
+              <h3>Plataformas</h3>
               <div id="filter-list" class="filter-list"></div>
             </div>
             <p class="notice">
-              Demo sem emulação real: o botão “Jogar” simula a sessão no launcher.
-              Não há arquivos de jogos neste projeto.
+              Badge <strong>ROM</strong> = arquivo encontrado em <code>roms/</code>.
+              Sem o launcher Python, a UI roda só com o catálogo curado.
             </p>
           </aside>
 
@@ -124,11 +122,17 @@
                 <label class="sr-only" for="search-input" style="position:absolute;left:-9999px;">Buscar</label>
                 <input id="search-input" type="search" placeholder="Buscar jogo, gênero ou plataforma…" autocomplete="off" />
               </div>
+              <label class="owned-toggle">
+                <input id="owned-toggle" type="checkbox" />
+                Só com ROM
+              </label>
               <select id="sort-select" class="sort-select" aria-label="Ordenar">
                 <option value="year-desc">Mais recentes</option>
                 <option value="year-asc">Mais antigos</option>
                 <option value="title">A–Z</option>
+                <option value="owned">Com ROM primeiro</option>
               </select>
+              <button id="refresh-library" class="btn btn-ghost" type="button">Atualizar</button>
               <div id="result-count" class="toolbar-meta">0 jogos</div>
             </div>
             <div id="games-grid" class="games-grid"></div>
@@ -138,7 +142,6 @@
     </div>
   </div>
 
-  <!-- Game modal -->
   <div id="game-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-title">
     <div class="modal">
       <div id="modal-hero" class="modal-hero">
@@ -149,18 +152,16 @@
         <div id="modal-player" class="player-frame"></div>
         <div class="modal-actions">
           <button id="btn-play" class="btn btn-primary" type="button">▶ Jogar</button>
-          <button id="btn-save" class="btn btn-ghost" type="button">Salvar progresso</button>
-          <button id="btn-load" class="btn btn-ghost" type="button">Carregar save</button>
+          <button id="btn-dry" class="btn btn-ghost" type="button">Testar comando</button>
+          <button id="btn-save" class="btn btn-ghost" type="button">Save (emulador)</button>
+          <button id="btn-load" class="btn btn-ghost" type="button">Load (emulador)</button>
           <button id="close-modal" class="btn btn-ghost" type="button">Fechar</button>
         </div>
-        <p class="notice">
-          PlayVault demonstra o fluxo de um launcher estilo GPBOX, modernizado.
-          Emulação real de Xbox Series / PS5 exige hardware, firmware e licenças oficiais — fora do escopo desta demo.
-        </p>
       </div>
     </div>
   </div>
 
+  <script src="js/platforms.js"></script>
   <script src="js/games.js"></script>
   <script src="js/app.js"></script>
 </body>
