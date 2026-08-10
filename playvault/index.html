@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PlayVault — Biblioteca multiplataforma</title>
+  <meta name="description" content="Launcher moderno com catálogo de Xbox, PlayStation e clássicos. Interface demo sem ROMs." />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="noise" aria-hidden="true"></div>
+  <div class="glow-orb a" aria-hidden="true"></div>
+  <div class="glow-orb b" aria-hidden="true"></div>
+
+  <div class="shell">
+    <header class="nav">
+      <a class="brand" href="#inicio" data-nav="landing">
+        <span class="brand-mark">PV</span>
+        PlayVault
+      </a>
+      <nav class="nav-links" aria-label="Principal">
+        <a href="#inicio" data-nav="landing">Início</a>
+        <a href="#plataformas">Plataformas</a>
+        <a href="#recursos">Recursos</a>
+        <a href="#biblioteca" data-nav="library">Biblioteca</a>
+      </nav>
+      <div class="nav-actions">
+        <button class="btn btn-ghost" type="button" data-nav="library">Abrir biblioteca</button>
+        <button class="btn btn-primary" type="button" data-nav="library">Jogar agora</button>
+      </div>
+    </header>
+
+    <!-- LANDING -->
+    <div id="view-landing" class="view active">
+      <section class="hero" id="inicio">
+        <div class="hero-media" aria-hidden="true"></div>
+        <div class="hero-content">
+          <p class="hero-brand"><span>PlayVault</span></p>
+          <h1>Do retrô ao Series X e ao PS5 — um launcher, mil gerações.</h1>
+          <p>
+            Interface moderna de biblioteca multiplataforma: Xbox clássico até Series X|S,
+            PlayStation 1 até PS5, e os clássicos que marcaram época.
+          </p>
+          <div class="hero-cta">
+            <button class="btn btn-primary btn-lg" type="button" data-nav="library">Entrar na biblioteca</button>
+            <a class="btn btn-ghost btn-lg" href="#plataformas">Ver plataformas</a>
+          </div>
+        </div>
+      </section>
+
+      <section id="plataformas">
+        <div class="section-head">
+          <h2>Todas as eras. Um só hub.</h2>
+          <p>Filtre por geração — dos fliperamas aos exclusivos atuais de Xbox e PlayStation.</p>
+        </div>
+        <div class="platforms">
+          <article class="platform-chip"><strong>Xbox Series X|S</strong><span>Geração atual</span></article>
+          <article class="platform-chip"><strong>Xbox One</strong><span>2013–2020</span></article>
+          <article class="platform-chip"><strong>Xbox 360</strong><span>HD clássicos</span></article>
+          <article class="platform-chip"><strong>Xbox</strong><span>Original</span></article>
+          <article class="platform-chip"><strong>PlayStation 5</strong><span>Exclusivos atuais</span></article>
+          <article class="platform-chip"><strong>PlayStation 4</strong><span>Biblioteca enorme</span></article>
+          <article class="platform-chip"><strong>PS3 / PS2 / PS1</strong><span>Três gerações Sony</span></article>
+          <article class="platform-chip"><strong>Retrô</strong><span>SNES, N64, Arcade…</span></article>
+        </div>
+      </section>
+
+      <section id="recursos">
+        <div class="section-head">
+          <h2>Feito para jogar sem fricção.</h2>
+          <p>Shell moderno com busca, filtros por plataforma, save states simulados e ficha do jogo.</p>
+        </div>
+        <div class="features">
+          <article class="feature">
+            <div class="feature-icon">01</div>
+            <h3>Catálogo unificado</h3>
+            <p>Xbox e PlayStation lado a lado — do mais antigo ao mais atual — com busca instantânea.</p>
+          </article>
+          <article class="feature">
+            <div class="feature-icon">02</div>
+            <h3>Save a qualquer momento</h3>
+            <p>Fluxo de save/load no painel do jogo, no estilo launcher premium.</p>
+          </article>
+          <article class="feature">
+            <div class="feature-icon">03</div>
+            <h3>Pronto para controle</h3>
+            <p>UI pensada para gamepad: cards grandes, contraste alto e navegação clara.</p>
+          </article>
+        </div>
+      </section>
+
+      <div class="cta-band">
+        <h2>Abra a biblioteca e explore Xbox + PlayStation.</h2>
+        <button class="btn btn-accent btn-lg" type="button" data-nav="library">Explorar jogos</button>
+      </div>
+
+      <footer class="footer">
+        <p><strong>PlayVault</strong> é uma interface demo de launcher/biblioteca. Não inclui ROMs, ISOs, dumps nem downloads de jogos.</p>
+        <p>Títulos listados são apenas metadados de catálogo para demonstração de UI. Respeite direitos autorais e use apenas software e mídia que você possui legalmente.</p>
+        <p>© 2026 PlayVault · Demo UI</p>
+      </footer>
+    </div>
+
+    <!-- LIBRARY -->
+    <div id="view-library" class="view">
+      <div class="library-page">
+        <div class="library-layout">
+          <aside class="sidebar">
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:0.5rem;">
+                <h3>Plataformas</h3>
+                <button id="toggle-filters" class="btn btn-ghost mobile-filters" type="button" style="padding:0.4rem 0.8rem;font-size:0.8rem;">Filtros</button>
+              </div>
+              <div id="filter-list" class="filter-list"></div>
+            </div>
+            <p class="notice">
+              Demo sem emulação real: o botão “Jogar” simula a sessão no launcher.
+              Não há arquivos de jogos neste projeto.
+            </p>
+          </aside>
+
+          <main class="main-library">
+            <div class="toolbar">
+              <div class="search">
+                <label class="sr-only" for="search-input" style="position:absolute;left:-9999px;">Buscar</label>
+                <input id="search-input" type="search" placeholder="Buscar jogo, gênero ou plataforma…" autocomplete="off" />
+              </div>
+              <select id="sort-select" class="sort-select" aria-label="Ordenar">
+                <option value="year-desc">Mais recentes</option>
+                <option value="year-asc">Mais antigos</option>
+                <option value="title">A–Z</option>
+              </select>
+              <div id="result-count" class="toolbar-meta">0 jogos</div>
+            </div>
+            <div id="games-grid" class="games-grid"></div>
+          </main>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game modal -->
+  <div id="game-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal">
+      <div id="modal-hero" class="modal-hero">
+        <h2 id="modal-title" style="font-family:var(--font-display);font-size:clamp(1.6rem,4vw,2.4rem);letter-spacing:-0.03em;"></h2>
+      </div>
+      <div class="modal-body">
+        <div id="modal-meta" class="modal-meta"></div>
+        <div id="modal-player" class="player-frame"></div>
+        <div class="modal-actions">
+          <button id="btn-play" class="btn btn-primary" type="button">▶ Jogar</button>
+          <button id="btn-save" class="btn btn-ghost" type="button">Salvar progresso</button>
+          <button id="btn-load" class="btn btn-ghost" type="button">Carregar save</button>
+          <button id="close-modal" class="btn btn-ghost" type="button">Fechar</button>
+        </div>
+        <p class="notice">
+          PlayVault demonstra o fluxo de um launcher estilo GPBOX, modernizado.
+          Emulação real de Xbox Series / PS5 exige hardware, firmware e licenças oficiais — fora do escopo desta demo.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/games.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
