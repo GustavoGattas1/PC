@@ -1,0 +1,12 @@
+# local launcher config (copie do example)
+launcher/config.json
+
+# dumps pessoais — nunca commitar
+roms/**/*
+!roms/**/.gitkeep
+bios/**/*
+!bios/.gitkeep
+
+# python
+__pycache__/
+*.pyc
