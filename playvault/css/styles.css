@@ -256,26 +256,30 @@ input {
 .hero-brand {
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: clamp(3.2rem, 9vw, 6.4rem);
-  letter-spacing: -0.05em;
-  line-height: 0.92;
-  margin-bottom: 1.1rem;
+  font-size: clamp(4.5rem, 14vw, 8.5rem);
+  letter-spacing: -0.055em;
+  line-height: 0.86;
+  margin-bottom: 1rem;
+  color: #f4fffb;
+  text-shadow: 0 12px 40px rgba(61, 255, 192, 0.18);
 }
 
 .hero-brand span {
-  background: linear-gradient(120deg, var(--text) 20%, var(--brand) 100%);
+  background: linear-gradient(115deg, #ffffff 0%, #d9fff0 35%, var(--brand) 78%, #ffb14a 130%);
   -webkit-background-clip: text;
   background-clip: text;
+  -webkit-text-fill-color: transparent;
   color: transparent;
 }
 
-.hero h1 {
+.hero .lede {
   font-family: var(--font-display);
-  font-size: clamp(1.35rem, 3.2vw, 2rem);
+  font-size: clamp(1.05rem, 2.2vw, 1.35rem);
   font-weight: 700;
-  letter-spacing: -0.03em;
-  max-width: 18ch;
-  margin-bottom: 0.85rem;
+  letter-spacing: -0.02em;
+  max-width: 28ch;
+  margin-bottom: 0.75rem;
+  color: rgba(232, 241, 247, 0.88);
 }
 
 .hero p {
@@ -766,6 +770,10 @@ section {
     display: none;
   }
 
+  .nav-actions .btn-ghost {
+    display: none;
+  }
+
   .library-layout {
     grid-template-columns: 1fr;
   }
@@ -775,14 +783,43 @@ section {
     height: auto;
     border-right: 0;
     border-bottom: 1px solid var(--line);
+    padding-bottom: 0.85rem;
   }
 
-  .filter-list.collapsed {
+  .sidebar .notice {
     display: none;
   }
 
+  .filter-list {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 0.45rem;
+    overflow-x: auto;
+    padding-bottom: 0.35rem;
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .filter-btn {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .filter-btn.active {
+    box-shadow: none;
+    border-color: rgba(61, 255, 192, 0.45);
+    background: rgba(61, 255, 192, 0.12);
+  }
+
   .mobile-filters {
-    display: inline-flex;
+    display: none;
+  }
+
+  .games-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   }
 }
 
