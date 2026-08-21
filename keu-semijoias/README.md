@@ -20,5 +20,15 @@ Depois acesse `http://localhost:4173`.
 - Início, coleções, coleção, produto
 - Essência (sobre), contato, minha conta
 - Sacola com checkout simulado, favoritos, visualização rápida e chat
+- Painel administrativo (`admin.html`)
+
+## Painel admin
+
+Abra `admin.html` ou `http://localhost:4173/admin.html`.
+
+- E-mail: `admin@keusemijoias.com.br`
+- Senha: `keu123`
+
+Pedidos, produtos, coleções, clientes, mensagens e textos da loja. Alterações ficam neste navegador para a apresentação.
 
 Este é um protótipo estático (HTML, CSS e JavaScript), sem backend nem pagamento real. Textos, preços e fotos de catálogo são demonstrativos.

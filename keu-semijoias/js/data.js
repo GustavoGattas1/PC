@@ -414,3 +414,48 @@ window.KEU.productsByCollection = function (slug) {
     return p.collection === slug;
   });
 };
+
+window.KEU.CATALOG_KEY = "keu-catalog";
+window.KEU.SETTINGS_KEY = "keu-settings";
+window.KEU.ORDERS_KEY = "keu-orders";
+window.KEU.MESSAGES_KEY = "keu-messages";
+window.KEU.AUTH_KEY = "keu-admin-auth";
+
+window.KEU.saveCatalog = function () {
+  localStorage.setItem(
+    window.KEU.CATALOG_KEY,
+    JSON.stringify({
+      products: window.KEU.products,
+      collections: window.KEU.collections,
+    })
+  );
+};
+
+window.KEU.saveSettings = function () {
+  localStorage.setItem(
+    window.KEU.SETTINGS_KEY,
+    JSON.stringify({
+      brand: window.KEU.brand,
+      hero: window.KEU.hero,
+    })
+  );
+};
+
+(function hydrateCatalog() {
+  try {
+    var saved = JSON.parse(localStorage.getItem(window.KEU.CATALOG_KEY) || "null");
+    if (saved && Array.isArray(saved.products) && saved.products.length) {
+      window.KEU.products = saved.products;
+    }
+    if (saved && Array.isArray(saved.collections) && saved.collections.length) {
+      window.KEU.collections = saved.collections;
+    }
+    var settings = JSON.parse(localStorage.getItem(window.KEU.SETTINGS_KEY) || "null");
+    if (settings && settings.brand) {
+      Object.assign(window.KEU.brand, settings.brand);
+    }
+    if (settings && settings.hero) {
+      Object.assign(window.KEU.hero, settings.hero);
+    }
+  } catch (e) {}
+})();

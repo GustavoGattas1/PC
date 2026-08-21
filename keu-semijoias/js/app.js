@@ -418,7 +418,8 @@
       '<li><a href="colecoes.html">Coleções</a></li>' +
       '<li><a href="sobre.html">Nossa Essência</a></li>' +
       '<li><a href="conta.html">Minha conta</a></li>' +
-      '<li><a href="contato.html">Contato</a></li></ul></div>' +
+      '<li><a href="contato.html">Contato</a></li>' +
+      '<li><a href="admin.html">Painel admin</a></li></ul></div>' +
       '<div><h4 class="footer-title">Contato</h4><ul class="footer-links">' +
       '<li class="contact-row">' +
       ICONS.mail +
@@ -533,6 +534,11 @@
   }
 
   function renderHome() {
+    if (qs("#hero-title") && KEU.hero) {
+      qs("#hero-title").textContent = KEU.hero.title;
+      qs("#hero-subtitle").textContent = KEU.hero.subtitle;
+      if (qs("#hero-eyebrow") && KEU.hero.eyebrow) qs("#hero-eyebrow").textContent = KEU.hero.eyebrow;
+    }
     var featured = KEU.products.filter(function (p) {
       return p.featured;
     });
@@ -742,6 +748,19 @@
     qsa("[data-contact]").forEach(function (form) {
       form.addEventListener("submit", function (e) {
         e.preventDefault();
+        try {
+          var msgs = JSON.parse(localStorage.getItem(KEU.MESSAGES_KEY) || "[]");
+          msgs.unshift({
+            id: Date.now(),
+            name: (qs("#nome") && qs("#nome").value) || "",
+            email: (qs("#email") && qs("#email").value) || "",
+            subject: (qs("#assunto") && qs("#assunto").value) || "",
+            message: (qs("#mensagem") && qs("#mensagem").value) || "",
+            createdAt: new Date().toISOString(),
+            read: false,
+          });
+          localStorage.setItem(KEU.MESSAGES_KEY, JSON.stringify(msgs));
+        } catch (err) {}
         qs("#contact-ok").classList.add("is-on");
         form.reset();
       });
