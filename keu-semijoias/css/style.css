@@ -1,30 +1,30 @@
 :root {
-  --color-primary: #5b1023;
-  --color-primary-dark: #3a0a16;
-  --color-secondary: #d4af37;
-  --color-secondary-light: #e7c96b;
-  --color-background: #f8f1e7;
-  --color-foreground: #1a1a1a;
-  --color-muted: #6b6b6b;
-  --color-surface: #ffffff;
-  --color-border: #e8dcc8;
-  --color-heading: #1a1a1a;
-  --color-body: #1a1a1a;
-  --color-button: #5b1023;
-  --color-button-text: #f8f1e7;
-  --color-button-secondary: #d4af37;
-  --color-button-secondary-text: #3a0a16;
-  --color-header-bg: #f8f1e7;
-  --color-header-text: #6b6b6b;
-  --color-header-accent: #5b1023;
-  --color-hero-overlay: #3a0a16;
-  --color-hero-text: #f8f1e7;
-  --color-hero-muted: #e7c96b;
-  --color-footer-bg: #3a0a16;
-  --color-footer-text: #f8f1e7;
-  --color-link: #5b1023;
-  --color-cream: #f8f1e7;
-  --color-cream-dark: #e8dcc8;
+  --color-primary: #8b6cb0;
+  --color-primary-dark: #5a4278;
+  --color-secondary: #c4a4e0;
+  --color-secondary-light: #ead9f7;
+  --color-background: #ffffff;
+  --color-foreground: #2a2433;
+  --color-muted: #6e6578;
+  --color-surface: #f7f2fb;
+  --color-border: #ead9f4;
+  --color-heading: #2a2433;
+  --color-body: #2a2433;
+  --color-button: #8b6cb0;
+  --color-button-text: #ffffff;
+  --color-button-secondary: #ffffff;
+  --color-button-secondary-text: #5a4278;
+  --color-header-bg: #ffffff;
+  --color-header-text: #6e6578;
+  --color-header-accent: #8b6cb0;
+  --color-hero-overlay: #5a4278;
+  --color-hero-text: #ffffff;
+  --color-hero-muted: #ead9f7;
+  --color-footer-bg: #5a4278;
+  --color-footer-text: #ffffff;
+  --color-link: #8b6cb0;
+  --color-cream: #ffffff;
+  --color-cream-dark: #ead9f4;
   --font-display: "Playfair Display", Georgia, serif;
   --font-body: Inter, system-ui, sans-serif;
   --max: 80rem;
@@ -2008,8 +2008,8 @@ body.admin-body {
 }
 
 .status-novo {
-  background: #efe4c8;
-  color: #6a4b12;
+  background: #ead9f7;
+  color: #5a4278;
 }
 .status-pago {
   background: #e4efe6;

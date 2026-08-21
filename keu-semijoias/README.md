@@ -2,7 +2,7 @@
 
 Modelo de e-commerce para apresentação à cliente, inspirado na estrutura e no visual da [Orísun Velas](https://xn--orsunvelas-l8a.com.br/).
 
-Marca: **Keu Semijoias**. Paleta vinho + dourado + creme, tipografia Playfair Display e Inter, coleções, catálogo, sacola, contato e conta.
+Marca: **Keu Semijoias**. Paleta lilás + branco, tipografia Playfair Display e Inter, coleções, catálogo, sacola, contato, conta e painel admin.
 
 ## Como ver o site
 
