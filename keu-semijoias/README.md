@@ -1,34 +1,64 @@
 # Keu Semijoias — site modelo
 
-Modelo de e-commerce para apresentação à cliente, inspirado na estrutura e no visual da [Orísun Velas](https://xn--orsunvelas-l8a.com.br/).
+E-commerce de apresentação para a cliente **Keu Semijoias**. Paleta lilás e branco. Pasta no repositório `PC`, no mesmo esquema de `loja-vip` e `iml-evidencias`.
 
-Marca: **Keu Semijoias**. Paleta lilás + branco, tipografia Playfair Display e Inter, coleções, catálogo, sacola, contato, conta e painel admin.
+GitHub: pasta [`keu-semijoias`](https://github.com/GustavoGattas1/PC/tree/cursor/keu-semijoias-site-4608/keu-semijoias)  
+Pull request: https://github.com/GustavoGattas1/PC/pull/17
 
-## Como ver o site
+## No seu computador
 
-Abra `keu-semijoias/index.html` no navegador, ou sirva a pasta:
+Este agente trabalha na nuvem. Os arquivos entram no seu PC pelo Git, igual aos outros resources.
 
-```bash
-cd keu-semijoias
-python3 -m http.server 4173
+### GitHub Desktop
+
+1. Abra o repositório **PC**
+2. Fetch origin
+3. Troque para a branch `cursor/keu-semijoias-site-4608`
+4. A pasta aparece em `PC\keu-semijoias`
+
+Depois de mergear o PR na `main`, um `pull` na main já traz a pasta, como `loja-vip`.
+
+### Terminal
+
+```bat
+cd C:\caminho\do\PC
+git fetch origin
+git checkout cursor/keu-semijoias-site-4608
 ```
 
-Depois acesse `http://localhost:4173`.
+A pasta para editar é:
 
-## Páginas
+`PC\keu-semijoias`
 
-- Início, coleções, coleção, produto
-- Essência (sobre), contato, minha conta
-- Sacola com checkout simulado, favoritos, visualização rápida e chat
-- Painel administrativo (`admin.html`)
+## Como abrir a loja
 
-## Painel admin
+Dê dois cliques em `abrir-site.bat`, ou:
 
-Abra `admin.html` ou `http://localhost:4173/admin.html`.
+```bat
+cd keu-semijoias
+python -m http.server 4173
+```
 
-- E-mail: `admin@keusemijoias.com.br`
-- Senha: `keu123`
+- Loja: http://localhost:4173
+- Admin: http://localhost:4173/admin.html
 
-Pedidos, produtos, coleções, clientes, mensagens e textos da loja. Alterações ficam neste navegador para a apresentação.
+Admin de demonstração: `admin@keusemijoias.com.br` / `keu123`
 
-Este é um protótipo estático (HTML, CSS e JavaScript), sem backend nem pagamento real. Textos, preços e fotos de catálogo são demonstrativos.
+## Manutenção
+
+| Arquivo | Função |
+|---------|--------|
+| `index.html` | Home |
+| `colecoes.html` / `colecao.html` | Coleções |
+| `produto.html` | Página de produto |
+| `sobre.html` / `contato.html` / `conta.html` | Institucional |
+| `admin.html` | Painel admin |
+| `css/style.css` | Cores, layout (lilás e branco) |
+| `js/data.js` | Produtos, coleções, textos |
+| `js/app.js` | Loja, sacola, header |
+| `js/admin.js` | Painel administrativo |
+| `vercel.json` | Pronto para publicar na Vercel |
+
+Edite, faça commit e push nesta pasta. A Vercel pode usar `keu-semijoias` como Root Directory.
+
+Protótipo estático: sem backend nem pagamento real. Catálogo, pedidos do admin e aparência usam o navegador (localStorage) na apresentação.
