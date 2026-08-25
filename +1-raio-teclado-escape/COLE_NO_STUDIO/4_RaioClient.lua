@@ -22,7 +22,7 @@ local Remotes = RaioGame:WaitForChild("Remotes")
 local function playSound(id, pitch)
 	local s = Instance.new("Sound")
 	s.SoundId = id
-	s.Volume = 0.45
+	s.Volume = 0.22
 	s.PlaybackSpeed = pitch or 1
 	s.Parent = SoundService
 	s:Play()
@@ -74,20 +74,20 @@ gui.Parent = playerGui
 -- fundo suave no topo
 local top = Instance.new("Frame")
 top.Name = "Top"
-top.BackgroundColor3 = Color3.fromRGB(12, 6, 28)
-top.BackgroundTransparency = 0.25
+top.BackgroundColor3 = Color3.fromRGB(245, 236, 214)
+top.BackgroundTransparency = 0.08
 top.BorderSizePixel = 0
 top.Size = UDim2.new(1, 0, 0, 78)
 top.Parent = gui
-gradient(top, Color3.fromRGB(20, 8, 50), Color3.fromRGB(8, 4, 20), 0)
+gradient(top, Color3.fromRGB(250, 240, 215), Color3.fromRGB(210, 190, 150), 0)
 
 local title = Instance.new("TextLabel")
 title.BackgroundTransparency = 1
 title.Position = UDim2.new(0.5, -220, 0, 6)
 title.Size = UDim2.fromOffset(440, 36)
-title.Font = Enum.Font.GothamBlack
+title.Font = Enum.Font.FredokaOne
 title.Text = "+1 RAIO  •  KEYBOARD ESCAPE"
-title.TextColor3 = Color3.fromRGB(255, 230, 80)
+title.TextColor3 = Color3.fromRGB(90, 60, 30)
 title.TextScaled = true
 title.Parent = top
 
@@ -96,15 +96,15 @@ subtitle.BackgroundTransparency = 1
 subtitle.Position = UDim2.new(0.5, -240, 0, 42)
 subtitle.Size = UDim2.fromOffset(480, 24)
 subtitle.Font = Enum.Font.GothamMedium
-subtitle.Text = "Corra no teclado  •  Fuja do dragão  •  Vire lenda"
-subtitle.TextColor3 = Color3.fromRGB(200, 180, 255)
+subtitle.Text = "Pise no teclado  •  A velocidade sobe sozinha  •  Pule as fases"
+subtitle.TextColor3 = Color3.fromRGB(110, 90, 60)
 subtitle.TextScaled = true
 subtitle.Parent = top
 
 local function statCard(parent, pos, labelText, color)
 	local f = Instance.new("Frame")
-	f.BackgroundColor3 = Color3.fromRGB(16, 8, 36)
-	f.BackgroundTransparency = 0.12
+	f.BackgroundColor3 = Color3.fromRGB(255, 250, 235)
+	f.BackgroundTransparency = 0.05
 	f.BorderSizePixel = 0
 	f.Position = pos
 	f.Size = UDim2.fromOffset(168, 64)
@@ -125,36 +125,36 @@ local function statCard(parent, pos, labelText, color)
 	v.BackgroundTransparency = 1
 	v.Size = UDim2.new(1, -8, 0, 32)
 	v.Position = UDim2.fromOffset(4, 26)
-	v.Font = Enum.Font.GothamBlack
+	v.Font = Enum.Font.FredokaOne
 	v.Text = "0"
-	v.TextColor3 = Color3.new(1, 1, 1)
+	v.TextColor3 = Color3.fromRGB(50, 40, 30)
 	v.TextScaled = true
 	v.Parent = f
 	return v
 end
 
-local speedVal = statCard(gui, UDim2.new(0, 16, 0, 92), "⚡ VELOCIDADE", Color3.fromRGB(255, 230, 80))
-local levelVal = statCard(gui, UDim2.new(0, 16, 0, 166), "⭐ NÍVEL", Color3.fromRGB(0, 245, 255))
-local winsVal = statCard(gui, UDim2.new(0, 16, 0, 240), "🏆 WINS", Color3.fromRGB(255, 180, 50))
-local multVal = statCard(gui, UDim2.new(0, 16, 0, 314), "💥 MULTIPLICADOR", Color3.fromRGB(255, 70, 200))
-local rebirthVal = statCard(gui, UDim2.new(0, 16, 0, 388), "♻️ REBIRTHS", Color3.fromRGB(180, 255, 120))
+local speedVal = statCard(gui, UDim2.new(0, 16, 0, 92), "VELOCIDADE", Color3.fromRGB(200, 140, 40))
+local levelVal = statCard(gui, UDim2.new(0, 16, 0, 166), "NÍVEL", Color3.fromRGB(70, 140, 90))
+local winsVal = statCard(gui, UDim2.new(0, 16, 0, 240), "WINS", Color3.fromRGB(200, 150, 50))
+local multVal = statCard(gui, UDim2.new(0, 16, 0, 314), "MULTIPLICADOR", Color3.fromRGB(180, 100, 70))
+local rebirthVal = statCard(gui, UDim2.new(0, 16, 0, 388), "REBIRTHS", Color3.fromRGB(90, 130, 90))
 
 local comboFrame = Instance.new("Frame")
-comboFrame.BackgroundColor3 = Color3.fromRGB(20, 8, 40)
-comboFrame.BackgroundTransparency = 0.1
+comboFrame.BackgroundColor3 = Color3.fromRGB(255, 248, 230)
+comboFrame.BackgroundTransparency = 0.05
 comboFrame.BorderSizePixel = 0
 comboFrame.Position = UDim2.new(0.5, -140, 0, 92)
 comboFrame.Size = UDim2.fromOffset(280, 58)
 comboFrame.Parent = gui
 corner(comboFrame, 14)
-stroke(comboFrame, Color3.fromRGB(255, 60, 180), 1.7)
+stroke(comboFrame, Color3.fromRGB(210, 120, 70), 1.7)
 
 local comboLabel = Instance.new("TextLabel")
 comboLabel.BackgroundTransparency = 1
 comboLabel.Size = UDim2.fromScale(1, 1)
 comboLabel.Font = Enum.Font.GothamBlack
 comboLabel.Text = "COMBO x0"
-comboLabel.TextColor3 = Color3.fromRGB(255, 90, 200)
+comboLabel.TextColor3 = Color3.fromRGB(180, 100, 50)
 comboLabel.TextScaled = true
 comboLabel.Parent = comboFrame
 pad(comboLabel, 8)
@@ -165,7 +165,7 @@ transformLabel.Position = UDim2.new(0.5, -180, 0, 154)
 transformLabel.Size = UDim2.fromOffset(360, 28)
 transformLabel.Font = Enum.Font.GothamBold
 transformLabel.Text = ""
-transformLabel.TextColor3 = Color3.fromRGB(255, 230, 80)
+transformLabel.TextColor3 = Color3.fromRGB(160, 110, 40)
 transformLabel.TextScaled = true
 transformLabel.Parent = gui
 
@@ -175,7 +175,7 @@ announce.Position = UDim2.new(0.5, -320, 0, 188)
 announce.Size = UDim2.fromOffset(640, 42)
 announce.Font = Enum.Font.GothamBlack
 announce.Text = ""
-announce.TextColor3 = Color3.fromRGB(255, 240, 120)
+announce.TextColor3 = Color3.fromRGB(120, 80, 40)
 announce.TextScaled = true
 announce.TextStrokeTransparency = 0.4
 announce.Parent = gui
@@ -186,20 +186,20 @@ plus.Position = UDim2.new(0.5, -150, 0.42, 0)
 plus.Size = UDim2.fromOffset(300, 80)
 plus.Font = Enum.Font.GothamBlack
 plus.Text = ""
-plus.TextColor3 = Color3.fromRGB(255, 230, 80)
+plus.TextColor3 = Color3.fromRGB(200, 140, 40)
 plus.TextScaled = true
 plus.TextStrokeTransparency = 0.3
 plus.Parent = gui
 
 local function makeButton(text, pos, color, order)
 	local b = Instance.new("TextButton")
-	b.BackgroundColor3 = Color3.fromRGB(18, 8, 40)
+	b.BackgroundColor3 = Color3.fromRGB(255, 248, 230)
 	b.BorderSizePixel = 0
 	b.Position = pos
 	b.Size = UDim2.fromOffset(168, 48)
-	b.Font = Enum.Font.GothamBlack
+	b.Font = Enum.Font.FredokaOne
 	b.Text = text
-	b.TextColor3 = Color3.new(1, 1, 1)
+	b.TextColor3 = Color3.fromRGB(60, 45, 30)
 	b.TextScaled = true
 	b.AutoButtonColor = true
 	b.LayoutOrder = order or 0
@@ -210,19 +210,19 @@ local function makeButton(text, pos, color, order)
 	return b
 end
 
-local shopBtn = makeButton("💜  LOJA", UDim2.new(1, -184, 0, 92), Color3.fromRGB(255, 70, 220))
-local rebirthBtn = makeButton("⚡  REBIRTH", UDim2.new(1, -184, 0, 150), Color3.fromRGB(255, 220, 60))
-local codesBtn = makeButton("🎁  CÓDIGOS", UDim2.new(1, -184, 0, 208), Color3.fromRGB(80, 255, 160))
-local hubBtn = makeButton("🏠  HUB", UDim2.new(1, -184, 0, 266), Color3.fromRGB(0, 220, 255))
-local petBtn = makeButton("🐉  PETS", UDim2.new(1, -184, 0, 324), Color3.fromRGB(255, 140, 60))
+local shopBtn = makeButton("LOJA", UDim2.new(1, -184, 0, 92), Color3.fromRGB(190, 90, 80))
+local rebirthBtn = makeButton("REBIRTH", UDim2.new(1, -184, 0, 150), Color3.fromRGB(210, 160, 50))
+local codesBtn = makeButton("CÓDIGOS", UDim2.new(1, -184, 0, 208), Color3.fromRGB(80, 140, 90))
+local hubBtn = makeButton("INÍCIO", UDim2.new(1, -184, 0, 266), Color3.fromRGB(90, 140, 180))
+local petBtn = makeButton("PETS", UDim2.new(1, -184, 0, 324), Color3.fromRGB(200, 130, 70))
 
 local hint = Instance.new("TextLabel")
 hint.BackgroundTransparency = 1
 hint.Position = UDim2.new(0.5, -260, 1, -54)
 hint.Size = UDim2.fromOffset(520, 36)
 hint.Font = Enum.Font.GothamMedium
-hint.Text = "Ande em cima das teclas  •  Pule os vãos  •  Toque no ouro pra ganhar WINS"
-hint.TextColor3 = Color3.fromRGB(210, 200, 255)
+hint.Text = "Pise nas teclas coloridas — a VELOCIDADE sobe sozinha. Siga a estrada de pedra para as fases."
+hint.TextColor3 = Color3.fromRGB(90, 75, 55)
 hint.TextScaled = true
 hint.Parent = gui
 
@@ -234,20 +234,20 @@ local function panel(name, titleText)
 	f.AnchorPoint = Vector2.new(0.5, 0.5)
 	f.Position = UDim2.fromScale(0.5, 0.54)
 	f.Size = UDim2.fromOffset(560, 460)
-	f.BackgroundColor3 = Color3.fromRGB(12, 6, 28)
+	f.BackgroundColor3 = Color3.fromRGB(255, 248, 230)
 	f.BorderSizePixel = 0
 	f.Parent = gui
 	corner(f, 18)
-	stroke(f, Color3.fromRGB(255, 70, 220), 2)
-	gradient(f, Color3.fromRGB(28, 10, 60), Color3.fromRGB(10, 4, 24), 90)
+	stroke(f, Color3.fromRGB(180, 130, 70), 2)
+	gradient(f, Color3.fromRGB(255, 250, 235), Color3.fromRGB(230, 210, 175), 90)
 
 	local h = Instance.new("TextLabel")
 	h.BackgroundTransparency = 1
 	h.Size = UDim2.new(1, -70, 0, 48)
 	h.Position = UDim2.fromOffset(18, 10)
-	h.Font = Enum.Font.GothamBlack
+	h.Font = Enum.Font.FredokaOne
 	h.Text = titleText
-	h.TextColor3 = Color3.new(1, 1, 1)
+	h.TextColor3 = Color3.fromRGB(70, 50, 30)
 	h.TextXAlignment = Enum.TextXAlignment.Left
 	h.TextScaled = true
 	h.Parent = f
@@ -282,9 +282,9 @@ local function panel(name, titleText)
 	return f, scroll
 end
 
-local shopPanel, shopList = panel("Shop", "💜 LOJA DE PODER")
-local petPanel, petList = panel("Pets", "🐉 PETS ELÉTRICOS")
-local rebirthPanel = panel("Rebirth", "⚡ PORTAL REBIRTH")
+local shopPanel, shopList = panel("Shop", "LOJA")
+local petPanel, petList = panel("Pets", "PETS")
+local rebirthPanel = panel("Rebirth", "REBIRTH")
 rebirthPanel.Size = UDim2.fromOffset(480, 280)
 
 local rebirthInfo = Instance.new("TextLabel")
@@ -293,7 +293,7 @@ rebirthInfo.Position = UDim2.fromOffset(20, 70)
 rebirthInfo.Size = UDim2.new(1, -40, 0, 110)
 rebirthInfo.Font = Enum.Font.GothamMedium
 rebirthInfo.TextWrapped = true
-rebirthInfo.TextColor3 = Color3.fromRGB(230, 220, 255)
+rebirthInfo.TextColor3 = Color3.fromRGB(80, 60, 40)
 rebirthInfo.TextScaled = true
 rebirthInfo.Text = ""
 rebirthInfo.Parent = rebirthPanel
@@ -314,30 +314,30 @@ codesPanel.Visible = false
 codesPanel.AnchorPoint = Vector2.new(0.5, 0.5)
 codesPanel.Position = UDim2.fromScale(0.5, 0.5)
 codesPanel.Size = UDim2.fromOffset(420, 220)
-codesPanel.BackgroundColor3 = Color3.fromRGB(12, 6, 28)
+codesPanel.BackgroundColor3 = Color3.fromRGB(255, 248, 230)
 codesPanel.BorderSizePixel = 0
 codesPanel.Parent = gui
 corner(codesPanel, 16)
-stroke(codesPanel, Color3.fromRGB(80, 255, 160), 2)
+stroke(codesPanel, Color3.fromRGB(90, 150, 90), 2)
 
 local codesTitle = Instance.new("TextLabel")
 codesTitle.BackgroundTransparency = 1
 codesTitle.Size = UDim2.new(1, -20, 0, 40)
 codesTitle.Position = UDim2.fromOffset(10, 10)
-codesTitle.Font = Enum.Font.GothamBlack
-codesTitle.Text = "🎁 RESGATAR CÓDIGO"
-codesTitle.TextColor3 = Color3.new(1, 1, 1)
+codesTitle.Font = Enum.Font.FredokaOne
+codesTitle.Text = "RESGATAR CÓDIGO"
+codesTitle.TextColor3 = Color3.fromRGB(60, 45, 30)
 codesTitle.TextScaled = true
 codesTitle.Parent = codesPanel
 
 local codesBox = Instance.new("TextBox")
 codesBox.Size = UDim2.new(1, -40, 0, 48)
 codesBox.Position = UDim2.fromOffset(20, 64)
-codesBox.BackgroundColor3 = Color3.fromRGB(30, 14, 55)
+codesBox.BackgroundColor3 = Color3.fromRGB(255, 255, 245)
 codesBox.PlaceholderText = "ex: RAIO"
 codesBox.Text = ""
 codesBox.Font = Enum.Font.GothamBold
-codesBox.TextColor3 = Color3.new(1, 1, 1)
+codesBox.TextColor3 = Color3.fromRGB(50, 40, 30)
 codesBox.TextScaled = true
 codesBox.ClearTextOnFocus = false
 codesBox.Parent = codesPanel
@@ -371,7 +371,7 @@ end)
 local function itemRow(parent, text, sub, color, callback)
 	local b = Instance.new("TextButton")
 	b.Size = UDim2.new(1, -8, 0, 64)
-	b.BackgroundColor3 = Color3.fromRGB(22, 10, 44)
+	b.BackgroundColor3 = Color3.fromRGB(255, 252, 240)
 	b.BorderSizePixel = 0
 	b.AutoButtonColor = true
 	b.Text = ""
@@ -382,9 +382,9 @@ local function itemRow(parent, text, sub, color, callback)
 	t.BackgroundTransparency = 1
 	t.Position = UDim2.fromOffset(12, 6)
 	t.Size = UDim2.new(1, -24, 0, 28)
-	t.Font = Enum.Font.GothamBlack
+	t.Font = Enum.Font.FredokaOne
 	t.Text = text
-	t.TextColor3 = Color3.new(1, 1, 1)
+	t.TextColor3 = Color3.fromRGB(50, 40, 30)
 	t.TextXAlignment = Enum.TextXAlignment.Left
 	t.TextScaled = true
 	t.Parent = b
@@ -413,7 +413,7 @@ local function fillShop()
 		h.Size = UDim2.new(1, 0, 0, 28)
 		h.Font = Enum.Font.GothamBlack
 		h.Text = text
-		h.TextColor3 = Color3.fromRGB(255, 230, 80)
+		h.TextColor3 = Color3.fromRGB(140, 90, 40)
 		h.TextXAlignment = Enum.TextXAlignment.Left
 		h.TextScaled = true
 		h.Parent = shopList
@@ -589,52 +589,53 @@ local function attachVfx(character)
 	att1.Position = Vector3.new(0, -2.4, 0)
 	att1.Parent = root
 
-	local trailCol = colorOf(Config.Trails, player:GetAttribute("Trail"), Color3.fromRGB(0, 245, 255))
+	local trailCol = colorOf(Config.Trails, player:GetAttribute("Trail"), Color3.fromRGB(120, 180, 90))
 	local trail = Instance.new("Trail")
 	trail.Name = "RaioTrail"
 	trail.Attachment0 = att0
 	trail.Attachment1 = att1
-	trail.Lifetime = 0.45
+	trail.Lifetime = 0.35
 	trail.MinLength = 0.2
 	trail.FaceCamera = true
-	trail.Color = ColorSequence.new(trailCol, Color3.new(1, 1, 1))
-	trail.Transparency = NumberSequence.new(0.15, 1)
-	trail.WidthScale = NumberSequence.new(1, 0)
-	trail.LightEmission = 1
+	trail.Color = ColorSequence.new(trailCol, Color3.fromRGB(255, 245, 220))
+	trail.Transparency = NumberSequence.new(0.35, 1)
+	trail.WidthScale = NumberSequence.new(0.8, 0)
+	trail.LightEmission = 0.2
 	trail.Parent = root
 
-	local auraCol = colorOf(Config.Auras, player:GetAttribute("Aura"), Color3.fromRGB(160, 80, 255))
+	local auraCol = colorOf(Config.Auras, player:GetAttribute("Aura"), Color3.fromRGB(200, 180, 120))
 	local hl = Instance.new("Highlight")
 	hl.Name = "RaioHighlight"
 	hl.FillColor = auraCol
 	hl.OutlineColor = trailCol
-	hl.FillTransparency = player:GetAttribute("Aura") ~= "" and 0.65 or 1
-	hl.OutlineTransparency = 0.2
+	hl.FillTransparency = player:GetAttribute("Aura") ~= "" and 0.78 or 1
+	hl.OutlineTransparency = 0.45
 	hl.Parent = character
 
 	local pe = Instance.new("ParticleEmitter")
 	pe.Name = "RaioSparks"
 	pe.Color = ColorSequence.new(trailCol)
-	pe.Size = NumberSequence.new(0.4, 0)
-	pe.Lifetime = NumberRange.new(0.3, 0.7)
-	pe.Rate = 18
-	pe.Speed = NumberRange.new(1, 4)
+	pe.Size = NumberSequence.new(0.25, 0)
+	pe.Lifetime = NumberRange.new(0.3, 0.6)
+	pe.Rate = 8
+	pe.Speed = NumberRange.new(0.5, 2)
 	pe.Texture = "rbxasset://textures/particles/sparkles_main.dds"
-	pe.LightEmission = 1
+	pe.LightEmission = 0.3
 	pe.Parent = root
 
 	local bb = Instance.new("BillboardGui")
 	bb.Name = "SpeedBillboard"
-	bb.Size = UDim2.fromOffset(160, 40)
-	bb.StudsOffset = Vector3.new(0, 3.4, 0)
-	bb.AlwaysOnTop = true
+	bb.Size = UDim2.fromOffset(140, 32)
+	bb.StudsOffset = Vector3.new(0, 3.2, 0)
+	bb.AlwaysOnTop = false
+	bb.MaxDistance = 55
 	bb.Parent = root
 	local tl = Instance.new("TextLabel")
 	tl.BackgroundTransparency = 1
 	tl.Size = UDim2.fromScale(1, 1)
-	tl.Font = Enum.Font.GothamBlack
+	tl.Font = Enum.Font.FredokaOne
 	tl.TextScaled = true
-	tl.TextColor3 = Color3.fromRGB(255, 230, 80)
+	tl.TextColor3 = Color3.fromRGB(90, 60, 30)
 	tl.Text = Config.Format(player:GetAttribute("Speed") or 0) .. " RAIO"
 	tl.Parent = bb
 
@@ -645,30 +646,26 @@ local function attachVfx(character)
 	pet.Name = "RaioPet"
 	pet.Shape = Enum.PartType.Ball
 	pet.Size = Vector3.new(1.8, 1.8, 1.8)
-	pet.Material = Enum.Material.Neon
+	pet.Material = Enum.Material.SmoothPlastic
 	pet.Color = petCfg.Color
 	pet.Massless = true
 	pet.CanCollide = false
-	pet.CastShadow = false
+	pet.CastShadow = true
 	pet.Anchored = true
 	pet.CFrame = root.CFrame * CFrame.new(2.4, 1.6, 1.2)
 	pet.Parent = folder
-	local light = Instance.new("PointLight")
-	light.Color = petCfg.Color
-	light.Brightness = 2
-	light.Range = 10
-	light.Parent = pet
 	local pbb = Instance.new("BillboardGui")
-	pbb.Size = UDim2.fromOffset(120, 24)
-	pbb.StudsOffset = Vector3.new(0, 1.4, 0)
-	pbb.AlwaysOnTop = true
+	pbb.Size = UDim2.fromOffset(110, 22)
+	pbb.StudsOffset = Vector3.new(0, 1.3, 0)
+	pbb.AlwaysOnTop = false
+	pbb.MaxDistance = 40
 	pbb.Parent = pet
 	local pn = Instance.new("TextLabel")
 	pn.BackgroundTransparency = 1
 	pn.Size = UDim2.fromScale(1, 1)
 	pn.Font = Enum.Font.GothamBold
 	pn.TextScaled = true
-	pn.TextColor3 = Color3.new(1, 1, 1)
+	pn.TextColor3 = Color3.fromRGB(60, 45, 30)
 	pn.Text = petCfg.Name
 	pn.Parent = pbb
 
@@ -726,13 +723,13 @@ workspace:GetAttributeChangedSignal("StormActive"):Connect(function()
 	local cc = Lighting:FindFirstChild("RaioCC")
 	if workspace:GetAttribute("StormActive") then
 		if cc then
-			TweenService:Create(cc, TweenInfo.new(0.4), { Contrast = 0.35, Saturation = 0.6 }):Play()
+			TweenService:Create(cc, TweenInfo.new(0.4), { Contrast = 0.12, Saturation = 0.22, TintColor = Color3.fromRGB(255, 240, 200) }):Play()
 		end
-		announce.Text = "🌩️ TEMPESTADE DOURADA!"
+		announce.Text = "FESTA DOURADA!"
 		announce.TextTransparency = 0
 	else
 		if cc then
-			TweenService:Create(cc, TweenInfo.new(0.4), { Contrast = 0.12, Saturation = 0.25 }):Play()
+			TweenService:Create(cc, TweenInfo.new(0.4), { Contrast = 0.06, Saturation = 0.12, TintColor = Color3.fromRGB(255, 250, 240) }):Play()
 		end
 	end
 end)

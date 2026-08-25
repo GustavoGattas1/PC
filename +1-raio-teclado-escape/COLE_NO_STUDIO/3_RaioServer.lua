@@ -16,9 +16,7 @@ local RaioGame = ReplicatedStorage:WaitForChild("RaioGame")
 local Config = require(RaioGame:WaitForChild("Config"))
 local World = require(RaioGame:WaitForChild("World"))
 
-if not workspace:FindFirstChild("RaioWorld") then
-	World.Build()
-end
+World.Build()
 
 local remotesFolder = RaioGame:FindFirstChild("Remotes")
 if remotesFolder then
@@ -57,9 +55,12 @@ local profiles = {}
 local lastStep = {}
 local lastKey = {}
 local lastComboAt = {}
-local onTreadmill = {}
+local stepAcc = {}
 local winCooldown = {}
+local padOpenAt = {}
 local spinning = {}
+local overlapParams = OverlapParams.new()
+overlapParams.FilterType = Enum.RaycastFilterType.Exclude
 
 local function defaultProfile()
 	return {
@@ -177,19 +178,13 @@ local function grantSpeed(player, base, letter, lucky)
 	if (lastStep[player] or 0) + Config.StepCooldown > now then
 		return
 	end
-	if not isTread and letter and lastKey[player] == letter and (now - (lastStep[player] or 0)) < Config.SameKeyCooldown then
-		return
-	end
 
 	local combo = player:GetAttribute("Combo") or 0
 	if not isTread then
-		if lastKey[player] and lastKey[player] ~= letter and (now - (lastComboAt[player] or 0)) <= Config.ComboWindow then
-			combo += 1
-		else
-			combo = 1
-		end
 		if (now - (lastComboAt[player] or 0)) > Config.ComboWindow then
 			combo = 1
+		else
+			combo += 1
 		end
 		lastKey[player] = letter
 		lastComboAt[player] = now
@@ -225,7 +220,11 @@ local function grantSpeed(player, base, letter, lucky)
 	end
 
 	pushState(player)
-	popup(player, (lucky and "💎 LUCKY +" or "+") .. Config.Format(gain), lucky and Color3.fromRGB(80, 255, 200) or Color3.fromRGB(255, 230, 80))
+	local grants = (player:GetAttribute("GrantCount") or 0) + 1
+	player:SetAttribute("GrantCount", grants)
+	if lucky or grants <= 20 or grants % 3 == 0 then
+		popup(player, (lucky and "LUCKY +" or "+") .. Config.Format(gain), lucky and Color3.fromRGB(80, 160, 90) or Color3.fromRGB(210, 150, 40))
+	end
 end
 
 local function loadProfile(player)
@@ -308,25 +307,7 @@ end
 local function bindWorld()
 	local world = workspace:WaitForChild("RaioWorld")
 	for _, part in ipairs(world:GetDescendants()) do
-		if part:IsA("BasePart") and part:GetAttribute("RaioKey") then
-			part.Touched:Connect(function(hit)
-				local player = isCharacterPart(hit)
-				if not player then
-					return
-				end
-				local lucky = math.random() < Config.LuckyKeyChance
-				if lucky then
-					local orig = part.Color
-					part.Color = Color3.fromRGB(255, 230, 80)
-					task.delay(0.35, function()
-						if part.Parent then
-							part.Color = orig
-						end
-					end)
-				end
-				grantSpeed(player, 1, part:GetAttribute("Letter"), lucky)
-			end)
-		elseif part:IsA("BasePart") and part:GetAttribute("WinPad") then
+		if part:IsA("BasePart") and part:GetAttribute("WinPad") then
 			part.Touched:Connect(function(hit)
 				local player = isCharacterPart(hit)
 				if not player then
@@ -365,44 +346,23 @@ local function bindWorld()
 					end)
 				end
 			end)
-		elseif part:IsA("BasePart") and part:GetAttribute("Treadmill") then
+		elseif part:IsA("BasePart") and (part:GetAttribute("ShopPad") or part:GetAttribute("CodePad") or part:GetAttribute("RebirthPad")) then
 			part.Touched:Connect(function(hit)
 				local player = isCharacterPart(hit)
 				if not player then
 					return
 				end
-				local profile = profiles[player]
-				if not profile then
+				local kind = part:GetAttribute("ShopPad") and "shop" or (part:GetAttribute("CodePad") and "codes" or "rebirth")
+				local now = os.clock()
+				if (padOpenAt[player] or 0) + 1.4 > now then
 					return
 				end
-				local id = part:GetAttribute("TreadmillId")
-				if not owns(profile.OwnedTreadmills, id) then
-					popup(player, "Compre essa esteira na loja!", Color3.fromRGB(255, 90, 90))
-					return
-				end
-				onTreadmill[player] = {
-					Mult = part:GetAttribute("TreadmillMult") or 1,
-					Until = os.clock() + 0.4,
-				}
-			end)
-		elseif part:IsA("BasePart") and part:GetAttribute("ShopPad") then
-			part.Touched:Connect(function(hit)
-				local player = isCharacterPart(hit)
-				if player then
+				padOpenAt[player] = now
+				if kind == "shop" then
 					RE.OpenShop:FireClient(player)
-				end
-			end)
-		elseif part:IsA("BasePart") and part:GetAttribute("CodePad") then
-			part.Touched:Connect(function(hit)
-				local player = isCharacterPart(hit)
-				if player then
+				elseif kind == "codes" then
 					RE.OpenCodes:FireClient(player)
-				end
-			end)
-		elseif part:IsA("BasePart") and part:GetAttribute("RebirthPad") then
-			part.Touched:Connect(function(hit)
-				local player = isCharacterPart(hit)
-				if player then
+				else
 					RE.OpenRebirth:FireClient(player)
 				end
 			end)
@@ -415,7 +375,7 @@ local function bindWorld()
 				local humanoid = character:FindFirstChildOfClass("Humanoid")
 				if humanoid and humanoid.Health > 0 then
 					humanoid.Health = 0
-					popup(player, "💥 O raio te pegou!", Color3.fromRGB(255, 80, 80))
+					popup(player, "O moinho te pegou! Tenta de novo.", Color3.fromRGB(200, 80, 70))
 				end
 			end)
 		elseif part:IsA("BasePart") and part:GetAttribute("Spin") then
@@ -432,7 +392,7 @@ local function bindWorld()
 				local humanoid = character:FindFirstChildOfClass("Humanoid")
 				if humanoid and humanoid.Health > 0 then
 					humanoid.Health = 0
-					announce("🐉 " .. player.DisplayName .. " foi engolido pelo Dragão da Tempestade!", Color3.fromRGB(255, 70, 200))
+					announce(player.DisplayName .. " foi pego pelo Dragão do Jardim!", Color3.fromRGB(90, 140, 90))
 				end
 			end)
 		end
@@ -454,8 +414,8 @@ Players.PlayerAdded:Connect(function(player)
 	end
 	task.delay(1.5, function()
 		if player.Parent then
-			popup(player, Config.Tagline, Color3.fromRGB(0, 245, 255))
-			RE.Announce:FireClient(player, "Corra no teclado gigante! Cada passo = +1 RAIO", Color3.fromRGB(255, 230, 80))
+			popup(player, Config.Tagline, Color3.fromRGB(90, 150, 80))
+			RE.Announce:FireClient(player, "Pise nas teclas coloridas! A velocidade sobe a cada passo.", Color3.fromRGB(200, 140, 50))
 		end
 	end)
 end)
@@ -465,7 +425,8 @@ Players.PlayerRemoving:Connect(function(player)
 	profiles[player] = nil
 	lastStep[player] = nil
 	lastKey[player] = nil
-	onTreadmill[player] = nil
+	stepAcc[player] = nil
+	padOpenAt[player] = nil
 end)
 
 game:BindToClose(function()
@@ -606,17 +567,68 @@ RE.Teleport.OnServerEvent:Connect(function(player, stageIndex)
 	end
 end)
 
--- esteira AFK
-task.spawn(function()
-	while true do
-		task.wait(Config.TreadmillTick)
-		local now = os.clock()
-		for player, info in pairs(onTreadmill) do
-			if now > info.Until then
-				onTreadmill[player] = nil
-			else
-				grantSpeed(player, info.Mult, "TREAD", false)
+-- passos no teclado + esteira (raycast no chão — confiável)
+local lastTreadWarn = {}
+RunService.Heartbeat:Connect(function(dt)
+	for _, pivot in ipairs(spinning) do
+		if pivot.Parent then
+			pivot.CFrame *= CFrame.Angles(0, dt * 1.35, 0)
+		end
+	end
+	for _, player in ipairs(Players:GetPlayers()) do
+		local profile = profiles[player]
+		local character = player.Character
+		local root = character and character:FindFirstChild("HumanoidRootPart")
+		local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+		if not profile or not root or not humanoid or humanoid.Health <= 0 then
+			continue
+		end
+		overlapParams.FilterDescendantsInstances = { character }
+		local feet = root.Position - Vector3.new(0, 2.5, 0)
+		local parts = workspace:GetPartBoundsInBox(CFrame.new(feet), Vector3.new(5, 3.5, 5), overlapParams)
+		local keyPart, treadPart
+		for _, part in ipairs(parts) do
+			if part:GetAttribute("Treadmill") then
+				treadPart = part
+			elseif part:GetAttribute("RaioKey") then
+				keyPart = part
 			end
+		end
+		if treadPart then
+			local id = treadPart:GetAttribute("TreadmillId")
+			if owns(profile.OwnedTreadmills, id) then
+				stepAcc[player] = (stepAcc[player] or 0) + dt / Config.TreadmillTick
+				while (stepAcc[player] or 0) >= 1 do
+					stepAcc[player] -= 1
+					grantSpeed(player, treadPart:GetAttribute("TreadmillMult") or 1, "TREAD", false)
+				end
+			else
+				local now = os.clock()
+				if (lastTreadWarn[player] or 0) + 2 < now then
+					lastTreadWarn[player] = now
+					popup(player, "Compre essa esteira na loja!", Color3.fromRGB(200, 90, 70))
+				end
+			end
+		elseif keyPart then
+			local moving = humanoid.MoveDirection.Magnitude > 0.08
+			local rate = moving and Config.StepsPerSecondMoving or Config.StepsPerSecondIdle
+			stepAcc[player] = (stepAcc[player] or 0) + dt * rate
+			while (stepAcc[player] or 0) >= 1 do
+				stepAcc[player] -= 1
+				local lucky = math.random() < Config.LuckyKeyChance
+				if lucky then
+					local orig = keyPart.Color
+					keyPart.Color = Color3.fromRGB(255, 220, 90)
+					task.delay(0.28, function()
+						if keyPart.Parent then
+							keyPart.Color = orig
+						end
+					end)
+				end
+				grantSpeed(player, 1, keyPart:GetAttribute("Letter"), lucky)
+			end
+		else
+			stepAcc[player] = 0
 		end
 	end
 end)
@@ -631,21 +643,12 @@ task.spawn(function()
 	end
 end)
 
--- gira obstáculos
-RunService.Heartbeat:Connect(function(dt)
-	for _, pivot in ipairs(spinning) do
-		if pivot.Parent then
-			pivot.CFrame *= CFrame.Angles(0, dt * 1.8, 0)
-		end
-	end
-end)
-
--- evento de tempestade (streamer bait)
+-- evento dourado (streamer bait)
 task.spawn(function()
 	while true do
 		task.wait(Config.StormInterval)
 		workspace:SetAttribute("StormActive", true)
-		announce("🌩️ TEMPESTADE DOURADA!  x" .. Config.StormMultiplier .. " RAIO por " .. Config.StormDuration .. "s", Color3.fromRGB(255, 220, 60))
+		announce("FESTA DOURADA!  x" .. Config.StormMultiplier .. " velocidade por " .. Config.StormDuration .. "s", Color3.fromRGB(220, 170, 50))
 		local dragon = workspace.RaioWorld:FindFirstChild("StormDragon")
 		if dragon and dragon.PrimaryPart then
 			local start = dragon.PrimaryPart.CFrame

@@ -1,19 +1,19 @@
 # +1 RAIO Keyboard Escape
 
-Jogo Roblox completo, pronto pra colar no Studio. Mesmo vício do **+1 Speed Keyboard Escape**, com tema **diferente**: tempestade neon, teclado elétrico gigante, pets de raio e um **Dragão da Tempestade** que atravessa o mapa nos eventos.
+Jogo Roblox completo, pronto pra colar no Studio. Mesmo vício do **+1 Speed Keyboard Escape**, com tema de **jardim encantado** (dia, grama, madeira, pedra, teclado pastel) — sem neon.
 
-Feito pra criança e streamer: número gigante na tela, combo, transformação, lucky keys, esteira AFK, rebirth e anúncios barulhentos.
+Feito pra criança e streamer: número gigante na tela, combo, transformação, lucky keys, esteira AFK, rebirth e anúncios.
 
 ## O que o jogo tem
 
-- Teclado QWERTY gigante (cada passo = **+1 RAIO**)
-- 8 fases com pulo, obstáculos giratórios e pad de **WINS**
-- Esteiras AFK (faísca, ouro, diamante, tempestade)
+- Teclado QWERTY pastel (cada passo aumenta a velocidade de verdade)
+- 8 fases espaçadas (prado, dunas, vila, canyon, floresta, neve, caverna, castelo)
+- Esteiras AFK (madeira, tijolo, mármore, real)
 - Loja: trilhas, auras, pets e esteiras
-- Combos, lucky keys, transformações (Faísca → Deus do Raio)
+- Combos, lucky keys, transformações
 - Rebirth com multiplicador permanente
-- Evento **Tempestade Dourada** a cada 3 minutos (x3 + dragão atravessa o mapa)
-- HUD neon, pet voando atrás, trilha, save automático
+- Evento Festa Dourada a cada 3 minutos
+- HUD clara, pet seguindo, save automático
 - Códigos prontos
 
 Não precisa construir mapa. O script gera o mundo inteiro.
@@ -28,7 +28,9 @@ Não precisa construir mapa. O script gera o mundo inteiro.
 4. Cole na Command Bar e pressione **Enter**.
 5. O mapa aparece na viewport. Aperte **Play** (F5).
 
-Pronto. Personagem spawna no hub. Ande em cima das teclas.
+Pronto. Personagem spawna no hub. **Pise nas teclas coloridas** — o número de VELOCIDADE no canto sobe sozinho.
+
+Se você já tinha a versão neon, cole o instalador de novo: ele apaga o mapa antigo.
 
 Se a Command Bar recusar um texto muito grande, use a instalação manual abaixo.
 
@@ -76,7 +78,7 @@ Há cópias com cabeçalho pronto em `COLE_NO_STUDIO/`.
 | `TEMPESTADE` | +8000 speed e +15 wins |
 | `DRAGAO` | +15000 speed e +25 wins |
 | `STREAMER` | +30000 speed e +50 wins |
-| `NEON` | +40 wins |
+| `JARDIM` | +40 wins |
 | `COMBO100` | +10000 speed |
 
 Troque os códigos em `Config.lua` → `Config.Codes`.

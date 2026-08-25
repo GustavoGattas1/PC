@@ -49,112 +49,111 @@ end
 
 makeModule("Config", [===[--[[
 	+1 RAIO Keyboard Escape
-	Tema: tempestade neon / dragão elétrico
-	Tudo que o jogo usa (números, loja, fases, códigos) mora aqui.
+	Tema: jardim encantado (dia, grama, madeira, pedra)
 ]]
 
 local Config = {}
 
 Config.Title = "+1 RAIO"
 Config.Subtitle = "KEYBOARD ESCAPE"
-Config.Tagline = "Cada passo no teclado = +1 RAIO. Fuja do Dragão da Tempestade!"
+Config.Tagline = "Corra no teclado! Cada passo aumenta a VELOCIDADE."
+Config.ThemeVersion = "Garden_v2"
 
 Config.DataStoreName = "RaioEscape_v1"
 Config.MaxPlayersSpeedCap = 1e15
 
--- Movimento (fica rápido, mas jogável)
 Config.BaseWalkSpeed = 16
-Config.MaxWalkSpeed = 240
+Config.MaxWalkSpeed = 260
 Config.BaseJumpPower = 50
-Config.MaxJumpPower = 175
+Config.MaxJumpPower = 180
 
--- Ganho de velocidade por passo
-Config.StepCooldown = 0.12
-Config.SameKeyCooldown = 0.40
-Config.TreadmillTick = 0.18
-Config.ComboWindow = 1.35
-Config.LuckyKeyChance = 0.04
+-- Passos reais por segundo enquanto está EM CIMA da tecla
+Config.StepsPerSecondMoving = 8
+Config.StepsPerSecondIdle = 2.4
+Config.StepCooldown = 0.08
+Config.TreadmillTick = 0.16
+Config.ComboWindow = 1.6
+Config.LuckyKeyChance = 0.035
 Config.LuckyKeyMultiplier = 12
 
--- Evento global (conteúdo de streamer)
 Config.StormInterval = 180
 Config.StormDuration = 45
 Config.StormMultiplier = 3
 
--- Códigos (pode trocar quando quiser)
 Config.Codes = {
-	RAIO = { Speed = 2500, Wins = 5, Message = "⚡ Código RAIO! +2500 velocidade e +5 wins" },
-	TEMPESTADE = { Speed = 8000, Wins = 15, Message = "🌩️ Tempestade liberada! +8000 velocidade" },
-	DRAGAO = { Speed = 15000, Wins = 25, Message = "🐉 O dragão te abençoou!" },
-	STREAMER = { Speed = 30000, Wins = 50, Message = "📺 Pack de streamer! Vai pra cima!" },
-	NEON = { Wins = 40, Message = "💜 +40 Wins neon" },
-	COMBO100 = { Speed = 10000, Message = "🔥 Combo lendário pré-pago" },
+	RAIO = { Speed = 2500, Wins = 5, Message = "Código RAIO! +2500 velocidade e +5 wins" },
+	TEMPESTADE = { Speed = 8000, Wins = 15, Message = "Sol dourado! +8000 velocidade" },
+	DRAGAO = { Speed = 15000, Wins = 25, Message = "O dragão do jardim te abençoou!" },
+	STREAMER = { Speed = 30000, Wins = 50, Message = "Pack de streamer! Vai pra cima!" },
+	JARDIM = { Wins = 40, Message = "+40 Wins do jardim" },
+	NEON = { Wins = 40, Message = "+40 Wins" },
+	COMBO100 = { Speed = 10000, Message = "Combo lendário pré-pago" },
 }
 
 Config.Rebirths = {
-	{ Level = 10,  Mult = 2 },
-	{ Level = 25,  Mult = 3 },
-	{ Level = 45,  Mult = 5 },
-	{ Level = 70,  Mult = 8 },
-	{ Level = 100, Mult = 12 },
-	{ Level = 140, Mult = 20 },
-	{ Level = 190, Mult = 35 },
-	{ Level = 250, Mult = 60 },
-	{ Level = 320, Mult = 100 },
-	{ Level = 400, Mult = 180 },
+	{ Level = 8,   Mult = 2 },
+	{ Level = 18,  Mult = 3 },
+	{ Level = 32,  Mult = 5 },
+	{ Level = 50,  Mult = 8 },
+	{ Level = 75,  Mult = 12 },
+	{ Level = 110, Mult = 20 },
+	{ Level = 150, Mult = 35 },
+	{ Level = 200, Mult = 60 },
+	{ Level = 270, Mult = 100 },
+	{ Level = 350, Mult = 180 },
 }
 
 Config.Transformations = {
-	{ Level = 8,   Name = "Faísca",        Color = Color3.fromRGB(255, 240, 80),  Message = "✨ Você virou FAÍSCA!" },
-	{ Level = 20,  Name = "Lobo Trovão",   Color = Color3.fromRGB(80, 200, 255),  Message = "🐺 LOBO TROVÃO acordou!" },
-	{ Level = 40,  Name = "Dragão Neon",   Color = Color3.fromRGB(255, 60, 220),  Message = "🐉 DRAGÃO NEON!" },
-	{ Level = 75,  Name = "Tempestade",    Color = Color3.fromRGB(180, 80, 255),  Message = "🌩️ VOCÊ É A TEMPESTADE!" },
-	{ Level = 120, Name = "DEUS DO RAIO",  Color = Color3.fromRGB(255, 220, 40),  Message = "⚡⚡ DEUS DO RAIO ⚡⚡" },
+	{ Level = 6,   Name = "Brilho",        Color = Color3.fromRGB(255, 214, 90),  Message = "Você começou a brilhar!" },
+	{ Level = 16,  Name = "Corredor",      Color = Color3.fromRGB(90, 180, 110),  Message = "Corredor do jardim!" },
+	{ Level = 32,  Name = "Campeão",       Color = Color3.fromRGB(230, 140, 70),  Message = "CAMPEÃO do teclado!" },
+	{ Level = 60,  Name = "Lenda",         Color = Color3.fromRGB(210, 90, 90),   Message = "Você é uma LENDA!" },
+	{ Level = 100, Name = "Rei do Teclado", Color = Color3.fromRGB(255, 200, 60), Message = "REI DO TECLADO!" },
 }
 
 Config.Trails = {
-	{ Id = "Spark",    Name = "Faísca",       Wins = 15,     Mult = 1.5, Color = Color3.fromRGB(255, 230, 80) },
-	{ Id = "Cyan",     Name = "Ciano",        Wins = 60,     Mult = 2.0, Color = Color3.fromRGB(0, 245, 255) },
-	{ Id = "Magenta",  Name = "Magenta",      Wins = 180,    Mult = 3.0, Color = Color3.fromRGB(255, 46, 234) },
-	{ Id = "Storm",    Name = "Tempestade",   Wins = 500,    Mult = 4.5, Color = Color3.fromRGB(140, 90, 255) },
-	{ Id = "Rainbow",  Name = "Arco-Íris",    Wins = 1500,   Mult = 7.0, Color = Color3.fromRGB(255, 90, 180) },
-	{ Id = "Void",     Name = "Vazio",        Wins = 5000,   Mult = 12,  Color = Color3.fromRGB(40, 0, 70) },
-	{ Id = "Godlike",  Name = "Lendária",     Wins = 20000,  Mult = 25,  Color = Color3.fromRGB(255, 215, 0) },
+	{ Id = "Spark",    Name = "Folha",        Wins = 15,     Mult = 1.5, Color = Color3.fromRGB(120, 180, 80) },
+	{ Id = "Cyan",     Name = "Céu",          Wins = 60,     Mult = 2.0, Color = Color3.fromRGB(120, 190, 230) },
+	{ Id = "Magenta",  Name = "Flor",         Wins = 180,    Mult = 3.0, Color = Color3.fromRGB(230, 120, 150) },
+	{ Id = "Storm",    Name = "Ametista",     Wins = 500,    Mult = 4.5, Color = Color3.fromRGB(160, 110, 200) },
+	{ Id = "Rainbow",  Name = "Arco-Íris",    Wins = 1500,   Mult = 7.0, Color = Color3.fromRGB(255, 150, 90) },
+	{ Id = "Void",     Name = "Noite",        Wins = 5000,   Mult = 12,  Color = Color3.fromRGB(70, 70, 100) },
+	{ Id = "Godlike",  Name = "Real",         Wins = 20000,  Mult = 25,  Color = Color3.fromRGB(255, 200, 70) },
 }
 
 Config.Auras = {
-	{ Id = "Glow",   Name = "Brilho",     Wins = 40,     Mult = 1.2, Color = Color3.fromRGB(220, 220, 255) },
-	{ Id = "Wind",   Name = "Vento",      Wins = 200,    Mult = 1.6, Color = Color3.fromRGB(160, 255, 210) },
-	{ Id = "Plasma", Name = "Plasma",     Wins = 800,    Mult = 2.2, Color = Color3.fromRGB(255, 70, 200) },
-	{ Id = "Fire",   Name = "Fogo Elétrico", Wins = 2500, Mult = 3.5, Color = Color3.fromRGB(255, 120, 40) },
-	{ Id = "Cosmic", Name = "Cósmica",    Wins = 9000,   Mult = 6.0, Color = Color3.fromRGB(120, 80, 255) },
+	{ Id = "Glow",   Name = "Brilho",     Wins = 40,     Mult = 1.2, Color = Color3.fromRGB(255, 240, 200) },
+	{ Id = "Wind",   Name = "Brisa",      Wins = 200,    Mult = 1.6, Color = Color3.fromRGB(170, 220, 180) },
+	{ Id = "Plasma", Name = "Pétala",     Wins = 800,    Mult = 2.2, Color = Color3.fromRGB(240, 140, 160) },
+	{ Id = "Fire",   Name = "Pôr do Sol", Wins = 2500,   Mult = 3.5, Color = Color3.fromRGB(230, 130, 70) },
+	{ Id = "Cosmic", Name = "Estrela",    Wins = 9000,   Mult = 6.0, Color = Color3.fromRGB(230, 210, 120) },
 }
 
 Config.Pets = {
-	{ Id = "Cub",      Name = "Filhote Faísca",  Wins = 0,      Mult = 1.1, Color = Color3.fromRGB(255, 230, 90),  Shape = "Ball" },
-	{ Id = "Bunny",    Name = "Coelho Volt",     Wins = 80,     Mult = 1.4, Color = Color3.fromRGB(255, 120, 220), Shape = "Ball" },
-	{ Id = "Cat",      Name = "Gato Trovão",     Wins = 350,    Mult = 1.9, Color = Color3.fromRGB(80, 220, 255),  Shape = "Ball" },
-	{ Id = "Wolf",     Name = "Lobo Plasma",     Wins = 1200,   Mult = 2.8, Color = Color3.fromRGB(180, 90, 255),  Shape = "Ball" },
-	{ Id = "Dragon",   Name = "Dragão RAIO",     Wins = 4500,   Mult = 4.5, Color = Color3.fromRGB(255, 70, 70),   Shape = "Ball" },
-	{ Id = "Phoenix",  Name = "Fênix Galáctica", Wins = 18000,  Mult = 8.0, Color = Color3.fromRGB(255, 180, 40),  Shape = "Ball" },
+	{ Id = "Cub",      Name = "Pintinho",     Wins = 0,      Mult = 1.1, Color = Color3.fromRGB(255, 210, 90) },
+	{ Id = "Bunny",    Name = "Coelho",       Wins = 80,     Mult = 1.4, Color = Color3.fromRGB(245, 220, 230) },
+	{ Id = "Cat",      Name = "Gatinho",      Wins = 350,    Mult = 1.9, Color = Color3.fromRGB(230, 160, 90) },
+	{ Id = "Wolf",     Name = "Raposa",       Wins = 1200,   Mult = 2.8, Color = Color3.fromRGB(210, 110, 70) },
+	{ Id = "Dragon",   Name = "Dragãozinho",  Wins = 4500,   Mult = 4.5, Color = Color3.fromRGB(90, 160, 110) },
+	{ Id = "Phoenix",  Name = "Fênix",        Wins = 18000,  Mult = 8.0, Color = Color3.fromRGB(230, 140, 60) },
 }
 
 Config.Treadmills = {
-	{ Id = "Free",    Name = "Esteira Faísca",  Mult = 1,   Color = Color3.fromRGB(80, 255, 180) },
-	{ Id = "Gold",    Name = "Esteira Ouro",    Mult = 3,   Color = Color3.fromRGB(255, 200, 50),  Wins = 250 },
-	{ Id = "Diamond", Name = "Esteira Diamante",Mult = 8,   Color = Color3.fromRGB(120, 220, 255), Wins = 2000 },
-	{ Id = "Storm",   Name = "Esteira Tempestade", Mult = 20, Color = Color3.fromRGB(180, 70, 255), Wins = 8000 },
+	{ Id = "Free",    Name = "Esteira de Madeira", Mult = 1,  Color = Color3.fromRGB(160, 120, 70) },
+	{ Id = "Gold",    Name = "Esteira de Tijolo",  Mult = 3,  Color = Color3.fromRGB(180, 90, 60),   Wins = 250 },
+	{ Id = "Diamond", Name = "Esteira de Mármore", Mult = 8,  Color = Color3.fromRGB(210, 215, 220), Wins = 2000 },
+	{ Id = "Storm",   Name = "Esteira Real",       Mult = 20, Color = Color3.fromRGB(220, 180, 70),  Wins = 8000 },
 }
 
 Config.Stages = {
-	{ Name = "Prado Trovão",      Color = Color3.fromRGB(80, 255, 140),  RequiredLevel = 0,   Wins = 2,    Gap = 8,  Keys = 10 },
-	{ Name = "Cânion Elétrico",   Color = Color3.fromRGB(0, 220, 255),   RequiredLevel = 5,   Wins = 5,    Gap = 12, Keys = 12 },
-	{ Name = "Metrópole Neon",    Color = Color3.fromRGB(255, 50, 200),  RequiredLevel = 12,  Wins = 12,   Gap = 16, Keys = 12 },
-	{ Name = "Núcleo do Vulcão",  Color = Color3.fromRGB(255, 90, 40),   RequiredLevel = 22,  Wins = 28,   Gap = 22, Keys = 14 },
-	{ Name = "Selva Plasma",      Color = Color3.fromRGB(160, 255, 60),  RequiredLevel = 35,  Wins = 70,   Gap = 28, Keys = 14 },
-	{ Name = "Pico da Tempestade",Color = Color3.fromRGB(150, 90, 255),  RequiredLevel = 55,  Wins = 160,  Gap = 34, Keys = 16 },
-	{ Name = "Abismo Violeta",    Color = Color3.fromRGB(90, 40, 160),   RequiredLevel = 80,  Wins = 400,  Gap = 42, Keys = 16 },
-	{ Name = "Galáxia RAIO",      Color = Color3.fromRGB(255, 220, 60),  RequiredLevel = 110, Wins = 1200, Gap = 52, Keys = 18 },
+	{ Name = "Prado Florido",     Color = Color3.fromRGB(120, 170, 90),  Terrain = Enum.Material.Grass,       RequiredLevel = 0,   Wins = 2,    Gap = 8,  Keys = 10 },
+	{ Name = "Dunas Douradas",    Color = Color3.fromRGB(210, 180, 110), Terrain = Enum.Material.Sand,        RequiredLevel = 4,   Wins = 5,    Gap = 12, Keys = 12 },
+	{ Name = "Vila de Pedra",     Color = Color3.fromRGB(150, 145, 140), Terrain = Enum.Material.Cobblestone, RequiredLevel = 10,  Wins = 12,   Gap = 16, Keys = 12 },
+	{ Name = "Canyon de Terra",   Color = Color3.fromRGB(170, 110, 70),  Terrain = Enum.Material.Ground,      RequiredLevel = 18,  Wins = 28,   Gap = 22, Keys = 14 },
+	{ Name = "Floresta Alta",     Color = Color3.fromRGB(80, 140, 80),   Terrain = Enum.Material.LeafyGrass,  RequiredLevel = 28,  Wins = 70,   Gap = 28, Keys = 14 },
+	{ Name = "Pico Nevado",       Color = Color3.fromRGB(230, 235, 240), Terrain = Enum.Material.Snow,        RequiredLevel = 42,  Wins = 160,  Gap = 34, Keys = 16 },
+	{ Name = "Caverna de Quartzo",Color = Color3.fromRGB(190, 170, 200), Terrain = Enum.Material.Slate,       RequiredLevel = 60,  Wins = 400,  Gap = 42, Keys = 16 },
+	{ Name = "Castelo nas Nuvens",Color = Color3.fromRGB(230, 210, 150), Terrain = Enum.Material.Marble,      RequiredLevel = 85,  Wins = 1200, Gap = 52, Keys = 18 },
 }
 
 Config.KeyboardRows = {
@@ -165,19 +164,19 @@ Config.KeyboardRows = {
 	{ "CTRL", "ALT", "SPACE", "ENTER" },
 }
 
-Config.KeySize = Vector3.new(8, 2.2, 8)
-Config.KeyGap = 1.4
+Config.KeySize = Vector3.new(9, 1.5, 9)
+Config.KeyGap = 0.12
 Config.Palette = {
-	Color3.fromRGB(0, 245, 255),
-	Color3.fromRGB(255, 46, 234),
-	Color3.fromRGB(255, 220, 50),
-	Color3.fromRGB(140, 90, 255),
-	Color3.fromRGB(80, 255, 160),
-	Color3.fromRGB(255, 90, 70),
+	Color3.fromRGB(255, 214, 153),
+	Color3.fromRGB(167, 216, 168),
+	Color3.fromRGB(255, 183, 197),
+	Color3.fromRGB(255, 249, 176),
+	Color3.fromRGB(174, 214, 241),
+	Color3.fromRGB(215, 189, 226),
 }
 
 Config.Sounds = {
-	Click = "rbxasset://sounds/electronicpingshort.wav",
+	Click = "rbxasset://sounds/switch.wav",
 	Win = "rbxasset://sounds/electronicpingshort.wav",
 	Whoosh = "rbxasset://sounds/action_get_up.mp3",
 	Notify = "rbxasset://sounds/switch.wav",
@@ -185,18 +184,18 @@ Config.Sounds = {
 
 function Config.LevelFromSpeed(speed)
 	speed = math.max(0, speed or 0)
-	return math.floor((speed / 80) ^ 0.55)
+	return math.floor((speed / 28) ^ 0.58)
 end
 
 function Config.SpeedToWalk(speed)
-	local level = Config.LevelFromSpeed(speed)
-	local walk = Config.BaseWalkSpeed + (level ^ 0.62) * 2.15
+	speed = math.max(0, speed or 0)
+	local walk = Config.BaseWalkSpeed + (speed ^ 0.47) * 1.85
 	return math.clamp(walk, Config.BaseWalkSpeed, Config.MaxWalkSpeed)
 end
 
 function Config.SpeedToJump(speed)
-	local level = Config.LevelFromSpeed(speed)
-	local jump = Config.BaseJumpPower + (level ^ 0.5) * 3.4
+	speed = math.max(0, speed or 0)
+	local jump = Config.BaseJumpPower + (speed ^ 0.36) * 2.55
 	return math.clamp(jump, Config.BaseJumpPower, Config.MaxJumpPower)
 end
 
@@ -249,8 +248,8 @@ end
 return Config
 ]===])
 makeModule("World", [===[--[[
-	Constrói o mapa inteiro: hub, teclado gigante, esteiras, fases, dragão e decoração.
-	Não precisa criar nada na mão no Studio.
+	Mapa do jardim encantado: grama, madeira, pedra, teclado pastel.
+	Letreiros viram placas (SurfaceGui) pra não ficar tudo empilhado no ar.
 ]]
 
 local Config = require(script.Parent.Config)
@@ -263,99 +262,174 @@ local function wpart(parent, props)
 	p.TopSurface = Enum.SurfaceType.Smooth
 	p.BottomSurface = Enum.SurfaceType.Smooth
 	p.Material = props.Material or Enum.Material.SmoothPlastic
-	p.Color = props.Color or Color3.fromRGB(20, 10, 40)
+	p.Color = props.Color or Color3.fromRGB(180, 160, 130)
 	p.Size = props.Size or Vector3.new(4, 1, 4)
 	p.CFrame = props.CFrame or CFrame.new()
 	p.Name = props.Name or "Part"
 	p.Transparency = props.Transparency or 0
 	p.CanCollide = props.CanCollide ~= false
-	p.CastShadow = false
+	p.CastShadow = true
 	if props.Shape then
 		p.Shape = props.Shape
 	end
 	p.Parent = parent
-	if props.Light then
-		local l = Instance.new("PointLight")
-		l.Color = props.Color or Color3.new(1, 1, 1)
-		l.Brightness = props.Light
-		l.Range = props.Range or 18
-		l.Parent = p
-	end
 	return p
 end
 
-local function label(part, text, color)
+local function faceLetter(part, text, color)
 	local gui = Instance.new("SurfaceGui")
 	gui.Face = Enum.NormalId.Top
 	gui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
-	gui.PixelsPerStud = 20
-	gui.LightInfluence = 0
+	gui.PixelsPerStud = 18
+	gui.LightInfluence = 0.35
 	gui.Parent = part
 	local tl = Instance.new("TextLabel")
 	tl.BackgroundTransparency = 1
 	tl.Size = UDim2.fromScale(1, 1)
-	tl.Font = Enum.Font.GothamBlack
+	tl.Font = Enum.Font.FredokaOne
 	tl.TextScaled = true
-	tl.TextColor3 = color or Color3.new(1, 1, 1)
+	tl.TextColor3 = color or Color3.fromRGB(50, 40, 30)
 	tl.Text = text
 	tl.Parent = gui
 	local stroke = Instance.new("UIStroke")
-	stroke.Thickness = 2
-	stroke.Color = Color3.fromRGB(10, 0, 20)
+	stroke.Thickness = 1.6
+	stroke.Color = Color3.fromRGB(255, 255, 255)
+	stroke.Transparency = 0.25
 	stroke.Parent = tl
 end
 
-local function billboard(part, text, color, size)
+local function woodSign(parent, pos, text, color)
+	local post = wpart(parent, {
+		Name = "SignPost",
+		Size = Vector3.new(1.2, 12, 1.2),
+		CFrame = CFrame.new(pos + Vector3.new(0, 6, 0)),
+		Color = Color3.fromRGB(120, 85, 50),
+		Material = Enum.Material.Wood,
+	})
+	local board = wpart(parent, {
+		Name = "SignBoard",
+		Size = Vector3.new(16, 6, 0.7),
+		CFrame = CFrame.new(pos + Vector3.new(0, 12, 0)),
+		Color = Color3.fromRGB(165, 120, 70),
+		Material = Enum.Material.WoodPlanks,
+	})
+	local gui = Instance.new("SurfaceGui")
+	gui.Face = Enum.NormalId.Front
+	gui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+	gui.PixelsPerStud = 25
+	gui.LightInfluence = 0.2
+	gui.Parent = board
+	local tl = Instance.new("TextLabel")
+	tl.BackgroundTransparency = 1
+	tl.Size = UDim2.fromScale(1, 1)
+	tl.Font = Enum.Font.FredokaOne
+	tl.TextScaled = true
+	tl.TextWrapped = true
+	tl.TextColor3 = color or Color3.fromRGB(70, 45, 25)
+	tl.Text = text
+	tl.Parent = gui
+	local back = gui:Clone()
+	back.Face = Enum.NormalId.Back
+	back.Parent = board
+	return post, board
+end
+
+local function nearBillboard(part, text, color, maxDist)
 	local bb = Instance.new("BillboardGui")
-	bb.Size = size or UDim2.fromOffset(220, 50)
-	bb.StudsOffset = Vector3.new(0, 6, 0)
-	bb.AlwaysOnTop = true
+	bb.Size = UDim2.fromOffset(180, 40)
+	bb.StudsOffset = Vector3.new(0, 4.2, 0)
+	bb.AlwaysOnTop = false
+	bb.MaxDistance = maxDist or 42
 	bb.Parent = part
 	local tl = Instance.new("TextLabel")
 	tl.BackgroundTransparency = 1
 	tl.Size = UDim2.fromScale(1, 1)
-	tl.Font = Enum.Font.GothamBlack
+	tl.Font = Enum.Font.FredokaOne
 	tl.TextScaled = true
-	tl.TextColor3 = color or Color3.new(1, 1, 1)
+	tl.TextColor3 = color or Color3.fromRGB(70, 50, 30)
 	tl.Text = text
 	tl.Parent = bb
 	local stroke = Instance.new("UIStroke")
-	stroke.Thickness = 2
+	stroke.Thickness = 1.5
+	stroke.Color = Color3.fromRGB(255, 255, 255)
 	stroke.Parent = tl
 end
 
-local function neonCrystal(parent, pos, color, height)
-	height = height or 18
-	local crystal = wpart(parent, {
-		Name = "Crystal",
-		Size = Vector3.new(2.4, height, 2.4),
-		CFrame = CFrame.new(pos) * CFrame.Angles(0, 0, math.rad(18)),
-		Color = color,
-		Material = Enum.Material.Neon,
-		Light = 2,
-		Range = 28,
-	})
-	crystal.CanCollide = false
+local function tree(parent, pos, scale)
+	scale = scale or 1
 	wpart(parent, {
-		Name = "CrystalBase",
-		Size = Vector3.new(5, 1, 5),
-		CFrame = CFrame.new(pos.X, pos.Y - height / 2, pos.Z),
-		Color = Color3.fromRGB(12, 6, 28),
-		Material = Enum.Material.Slate,
+		Name = "Trunk",
+		Size = Vector3.new(2.2 * scale, 10 * scale, 2.2 * scale),
+		CFrame = CFrame.new(pos + Vector3.new(0, 5 * scale, 0)),
+		Color = Color3.fromRGB(115, 80, 50),
+		Material = Enum.Material.Wood,
 	})
-	return crystal
+	for i, offset in ipairs({
+		Vector3.new(0, 11 * scale, 0),
+		Vector3.new(-3 * scale, 9.5 * scale, 1 * scale),
+		Vector3.new(3 * scale, 9.2 * scale, -1 * scale),
+		Vector3.new(0.5 * scale, 13 * scale, 0.4 * scale),
+	}) do
+		local leaf = wpart(parent, {
+			Name = "Leaves",
+			Size = Vector3.new((7 - i * 0.4) * scale, (7 - i * 0.4) * scale, (7 - i * 0.4) * scale),
+			CFrame = CFrame.new(pos + offset),
+			Color = Color3.fromRGB(70 + i * 12, 140 + i * 8, 70),
+			Material = Enum.Material.LeafyGrass,
+			Shape = Enum.PartType.Ball,
+			CanCollide = false,
+		})
+		leaf.CanCollide = false
+	end
+end
+
+local function flower(parent, pos, color)
+	wpart(parent, {
+		Name = "Stem",
+		Size = Vector3.new(0.3, 2.2, 0.3),
+		CFrame = CFrame.new(pos + Vector3.new(0, 1.1, 0)),
+		Color = Color3.fromRGB(70, 130, 60),
+		Material = Enum.Material.Grass,
+		CanCollide = false,
+	})
+	local head = wpart(parent, {
+		Name = "Bloom",
+		Size = Vector3.new(1.6, 1.6, 1.6),
+		CFrame = CFrame.new(pos + Vector3.new(0, 2.3, 0)),
+		Color = color,
+		Material = Enum.Material.SmoothPlastic,
+		Shape = Enum.PartType.Ball,
+		CanCollide = false,
+	})
+	head.CanCollide = false
+end
+
+local function rock(parent, pos, size)
+	wpart(parent, {
+		Name = "Rock",
+		Size = size or Vector3.new(6, 3.5, 5),
+		CFrame = CFrame.new(pos) * CFrame.Angles(0, math.rad(math.random(0, 180)), math.rad(8)),
+		Color = Color3.fromRGB(145, 140, 130),
+		Material = Enum.Material.Rock,
+	})
 end
 
 local function makeKey(parent, pos, letter, color, tags)
 	local width = (letter == "SPACE") and 22 or (letter == "ENTER" or letter == "CTRL" or letter == "ALT") and 12 or Config.KeySize.X
+	local base = wpart(parent, {
+		Name = "KeyWood",
+		Size = Vector3.new(width + 0.5, 0.55, Config.KeySize.Z + 0.5),
+		CFrame = CFrame.new(pos.X, pos.Y - Config.KeySize.Y / 2 - 0.15, pos.Z),
+		Color = Color3.fromRGB(120, 85, 52),
+		Material = Enum.Material.WoodPlanks,
+	})
+	base.CanCollide = false
 	local key = wpart(parent, {
 		Name = "Key_" .. letter,
 		Size = Vector3.new(width, Config.KeySize.Y, Config.KeySize.Z),
 		CFrame = CFrame.new(pos),
 		Color = color,
-		Material = Enum.Material.Neon,
-		Light = 0.7,
-		Range = 14,
+		Material = Enum.Material.SmoothPlastic,
 	})
 	key:SetAttribute("RaioKey", true)
 	key:SetAttribute("Letter", letter)
@@ -364,15 +438,7 @@ local function makeKey(parent, pos, letter, color, tags)
 			key:SetAttribute(k, v)
 		end
 	end
-	-- borda escura embaixo (teclado mecânico)
-	wpart(parent, {
-		Name = "KeyBase",
-		Size = Vector3.new(width + 0.4, 0.7, Config.KeySize.Z + 0.4),
-		CFrame = CFrame.new(pos.X, pos.Y - 1.35, pos.Z),
-		Color = Color3.fromRGB(12, 8, 22),
-		Material = Enum.Material.SmoothPlastic,
-	})
-	label(key, letter, Color3.new(1, 1, 1))
+	faceLetter(key, letter, Color3.fromRGB(55, 40, 30))
 	return key
 end
 
@@ -402,25 +468,21 @@ local function buildKeyboard(parent, origin, rows, palette, tags)
 	return folder, z
 end
 
-local function spinningHazard(parent, pos, color)
+local function spinningHazard(parent, pos)
 	local pivot = wpart(parent, {
 		Name = "HazardPivot",
-		Size = Vector3.new(2, 2, 2),
+		Size = Vector3.new(2.4, 8, 2.4),
 		CFrame = CFrame.new(pos),
-		Color = color,
-		Material = Enum.Material.Neon,
-		CanCollide = false,
-		Light = 1.4,
+		Color = Color3.fromRGB(120, 85, 50),
+		Material = Enum.Material.Wood,
 	})
 	local bar = wpart(parent, {
 		Name = "SpinBar",
-		Size = Vector3.new(28, 1.4, 1.4),
-		CFrame = CFrame.new(pos),
-		Color = color,
-		Material = Enum.Material.Neon,
-		CanCollide = false,
+		Size = Vector3.new(22, 1.2, 1.2),
+		CFrame = CFrame.new(pos + Vector3.new(0, 3, 0)),
+		Color = Color3.fromRGB(170, 90, 60),
+		Material = Enum.Material.WoodPlanks,
 	})
-	bar.CanCollide = true
 	bar:SetAttribute("Hazard", true)
 	local weld = Instance.new("WeldConstraint")
 	weld.Part0 = pivot
@@ -434,45 +496,64 @@ end
 
 local function applyLighting()
 	local lighting = game:GetService("Lighting")
-	lighting.ClockTime = 21.4
-	lighting.Brightness = 1.35
-	lighting.Ambient = Color3.fromRGB(20, 10, 40)
-	lighting.OutdoorAmbient = Color3.fromRGB(30, 18, 55)
-	lighting.FogColor = Color3.fromRGB(18, 6, 40)
-	lighting.FogStart = 80
-	lighting.FogEnd = 520
-	lighting.GlobalShadows = false
+	lighting.ClockTime = 14.2
+	lighting.Brightness = 2.6
+	lighting.Ambient = Color3.fromRGB(140, 145, 135)
+	lighting.OutdoorAmbient = Color3.fromRGB(155, 155, 145)
+	lighting.ColorShift_Top = Color3.fromRGB(255, 245, 220)
+	lighting.FogColor = Color3.fromRGB(200, 220, 235)
+	lighting.FogStart = 400
+	lighting.FogEnd = 1800
+	lighting.GlobalShadows = true
+	lighting.ShadowSoftness = 0.4
+	lighting.EnvironmentDiffuseScale = 0.5
+	lighting.EnvironmentSpecularScale = 0.35
 
-	for _, name in ipairs({ "RaioBloom", "RaioCC", "RaioAtmo", "RaioSun" }) do
+	for _, name in ipairs({ "RaioBloom", "RaioCC", "RaioAtmo", "RaioSun", "RaioSky", "RaioRays" }) do
 		local old = lighting:FindFirstChild(name)
 		if old then
 			old:Destroy()
 		end
 	end
 
+	local sky = Instance.new("Sky")
+	sky.Name = "RaioSky"
+	sky.CelestialBodiesShown = true
+	sky.SunAngularSize = 12
+	sky.MoonAngularSize = 8
+	sky.StarCount = 0
+	sky.Parent = lighting
+
 	local bloom = Instance.new("BloomEffect")
 	bloom.Name = "RaioBloom"
-	bloom.Intensity = 1.1
-	bloom.Size = 22
-	bloom.Threshold = 0.85
+	bloom.Intensity = 0.18
+	bloom.Size = 8
+	bloom.Threshold = 1.4
 	bloom.Parent = lighting
 
 	local cc = Instance.new("ColorCorrectionEffect")
 	cc.Name = "RaioCC"
-	cc.Saturation = 0.25
-	cc.Contrast = 0.12
-	cc.TintColor = Color3.fromRGB(220, 200, 255)
+	cc.Saturation = 0.12
+	cc.Contrast = 0.06
+	cc.Brightness = 0.03
+	cc.TintColor = Color3.fromRGB(255, 250, 240)
 	cc.Parent = lighting
 
 	local atmo = Instance.new("Atmosphere")
 	atmo.Name = "RaioAtmo"
-	atmo.Density = 0.32
-	atmo.Offset = 0.1
-	atmo.Color = Color3.fromRGB(90, 40, 140)
-	atmo.Decay = Color3.fromRGB(20, 0, 40)
-	atmo.Glare = 0.35
-	atmo.Haze = 1.6
+	atmo.Density = 0.22
+	atmo.Offset = 0.08
+	atmo.Color = Color3.fromRGB(200, 215, 180)
+	atmo.Decay = Color3.fromRGB(170, 190, 220)
+	atmo.Glare = 0.12
+	atmo.Haze = 0.8
 	atmo.Parent = lighting
+
+	local rays = Instance.new("SunRaysEffect")
+	rays.Name = "RaioRays"
+	rays.Intensity = 0.12
+	rays.Spread = 0.4
+	rays.Parent = lighting
 end
 
 function World.Build()
@@ -486,183 +567,215 @@ function World.Build()
 	local world = Instance.new("Model")
 	world.Name = "RaioWorld"
 	world.Parent = workspace
+	world:SetAttribute("Theme", Config.ThemeVersion)
 
 	local base = workspace:FindFirstChild("Baseplate")
 	if base and base:IsA("BasePart") then
-		base.Color = Color3.fromRGB(8, 4, 18)
-		base.Material = Enum.Material.SmoothPlastic
-		base.Size = Vector3.new(2048, 4, 4096)
-		base.CFrame = CFrame.new(0, -2, 900)
+		base.Transparency = 1
+		base.CanCollide = false
+		base.CFrame = CFrame.new(0, -80, 0)
 	end
 
-	-- chão do hub
+	local terrain = workspace.Terrain
+	pcall(function()
+		terrain:Clear()
+	end)
+	terrain:FillBlock(CFrame.new(0, -5, 0), Vector3.new(480, 12, 480), Enum.Material.Grass)
+	terrain:FillBlock(CFrame.new(0, -5, 1200), Vector3.new(110, 12, 2400), Enum.Material.Grass)
+
+	-- deck de madeira do teclado
 	wpart(world, {
-		Name = "HubFloor",
-		Size = Vector3.new(220, 2, 180),
-		CFrame = CFrame.new(0, 0, 0),
-		Color = Color3.fromRGB(14, 8, 32),
-		Material = Enum.Material.SmoothPlastic,
-	})
-	wpart(world, {
-		Name = "HubGlow",
-		Size = Vector3.new(200, 0.2, 160),
-		CFrame = CFrame.new(0, 1.12, 0),
-		Color = Color3.fromRGB(40, 10, 80),
-		Material = Enum.Material.Neon,
-		CanCollide = false,
+		Name = "KeyboardDeck",
+		Size = Vector3.new(118, 1.2, 62),
+		CFrame = CFrame.new(0, 1.4, 18),
+		Color = Color3.fromRGB(150, 110, 70),
+		Material = Enum.Material.WoodPlanks,
 	})
 
-	-- arco título
-	local archL = wpart(world, {
-		Name = "ArchL",
-		Size = Vector3.new(4, 28, 4),
-		CFrame = CFrame.new(-28, 15, -62),
-		Color = Color3.fromRGB(0, 245, 255),
-		Material = Enum.Material.Neon,
-		Light = 2,
-		Range = 30,
+	-- portão de entrada (placa, não billboard)
+	wpart(world, {
+		Name = "GateL",
+		Size = Vector3.new(3.5, 18, 3.5),
+		CFrame = CFrame.new(-22, 10, -70),
+		Color = Color3.fromRGB(120, 85, 50),
+		Material = Enum.Material.Wood,
 	})
 	wpart(world, {
-		Name = "ArchR",
-		Size = Vector3.new(4, 28, 4),
-		CFrame = CFrame.new(28, 15, -62),
-		Color = Color3.fromRGB(255, 46, 234),
-		Material = Enum.Material.Neon,
-		Light = 2,
-		Range = 30,
+		Name = "GateR",
+		Size = Vector3.new(3.5, 18, 3.5),
+		CFrame = CFrame.new(22, 10, -70),
+		Color = Color3.fromRGB(120, 85, 50),
+		Material = Enum.Material.Wood,
 	})
 	local titleBar = wpart(world, {
 		Name = "TitleBar",
-		Size = Vector3.new(60, 8, 3),
-		CFrame = CFrame.new(0, 30, -62),
-		Color = Color3.fromRGB(20, 8, 40),
-		Material = Enum.Material.SmoothPlastic,
+		Size = Vector3.new(44, 7, 2.2),
+		CFrame = CFrame.new(0, 18, -70),
+		Color = Color3.fromRGB(165, 120, 70),
+		Material = Enum.Material.WoodPlanks,
 	})
-	billboard(titleBar, "+1 RAIO  KEYBOARD ESCAPE", Color3.fromRGB(255, 240, 80), UDim2.fromOffset(520, 80))
+	local titleGui = Instance.new("SurfaceGui")
+	titleGui.Face = Enum.NormalId.Front
+	titleGui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+	titleGui.PixelsPerStud = 22
+	titleGui.LightInfluence = 0.15
+	titleGui.Parent = titleBar
+	local titleText = Instance.new("TextLabel")
+	titleText.BackgroundTransparency = 1
+	titleText.Size = UDim2.fromScale(1, 1)
+	titleText.Font = Enum.Font.FredokaOne
+	titleText.TextScaled = true
+	titleText.TextColor3 = Color3.fromRGB(70, 45, 25)
+	titleText.Text = "+1 RAIO   KEYBOARD ESCAPE"
+	titleText.Parent = titleGui
+	local titleBack = titleGui:Clone()
+	titleBack.Face = Enum.NormalId.Back
+	titleBack.Parent = titleBar
 
-	-- spawn
 	local spawn = Instance.new("SpawnLocation")
 	spawn.Name = "RaioSpawn"
-	spawn.Size = Vector3.new(16, 1, 16)
+	spawn.Size = Vector3.new(14, 1, 14)
 	spawn.CFrame = CFrame.new(0, 2.2, -28)
 	spawn.Anchored = true
 	spawn.Neutral = true
 	spawn.Duration = 0
-	spawn.Material = Enum.Material.Neon
-	spawn.Color = Color3.fromRGB(255, 230, 80)
+	spawn.Material = Enum.Material.Grass
+	spawn.Color = Color3.fromRGB(110, 170, 80)
 	spawn.Parent = world
-	label(spawn, "SPAWN", Color3.fromRGB(20, 10, 40))
+	faceLetter(spawn, "INÍCIO", Color3.fromRGB(50, 80, 40))
 
-	-- teclado do hub
 	local hubKeys = Instance.new("Folder")
 	hubKeys.Name = "HubKeys"
 	hubKeys.Parent = world
-	buildKeyboard(hubKeys, Vector3.new(0, 2.2, 8), Config.KeyboardRows, Config.Palette, { Zone = "Hub" })
+	buildKeyboard(hubKeys, Vector3.new(0, 2.85, 4), Config.KeyboardRows, Config.Palette, { Zone = "Hub" })
 
-	-- cristais
-	for i = 1, 10 do
-		local ang = i / 10 * math.pi * 2
-		neonCrystal(world, Vector3.new(math.cos(ang) * 92, 10, math.sin(ang) * 70), Config.Palette[(i % #Config.Palette) + 1], 16 + (i % 4) * 4)
+	-- natureza ao redor (longe o bastante pra não cobrir o teclado)
+	for i = 1, 16 do
+		local ang = i / 16 * math.pi * 2
+		local r = 150 + (i % 4) * 12
+		tree(world, Vector3.new(math.cos(ang) * r, 1, math.sin(ang) * r), 1 + (i % 3) * 0.25)
 	end
+	for i = 1, 24 do
+		local ang = i / 24 * math.pi * 2
+		flower(world, Vector3.new(math.cos(ang) * 88, 1, math.sin(ang) * 70), Config.Palette[(i % #Config.Palette) + 1])
+	end
+	rock(world, Vector3.new(-95, 2, 40), Vector3.new(8, 4, 6))
+	rock(world, Vector3.new(100, 2, 30), Vector3.new(7, 3.5, 6))
 
-	-- loja
+	-- LOJA bem à esquerda
+	local shopHouse = wpart(world, {
+		Name = "ShopHouse",
+		Size = Vector3.new(28, 14, 22),
+		CFrame = CFrame.new(-170, 8, 0),
+		Color = Color3.fromRGB(200, 90, 80),
+		Material = Enum.Material.Brick,
+	})
+	wpart(world, {
+		Name = "ShopRoof",
+		Size = Vector3.new(34, 3, 28),
+		CFrame = CFrame.new(-170, 16.5, 0),
+		Color = Color3.fromRGB(140, 70, 50),
+		Material = Enum.Material.RoofShingles,
+	})
 	local shop = wpart(world, {
 		Name = "ShopPad",
-		Size = Vector3.new(28, 2, 28),
-		CFrame = CFrame.new(-72, 2, -18),
-		Color = Color3.fromRGB(255, 46, 234),
-		Material = Enum.Material.Neon,
-		Light = 1.5,
+		Size = Vector3.new(16, 1.4, 16),
+		CFrame = CFrame.new(-170, 1.7, 18),
+		Color = Color3.fromRGB(200, 90, 80),
+		Material = Enum.Material.Brick,
 	})
 	shop:SetAttribute("ShopPad", true)
-	billboard(shop, "💜 LOJA DE PODER", Color3.fromRGB(255, 120, 255))
+	woodSign(world, Vector3.new(-170, 1, 28), "LOJA", Color3.fromRGB(140, 40, 40))
 
-	-- rebirth
-	local rebirth = wpart(world, {
-		Name = "RebirthPad",
-		Size = Vector3.new(22, 2, 22),
-		CFrame = CFrame.new(0, 2, -48),
-		Color = Color3.fromRGB(255, 220, 50),
-		Material = Enum.Material.Neon,
-		Light = 2,
-		Shape = Enum.PartType.Cylinder,
+	-- CÓDIGOS bem à direita
+	wpart(world, {
+		Name = "CodeHouse",
+		Size = Vector3.new(22, 12, 22),
+		CFrame = CFrame.new(170, 7, 0),
+		Color = Color3.fromRGB(90, 150, 110),
+		Material = Enum.Material.Cobblestone,
 	})
-	rebirth.CFrame = CFrame.new(0, 2, -48) * CFrame.Angles(0, 0, math.rad(90))
-	rebirth:SetAttribute("RebirthPad", true)
-	billboard(rebirth, "⚡ PORTAL REBIRTH", Color3.fromRGB(255, 230, 80))
-
-	-- códigos
 	local codes = wpart(world, {
 		Name = "CodePad",
-		Size = Vector3.new(18, 2, 18),
-		CFrame = CFrame.new(72, 2, -18),
-		Color = Color3.fromRGB(80, 255, 160),
-		Material = Enum.Material.Neon,
-		Light = 1.4,
+		Size = Vector3.new(14, 1.4, 14),
+		CFrame = CFrame.new(170, 1.7, 18),
+		Color = Color3.fromRGB(90, 160, 100),
+		Material = Enum.Material.Grass,
 	})
 	codes:SetAttribute("CodePad", true)
-	billboard(codes, "🎁 CÓDIGOS", Color3.fromRGB(140, 255, 180))
+	woodSign(world, Vector3.new(170, 1, 28), "CÓDIGOS", Color3.fromRGB(40, 90, 50))
 
-	-- esteiras
+	-- REBIRTH atrás do spawn
+	local rebirth = wpart(world, {
+		Name = "RebirthPad",
+		Size = Vector3.new(18, 1.6, 18),
+		CFrame = CFrame.new(0, 1.8, -95) * CFrame.Angles(0, 0, math.rad(90)),
+		Color = Color3.fromRGB(230, 190, 70),
+		Material = Enum.Material.Metal,
+		Shape = Enum.PartType.Cylinder,
+	})
+	rebirth:SetAttribute("RebirthPad", true)
+	woodSign(world, Vector3.new(0, 1, -108), "REBIRTH", Color3.fromRGB(140, 100, 20))
+
+	-- ESTEIRAS mais atrás ainda, espaçadas
 	local tmFolder = Instance.new("Folder")
 	tmFolder.Name = "Treadmills"
 	tmFolder.Parent = world
+	local tmMaterials = {
+		Free = Enum.Material.WoodPlanks,
+		Gold = Enum.Material.Brick,
+		Diamond = Enum.Material.Marble,
+		Storm = Enum.Material.Foil,
+	}
 	for i, tm in ipairs(Config.Treadmills) do
+		local x = -48 + (i - 1) * 32
 		local p = wpart(tmFolder, {
 			Name = "Treadmill_" .. tm.Id,
-			Size = Vector3.new(16, 2.4, 10),
-			CFrame = CFrame.new(70, 2.2, 18 + (i - 1) * 14),
+			Size = Vector3.new(18, 2, 12),
+			CFrame = CFrame.new(x, 2, -150),
 			Color = tm.Color,
-			Material = Enum.Material.Neon,
-			Light = 1.2,
+			Material = tmMaterials[tm.Id] or Enum.Material.WoodPlanks,
 		})
 		p:SetAttribute("Treadmill", true)
 		p:SetAttribute("TreadmillId", tm.Id)
 		p:SetAttribute("TreadmillMult", tm.Mult)
-		billboard(p, tm.Name .. "  x" .. tm.Mult, tm.Color)
+		woodSign(tmFolder, Vector3.new(x, 1, -162), tm.Name .. "\nx" .. tm.Mult, Color3.fromRGB(70, 50, 30))
 	end
 
-	-- trilho do percurso
-	local pathStartZ = 58
+	-- caminho de pedra até as fases
 	wpart(world, {
-		Name = "PathRail",
-		Size = Vector3.new(64, 0.4, 1700),
-		CFrame = CFrame.new(0, 0.4, 58 + 850),
-		Color = Color3.fromRGB(30, 10, 60),
-		Material = Enum.Material.Neon,
-		CanCollide = false,
+		Name = "StonePath",
+		Size = Vector3.new(28, 0.6, 180),
+		CFrame = CFrame.new(0, 1.15, 140),
+		Color = Color3.fromRGB(150, 145, 135),
+		Material = Enum.Material.Cobblestone,
 	})
+	woodSign(world, Vector3.new(18, 1, 70), "FASES →", Color3.fromRGB(70, 50, 30))
 
 	local stagesFolder = Instance.new("Folder")
 	stagesFolder.Name = "Stages"
 	stagesFolder.Parent = world
 
-	local z = pathStartZ
+	local z = 260
 	for index, stage in ipairs(Config.Stages) do
 		local folder = Instance.new("Folder")
 		folder.Name = "Stage_" .. index
 		folder.Parent = stagesFolder
 
-		local floor = wpart(folder, {
+		pcall(function()
+			terrain:FillBlock(CFrame.new(0, -4.2, z + 70), Vector3.new(88, 10, 170), stage.Terrain or Enum.Material.Grass)
+		end)
+
+		wpart(folder, {
 			Name = "StageFloor",
-			Size = Vector3.new(90, 1.6, 120),
-			CFrame = CFrame.new(0, 0.8, z + 50),
-			Color = Color3.fromRGB(16, 8, 30),
-			Material = Enum.Material.SmoothPlastic,
-		})
-
-		local banner = wpart(folder, {
-			Name = "Banner",
-			Size = Vector3.new(50, 6, 2),
-			CFrame = CFrame.new(0, 14, z + 4),
+			Size = Vector3.new(70, 1, 150),
+			CFrame = CFrame.new(0, 1.2, z + 70),
 			Color = stage.Color,
-			Material = Enum.Material.Neon,
-			Light = 1.6,
-			CanCollide = false,
+			Material = stage.Terrain or Enum.Material.Grass,
 		})
-		billboard(banner, string.format("FASE %d  •  %s  •  LV %d", index, stage.Name, stage.RequiredLevel), stage.Color, UDim2.fromOffset(460, 60))
 
-		-- teclas da fase (pista)
+		woodSign(folder, Vector3.new(-22, 1, z + 4), string.format("FASE %d\n%s\nNível %d", index, stage.Name, stage.RequiredLevel), Color3.fromRGB(50, 40, 30))
+
 		local rows = {
 			{ "Q", "W", "E", "R", "T" },
 			{ "A", "S", "D", "F", "G" },
@@ -670,100 +783,89 @@ function World.Build()
 		if stage.Keys >= 14 then
 			table.insert(rows, { "Z", "X", "C", "V", "B" })
 		end
-		buildKeyboard(folder, Vector3.new(0, 2.2, z + 18), rows, { stage.Color, Config.Palette[(index % #Config.Palette) + 1] }, {
+		buildKeyboard(folder, Vector3.new(0, 2.7, z + 22), rows, { stage.Color, Config.Palette[(index % #Config.Palette) + 1] }, {
 			Zone = "Stage",
 			Stage = index,
 		})
 
-		-- gap
-		local gapZ = z + 62
+		local gapZ = z + 68
 		local before = wpart(folder, {
 			Name = "GapEdgeA",
-			Size = Vector3.new(28, 2, 8),
-			CFrame = CFrame.new(0, 2, gapZ),
+			Size = Vector3.new(26, 1.6, 8),
+			CFrame = CFrame.new(0, 2.1, gapZ),
 			Color = stage.Color,
-			Material = Enum.Material.Neon,
+			Material = Enum.Material.WoodPlanks,
 		})
 		before:SetAttribute("RaioKey", true)
 		before:SetAttribute("Letter", "JUMP")
-		label(before, "GO!", Color3.new(1, 1, 1))
+		faceLetter(before, "PULA!", Color3.fromRGB(50, 40, 30))
 
 		local after = wpart(folder, {
 			Name = "GapEdgeB",
-			Size = Vector3.new(28, 2, 8),
-			CFrame = CFrame.new(0, 2, gapZ + stage.Gap + 8),
+			Size = Vector3.new(26, 1.6, 8),
+			CFrame = CFrame.new(0, 2.1, gapZ + stage.Gap + 8),
 			Color = stage.Color,
-			Material = Enum.Material.Neon,
+			Material = Enum.Material.WoodPlanks,
 		})
 		after:SetAttribute("RaioKey", true)
 		after:SetAttribute("Letter", "NICE")
-		label(after, "NICE", Color3.new(1, 1, 1))
+		faceLetter(after, "NICE", Color3.fromRGB(50, 40, 30))
 
-		-- obstáculos
-		if index >= 2 then
-			spinningHazard(folder, Vector3.new(0, 6, z + 48), stage.Color)
+		if index >= 3 then
+			spinningHazard(folder, Vector3.new(0, 5, z + 52))
 		end
-		if index >= 4 then
-			spinningHazard(folder, Vector3.new(-12, 6, z + 88), Color3.fromRGB(255, 70, 70))
-			spinningHazard(folder, Vector3.new(12, 6, z + 88), Color3.fromRGB(255, 70, 70))
+		if index >= 5 then
+			spinningHazard(folder, Vector3.new(-10, 5, z + 100))
+			spinningHazard(folder, Vector3.new(10, 5, z + 100))
 		end
 
-		-- mais teclas depois do gap
-		buildKeyboard(folder, Vector3.new(0, 2.2, gapZ + stage.Gap + 18), {
+		buildKeyboard(folder, Vector3.new(0, 2.7, gapZ + stage.Gap + 20), {
 			{ "1", "2", "3", "4", "5", "6" },
 		}, { stage.Color }, { Zone = "Stage", Stage = index })
 
-		-- win pad
 		local win = wpart(folder, {
 			Name = "WinPad",
-			Size = Vector3.new(20, 2, 20),
-			CFrame = CFrame.new(0, 2.4, z + 112),
-			Color = Color3.fromRGB(255, 220, 70),
-			Material = Enum.Material.Neon,
-			Light = 2.4,
-			Range = 26,
+			Size = Vector3.new(16, 1.6, 16),
+			CFrame = CFrame.new(0, 2.2, z + 148) * CFrame.Angles(0, 0, math.rad(90)),
+			Color = Color3.fromRGB(230, 190, 70),
+			Material = Enum.Material.Metal,
 			Shape = Enum.PartType.Cylinder,
 		})
-		win.CFrame = CFrame.new(0, 2.4, z + 112) * CFrame.Angles(0, 0, math.rad(90))
 		win:SetAttribute("WinPad", true)
 		win:SetAttribute("Stage", index)
 		win:SetAttribute("Wins", stage.Wins)
 		win:SetAttribute("RequiredLevel", stage.RequiredLevel)
-		billboard(win, "🏆 +" .. stage.Wins .. " WINS", Color3.fromRGB(255, 230, 80))
+		nearBillboard(win, "+" .. stage.Wins .. " WINS", Color3.fromRGB(160, 110, 20), 50)
 
-		-- checkpoint
 		local cp = Instance.new("SpawnLocation")
 		cp.Name = "Checkpoint"
 		cp.Size = Vector3.new(10, 1, 10)
-		cp.CFrame = CFrame.new(0, 2.2, z + 6)
+		cp.CFrame = CFrame.new(0, 2.2, z + 8)
 		cp.Anchored = true
 		cp.Neutral = true
 		cp.Enabled = false
 		cp.Duration = 0
-		cp.Transparency = 0.35
-		cp.Material = Enum.Material.Neon
+		cp.Transparency = 0.45
+		cp.Material = Enum.Material.Cobblestone
 		cp.Color = stage.Color
 		cp.Parent = folder
 		cp:SetAttribute("Stage", index)
 
-		neonCrystal(folder, Vector3.new(-38, 12, z + 40), stage.Color, 20)
-		neonCrystal(folder, Vector3.new(38, 12, z + 40), stage.Color, 20)
+		tree(folder, Vector3.new(-32, 1, z + 40), 1.1)
+		tree(folder, Vector3.new(32, 1, z + 40), 1.1)
 
-		z += 130
+		z += 200
 	end
 
-	-- dragão da tempestade (modelo de parts)
 	local dragon = Instance.new("Model")
 	dragon.Name = "StormDragon"
 	dragon.Parent = world
 	local body = wpart(dragon, {
 		Name = "Body",
-		Size = Vector3.new(18, 8, 32),
-		CFrame = CFrame.new(0, 22, -90),
-		Color = Color3.fromRGB(120, 40, 255),
-		Material = Enum.Material.Neon,
-		Light = 3,
-		Range = 40,
+		Size = Vector3.new(16, 7, 28),
+		CFrame = CFrame.new(-90, 18, -180),
+		Color = Color3.fromRGB(90, 140, 100),
+		Material = Enum.Material.Slate,
 	})
 	body:SetAttribute("Dragon", true)
 	local function weldToBody(part)
@@ -776,43 +878,39 @@ function World.Build()
 	end
 	local head = wpart(dragon, {
 		Name = "Head",
-		Size = Vector3.new(10, 8, 12),
-		CFrame = CFrame.new(0, 26, -72),
-		Color = Color3.fromRGB(255, 40, 200),
-		Material = Enum.Material.Neon,
-		Light = 2,
+		Size = Vector3.new(8, 7, 10),
+		CFrame = CFrame.new(-90, 21, -164),
+		Color = Color3.fromRGB(120, 90, 60),
+		Material = Enum.Material.Rock,
 	})
 	head:SetAttribute("Dragon", true)
 	weldToBody(head)
 	for _, side in ipairs({ -1, 1 }) do
 		local wing = wpart(dragon, {
 			Name = "Wing",
-			Size = Vector3.new(28, 1.2, 10),
-			CFrame = CFrame.new(18 * side, 24, -90) * CFrame.Angles(0, 0, math.rad(18 * side)),
-			Color = Color3.fromRGB(0, 245, 255),
-			Material = Enum.Material.Neon,
+			Size = Vector3.new(22, 1, 9),
+			CFrame = CFrame.new(-90 + 16 * side, 20, -180) * CFrame.Angles(0, 0, math.rad(16 * side)),
+			Color = Color3.fromRGB(200, 210, 190),
+			Material = Enum.Material.Fabric,
 			CanCollide = false,
-			Light = 1.5,
 		})
 		weldToBody(wing)
 	end
-	billboard(body, "🐉 DRAGÃO DA TEMPESTADE", Color3.fromRGB(255, 80, 220), UDim2.fromOffset(420, 70))
+	woodSign(world, Vector3.new(-90, 1, -198), "DRAGÃO\nDO JARDIM", Color3.fromRGB(50, 80, 50))
 	dragon.PrimaryPart = body
 
-	-- finish trophy
 	local trophy = wpart(world, {
 		Name = "FinalTrophy",
-		Size = Vector3.new(12, 20, 12),
-		CFrame = CFrame.new(0, 12, z + 10),
-		Color = Color3.fromRGB(255, 215, 0),
-		Material = Enum.Material.Neon,
-		Light = 3,
-		Range = 40,
+		Size = Vector3.new(10, 16, 10),
+		CFrame = CFrame.new(0, 10, z + 16),
+		Color = Color3.fromRGB(230, 190, 70),
+		Material = Enum.Material.Metal,
 	})
-	billboard(trophy, "👑 VOCÊ ESCAPOU DA TEMPESTADE", Color3.fromRGB(255, 230, 80), UDim2.fromOffset(520, 70))
+	woodSign(world, Vector3.new(0, 1, z + 30), "VOCÊ ESCAPOU!", Color3.fromRGB(120, 90, 20))
 
 	world:SetAttribute("Built", true)
 	world:SetAttribute("EndZ", z)
+	world:SetAttribute("SpawnCFrame", tostring(CFrame.new(0, 8, -24)))
 	return world
 end
 
@@ -833,9 +931,7 @@ local RaioGame = ReplicatedStorage:WaitForChild("RaioGame")
 local Config = require(RaioGame:WaitForChild("Config"))
 local World = require(RaioGame:WaitForChild("World"))
 
-if not workspace:FindFirstChild("RaioWorld") then
-	World.Build()
-end
+World.Build()
 
 local remotesFolder = RaioGame:FindFirstChild("Remotes")
 if remotesFolder then
@@ -874,9 +970,12 @@ local profiles = {}
 local lastStep = {}
 local lastKey = {}
 local lastComboAt = {}
-local onTreadmill = {}
+local stepAcc = {}
 local winCooldown = {}
+local padOpenAt = {}
 local spinning = {}
+local overlapParams = OverlapParams.new()
+overlapParams.FilterType = Enum.RaycastFilterType.Exclude
 
 local function defaultProfile()
 	return {
@@ -994,19 +1093,13 @@ local function grantSpeed(player, base, letter, lucky)
 	if (lastStep[player] or 0) + Config.StepCooldown > now then
 		return
 	end
-	if not isTread and letter and lastKey[player] == letter and (now - (lastStep[player] or 0)) < Config.SameKeyCooldown then
-		return
-	end
 
 	local combo = player:GetAttribute("Combo") or 0
 	if not isTread then
-		if lastKey[player] and lastKey[player] ~= letter and (now - (lastComboAt[player] or 0)) <= Config.ComboWindow then
-			combo += 1
-		else
-			combo = 1
-		end
 		if (now - (lastComboAt[player] or 0)) > Config.ComboWindow then
 			combo = 1
+		else
+			combo += 1
 		end
 		lastKey[player] = letter
 		lastComboAt[player] = now
@@ -1042,7 +1135,11 @@ local function grantSpeed(player, base, letter, lucky)
 	end
 
 	pushState(player)
-	popup(player, (lucky and "💎 LUCKY +" or "+") .. Config.Format(gain), lucky and Color3.fromRGB(80, 255, 200) or Color3.fromRGB(255, 230, 80))
+	local grants = (player:GetAttribute("GrantCount") or 0) + 1
+	player:SetAttribute("GrantCount", grants)
+	if lucky or grants <= 20 or grants % 3 == 0 then
+		popup(player, (lucky and "LUCKY +" or "+") .. Config.Format(gain), lucky and Color3.fromRGB(80, 160, 90) or Color3.fromRGB(210, 150, 40))
+	end
 end
 
 local function loadProfile(player)
@@ -1125,25 +1222,7 @@ end
 local function bindWorld()
 	local world = workspace:WaitForChild("RaioWorld")
 	for _, part in ipairs(world:GetDescendants()) do
-		if part:IsA("BasePart") and part:GetAttribute("RaioKey") then
-			part.Touched:Connect(function(hit)
-				local player = isCharacterPart(hit)
-				if not player then
-					return
-				end
-				local lucky = math.random() < Config.LuckyKeyChance
-				if lucky then
-					local orig = part.Color
-					part.Color = Color3.fromRGB(255, 230, 80)
-					task.delay(0.35, function()
-						if part.Parent then
-							part.Color = orig
-						end
-					end)
-				end
-				grantSpeed(player, 1, part:GetAttribute("Letter"), lucky)
-			end)
-		elseif part:IsA("BasePart") and part:GetAttribute("WinPad") then
+		if part:IsA("BasePart") and part:GetAttribute("WinPad") then
 			part.Touched:Connect(function(hit)
 				local player = isCharacterPart(hit)
 				if not player then
@@ -1182,44 +1261,23 @@ local function bindWorld()
 					end)
 				end
 			end)
-		elseif part:IsA("BasePart") and part:GetAttribute("Treadmill") then
+		elseif part:IsA("BasePart") and (part:GetAttribute("ShopPad") or part:GetAttribute("CodePad") or part:GetAttribute("RebirthPad")) then
 			part.Touched:Connect(function(hit)
 				local player = isCharacterPart(hit)
 				if not player then
 					return
 				end
-				local profile = profiles[player]
-				if not profile then
+				local kind = part:GetAttribute("ShopPad") and "shop" or (part:GetAttribute("CodePad") and "codes" or "rebirth")
+				local now = os.clock()
+				if (padOpenAt[player] or 0) + 1.4 > now then
 					return
 				end
-				local id = part:GetAttribute("TreadmillId")
-				if not owns(profile.OwnedTreadmills, id) then
-					popup(player, "Compre essa esteira na loja!", Color3.fromRGB(255, 90, 90))
-					return
-				end
-				onTreadmill[player] = {
-					Mult = part:GetAttribute("TreadmillMult") or 1,
-					Until = os.clock() + 0.4,
-				}
-			end)
-		elseif part:IsA("BasePart") and part:GetAttribute("ShopPad") then
-			part.Touched:Connect(function(hit)
-				local player = isCharacterPart(hit)
-				if player then
+				padOpenAt[player] = now
+				if kind == "shop" then
 					RE.OpenShop:FireClient(player)
-				end
-			end)
-		elseif part:IsA("BasePart") and part:GetAttribute("CodePad") then
-			part.Touched:Connect(function(hit)
-				local player = isCharacterPart(hit)
-				if player then
+				elseif kind == "codes" then
 					RE.OpenCodes:FireClient(player)
-				end
-			end)
-		elseif part:IsA("BasePart") and part:GetAttribute("RebirthPad") then
-			part.Touched:Connect(function(hit)
-				local player = isCharacterPart(hit)
-				if player then
+				else
 					RE.OpenRebirth:FireClient(player)
 				end
 			end)
@@ -1232,7 +1290,7 @@ local function bindWorld()
 				local humanoid = character:FindFirstChildOfClass("Humanoid")
 				if humanoid and humanoid.Health > 0 then
 					humanoid.Health = 0
-					popup(player, "💥 O raio te pegou!", Color3.fromRGB(255, 80, 80))
+					popup(player, "O moinho te pegou! Tenta de novo.", Color3.fromRGB(200, 80, 70))
 				end
 			end)
 		elseif part:IsA("BasePart") and part:GetAttribute("Spin") then
@@ -1249,7 +1307,7 @@ local function bindWorld()
 				local humanoid = character:FindFirstChildOfClass("Humanoid")
 				if humanoid and humanoid.Health > 0 then
 					humanoid.Health = 0
-					announce("🐉 " .. player.DisplayName .. " foi engolido pelo Dragão da Tempestade!", Color3.fromRGB(255, 70, 200))
+					announce(player.DisplayName .. " foi pego pelo Dragão do Jardim!", Color3.fromRGB(90, 140, 90))
 				end
 			end)
 		end
@@ -1271,8 +1329,8 @@ Players.PlayerAdded:Connect(function(player)
 	end
 	task.delay(1.5, function()
 		if player.Parent then
-			popup(player, Config.Tagline, Color3.fromRGB(0, 245, 255))
-			RE.Announce:FireClient(player, "Corra no teclado gigante! Cada passo = +1 RAIO", Color3.fromRGB(255, 230, 80))
+			popup(player, Config.Tagline, Color3.fromRGB(90, 150, 80))
+			RE.Announce:FireClient(player, "Pise nas teclas coloridas! A velocidade sobe a cada passo.", Color3.fromRGB(200, 140, 50))
 		end
 	end)
 end)
@@ -1282,7 +1340,8 @@ Players.PlayerRemoving:Connect(function(player)
 	profiles[player] = nil
 	lastStep[player] = nil
 	lastKey[player] = nil
-	onTreadmill[player] = nil
+	stepAcc[player] = nil
+	padOpenAt[player] = nil
 end)
 
 game:BindToClose(function()
@@ -1423,17 +1482,68 @@ RE.Teleport.OnServerEvent:Connect(function(player, stageIndex)
 	end
 end)
 
--- esteira AFK
-task.spawn(function()
-	while true do
-		task.wait(Config.TreadmillTick)
-		local now = os.clock()
-		for player, info in pairs(onTreadmill) do
-			if now > info.Until then
-				onTreadmill[player] = nil
-			else
-				grantSpeed(player, info.Mult, "TREAD", false)
+-- passos no teclado + esteira (raycast no chão — confiável)
+local lastTreadWarn = {}
+RunService.Heartbeat:Connect(function(dt)
+	for _, pivot in ipairs(spinning) do
+		if pivot.Parent then
+			pivot.CFrame *= CFrame.Angles(0, dt * 1.35, 0)
+		end
+	end
+	for _, player in ipairs(Players:GetPlayers()) do
+		local profile = profiles[player]
+		local character = player.Character
+		local root = character and character:FindFirstChild("HumanoidRootPart")
+		local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+		if not profile or not root or not humanoid or humanoid.Health <= 0 then
+			continue
+		end
+		overlapParams.FilterDescendantsInstances = { character }
+		local feet = root.Position - Vector3.new(0, 2.5, 0)
+		local parts = workspace:GetPartBoundsInBox(CFrame.new(feet), Vector3.new(5, 3.5, 5), overlapParams)
+		local keyPart, treadPart
+		for _, part in ipairs(parts) do
+			if part:GetAttribute("Treadmill") then
+				treadPart = part
+			elseif part:GetAttribute("RaioKey") then
+				keyPart = part
 			end
+		end
+		if treadPart then
+			local id = treadPart:GetAttribute("TreadmillId")
+			if owns(profile.OwnedTreadmills, id) then
+				stepAcc[player] = (stepAcc[player] or 0) + dt / Config.TreadmillTick
+				while (stepAcc[player] or 0) >= 1 do
+					stepAcc[player] -= 1
+					grantSpeed(player, treadPart:GetAttribute("TreadmillMult") or 1, "TREAD", false)
+				end
+			else
+				local now = os.clock()
+				if (lastTreadWarn[player] or 0) + 2 < now then
+					lastTreadWarn[player] = now
+					popup(player, "Compre essa esteira na loja!", Color3.fromRGB(200, 90, 70))
+				end
+			end
+		elseif keyPart then
+			local moving = humanoid.MoveDirection.Magnitude > 0.08
+			local rate = moving and Config.StepsPerSecondMoving or Config.StepsPerSecondIdle
+			stepAcc[player] = (stepAcc[player] or 0) + dt * rate
+			while (stepAcc[player] or 0) >= 1 do
+				stepAcc[player] -= 1
+				local lucky = math.random() < Config.LuckyKeyChance
+				if lucky then
+					local orig = keyPart.Color
+					keyPart.Color = Color3.fromRGB(255, 220, 90)
+					task.delay(0.28, function()
+						if keyPart.Parent then
+							keyPart.Color = orig
+						end
+					end)
+				end
+				grantSpeed(player, 1, keyPart:GetAttribute("Letter"), lucky)
+			end
+		else
+			stepAcc[player] = 0
 		end
 	end
 end)
@@ -1448,21 +1558,12 @@ task.spawn(function()
 	end
 end)
 
--- gira obstáculos
-RunService.Heartbeat:Connect(function(dt)
-	for _, pivot in ipairs(spinning) do
-		if pivot.Parent then
-			pivot.CFrame *= CFrame.Angles(0, dt * 1.8, 0)
-		end
-	end
-end)
-
--- evento de tempestade (streamer bait)
+-- evento dourado (streamer bait)
 task.spawn(function()
 	while true do
 		task.wait(Config.StormInterval)
 		workspace:SetAttribute("StormActive", true)
-		announce("🌩️ TEMPESTADE DOURADA!  x" .. Config.StormMultiplier .. " RAIO por " .. Config.StormDuration .. "s", Color3.fromRGB(255, 220, 60))
+		announce("FESTA DOURADA!  x" .. Config.StormMultiplier .. " velocidade por " .. Config.StormDuration .. "s", Color3.fromRGB(220, 170, 50))
 		local dragon = workspace.RaioWorld:FindFirstChild("StormDragon")
 		if dragon and dragon.PrimaryPart then
 			local start = dragon.PrimaryPart.CFrame
@@ -1521,7 +1622,7 @@ local Remotes = RaioGame:WaitForChild("Remotes")
 local function playSound(id, pitch)
 	local s = Instance.new("Sound")
 	s.SoundId = id
-	s.Volume = 0.45
+	s.Volume = 0.22
 	s.PlaybackSpeed = pitch or 1
 	s.Parent = SoundService
 	s:Play()
@@ -1573,20 +1674,20 @@ gui.Parent = playerGui
 -- fundo suave no topo
 local top = Instance.new("Frame")
 top.Name = "Top"
-top.BackgroundColor3 = Color3.fromRGB(12, 6, 28)
-top.BackgroundTransparency = 0.25
+top.BackgroundColor3 = Color3.fromRGB(245, 236, 214)
+top.BackgroundTransparency = 0.08
 top.BorderSizePixel = 0
 top.Size = UDim2.new(1, 0, 0, 78)
 top.Parent = gui
-gradient(top, Color3.fromRGB(20, 8, 50), Color3.fromRGB(8, 4, 20), 0)
+gradient(top, Color3.fromRGB(250, 240, 215), Color3.fromRGB(210, 190, 150), 0)
 
 local title = Instance.new("TextLabel")
 title.BackgroundTransparency = 1
 title.Position = UDim2.new(0.5, -220, 0, 6)
 title.Size = UDim2.fromOffset(440, 36)
-title.Font = Enum.Font.GothamBlack
+title.Font = Enum.Font.FredokaOne
 title.Text = "+1 RAIO  •  KEYBOARD ESCAPE"
-title.TextColor3 = Color3.fromRGB(255, 230, 80)
+title.TextColor3 = Color3.fromRGB(90, 60, 30)
 title.TextScaled = true
 title.Parent = top
 
@@ -1595,15 +1696,15 @@ subtitle.BackgroundTransparency = 1
 subtitle.Position = UDim2.new(0.5, -240, 0, 42)
 subtitle.Size = UDim2.fromOffset(480, 24)
 subtitle.Font = Enum.Font.GothamMedium
-subtitle.Text = "Corra no teclado  •  Fuja do dragão  •  Vire lenda"
-subtitle.TextColor3 = Color3.fromRGB(200, 180, 255)
+subtitle.Text = "Pise no teclado  •  A velocidade sobe sozinha  •  Pule as fases"
+subtitle.TextColor3 = Color3.fromRGB(110, 90, 60)
 subtitle.TextScaled = true
 subtitle.Parent = top
 
 local function statCard(parent, pos, labelText, color)
 	local f = Instance.new("Frame")
-	f.BackgroundColor3 = Color3.fromRGB(16, 8, 36)
-	f.BackgroundTransparency = 0.12
+	f.BackgroundColor3 = Color3.fromRGB(255, 250, 235)
+	f.BackgroundTransparency = 0.05
 	f.BorderSizePixel = 0
 	f.Position = pos
 	f.Size = UDim2.fromOffset(168, 64)
@@ -1624,36 +1725,36 @@ local function statCard(parent, pos, labelText, color)
 	v.BackgroundTransparency = 1
 	v.Size = UDim2.new(1, -8, 0, 32)
 	v.Position = UDim2.fromOffset(4, 26)
-	v.Font = Enum.Font.GothamBlack
+	v.Font = Enum.Font.FredokaOne
 	v.Text = "0"
-	v.TextColor3 = Color3.new(1, 1, 1)
+	v.TextColor3 = Color3.fromRGB(50, 40, 30)
 	v.TextScaled = true
 	v.Parent = f
 	return v
 end
 
-local speedVal = statCard(gui, UDim2.new(0, 16, 0, 92), "⚡ VELOCIDADE", Color3.fromRGB(255, 230, 80))
-local levelVal = statCard(gui, UDim2.new(0, 16, 0, 166), "⭐ NÍVEL", Color3.fromRGB(0, 245, 255))
-local winsVal = statCard(gui, UDim2.new(0, 16, 0, 240), "🏆 WINS", Color3.fromRGB(255, 180, 50))
-local multVal = statCard(gui, UDim2.new(0, 16, 0, 314), "💥 MULTIPLICADOR", Color3.fromRGB(255, 70, 200))
-local rebirthVal = statCard(gui, UDim2.new(0, 16, 0, 388), "♻️ REBIRTHS", Color3.fromRGB(180, 255, 120))
+local speedVal = statCard(gui, UDim2.new(0, 16, 0, 92), "VELOCIDADE", Color3.fromRGB(200, 140, 40))
+local levelVal = statCard(gui, UDim2.new(0, 16, 0, 166), "NÍVEL", Color3.fromRGB(70, 140, 90))
+local winsVal = statCard(gui, UDim2.new(0, 16, 0, 240), "WINS", Color3.fromRGB(200, 150, 50))
+local multVal = statCard(gui, UDim2.new(0, 16, 0, 314), "MULTIPLICADOR", Color3.fromRGB(180, 100, 70))
+local rebirthVal = statCard(gui, UDim2.new(0, 16, 0, 388), "REBIRTHS", Color3.fromRGB(90, 130, 90))
 
 local comboFrame = Instance.new("Frame")
-comboFrame.BackgroundColor3 = Color3.fromRGB(20, 8, 40)
-comboFrame.BackgroundTransparency = 0.1
+comboFrame.BackgroundColor3 = Color3.fromRGB(255, 248, 230)
+comboFrame.BackgroundTransparency = 0.05
 comboFrame.BorderSizePixel = 0
 comboFrame.Position = UDim2.new(0.5, -140, 0, 92)
 comboFrame.Size = UDim2.fromOffset(280, 58)
 comboFrame.Parent = gui
 corner(comboFrame, 14)
-stroke(comboFrame, Color3.fromRGB(255, 60, 180), 1.7)
+stroke(comboFrame, Color3.fromRGB(210, 120, 70), 1.7)
 
 local comboLabel = Instance.new("TextLabel")
 comboLabel.BackgroundTransparency = 1
 comboLabel.Size = UDim2.fromScale(1, 1)
 comboLabel.Font = Enum.Font.GothamBlack
 comboLabel.Text = "COMBO x0"
-comboLabel.TextColor3 = Color3.fromRGB(255, 90, 200)
+comboLabel.TextColor3 = Color3.fromRGB(180, 100, 50)
 comboLabel.TextScaled = true
 comboLabel.Parent = comboFrame
 pad(comboLabel, 8)
@@ -1664,7 +1765,7 @@ transformLabel.Position = UDim2.new(0.5, -180, 0, 154)
 transformLabel.Size = UDim2.fromOffset(360, 28)
 transformLabel.Font = Enum.Font.GothamBold
 transformLabel.Text = ""
-transformLabel.TextColor3 = Color3.fromRGB(255, 230, 80)
+transformLabel.TextColor3 = Color3.fromRGB(160, 110, 40)
 transformLabel.TextScaled = true
 transformLabel.Parent = gui
 
@@ -1674,7 +1775,7 @@ announce.Position = UDim2.new(0.5, -320, 0, 188)
 announce.Size = UDim2.fromOffset(640, 42)
 announce.Font = Enum.Font.GothamBlack
 announce.Text = ""
-announce.TextColor3 = Color3.fromRGB(255, 240, 120)
+announce.TextColor3 = Color3.fromRGB(120, 80, 40)
 announce.TextScaled = true
 announce.TextStrokeTransparency = 0.4
 announce.Parent = gui
@@ -1685,20 +1786,20 @@ plus.Position = UDim2.new(0.5, -150, 0.42, 0)
 plus.Size = UDim2.fromOffset(300, 80)
 plus.Font = Enum.Font.GothamBlack
 plus.Text = ""
-plus.TextColor3 = Color3.fromRGB(255, 230, 80)
+plus.TextColor3 = Color3.fromRGB(200, 140, 40)
 plus.TextScaled = true
 plus.TextStrokeTransparency = 0.3
 plus.Parent = gui
 
 local function makeButton(text, pos, color, order)
 	local b = Instance.new("TextButton")
-	b.BackgroundColor3 = Color3.fromRGB(18, 8, 40)
+	b.BackgroundColor3 = Color3.fromRGB(255, 248, 230)
 	b.BorderSizePixel = 0
 	b.Position = pos
 	b.Size = UDim2.fromOffset(168, 48)
-	b.Font = Enum.Font.GothamBlack
+	b.Font = Enum.Font.FredokaOne
 	b.Text = text
-	b.TextColor3 = Color3.new(1, 1, 1)
+	b.TextColor3 = Color3.fromRGB(60, 45, 30)
 	b.TextScaled = true
 	b.AutoButtonColor = true
 	b.LayoutOrder = order or 0
@@ -1709,19 +1810,19 @@ local function makeButton(text, pos, color, order)
 	return b
 end
 
-local shopBtn = makeButton("💜  LOJA", UDim2.new(1, -184, 0, 92), Color3.fromRGB(255, 70, 220))
-local rebirthBtn = makeButton("⚡  REBIRTH", UDim2.new(1, -184, 0, 150), Color3.fromRGB(255, 220, 60))
-local codesBtn = makeButton("🎁  CÓDIGOS", UDim2.new(1, -184, 0, 208), Color3.fromRGB(80, 255, 160))
-local hubBtn = makeButton("🏠  HUB", UDim2.new(1, -184, 0, 266), Color3.fromRGB(0, 220, 255))
-local petBtn = makeButton("🐉  PETS", UDim2.new(1, -184, 0, 324), Color3.fromRGB(255, 140, 60))
+local shopBtn = makeButton("LOJA", UDim2.new(1, -184, 0, 92), Color3.fromRGB(190, 90, 80))
+local rebirthBtn = makeButton("REBIRTH", UDim2.new(1, -184, 0, 150), Color3.fromRGB(210, 160, 50))
+local codesBtn = makeButton("CÓDIGOS", UDim2.new(1, -184, 0, 208), Color3.fromRGB(80, 140, 90))
+local hubBtn = makeButton("INÍCIO", UDim2.new(1, -184, 0, 266), Color3.fromRGB(90, 140, 180))
+local petBtn = makeButton("PETS", UDim2.new(1, -184, 0, 324), Color3.fromRGB(200, 130, 70))
 
 local hint = Instance.new("TextLabel")
 hint.BackgroundTransparency = 1
 hint.Position = UDim2.new(0.5, -260, 1, -54)
 hint.Size = UDim2.fromOffset(520, 36)
 hint.Font = Enum.Font.GothamMedium
-hint.Text = "Ande em cima das teclas  •  Pule os vãos  •  Toque no ouro pra ganhar WINS"
-hint.TextColor3 = Color3.fromRGB(210, 200, 255)
+hint.Text = "Pise nas teclas coloridas — a VELOCIDADE sobe sozinha. Siga a estrada de pedra para as fases."
+hint.TextColor3 = Color3.fromRGB(90, 75, 55)
 hint.TextScaled = true
 hint.Parent = gui
 
@@ -1733,20 +1834,20 @@ local function panel(name, titleText)
 	f.AnchorPoint = Vector2.new(0.5, 0.5)
 	f.Position = UDim2.fromScale(0.5, 0.54)
 	f.Size = UDim2.fromOffset(560, 460)
-	f.BackgroundColor3 = Color3.fromRGB(12, 6, 28)
+	f.BackgroundColor3 = Color3.fromRGB(255, 248, 230)
 	f.BorderSizePixel = 0
 	f.Parent = gui
 	corner(f, 18)
-	stroke(f, Color3.fromRGB(255, 70, 220), 2)
-	gradient(f, Color3.fromRGB(28, 10, 60), Color3.fromRGB(10, 4, 24), 90)
+	stroke(f, Color3.fromRGB(180, 130, 70), 2)
+	gradient(f, Color3.fromRGB(255, 250, 235), Color3.fromRGB(230, 210, 175), 90)
 
 	local h = Instance.new("TextLabel")
 	h.BackgroundTransparency = 1
 	h.Size = UDim2.new(1, -70, 0, 48)
 	h.Position = UDim2.fromOffset(18, 10)
-	h.Font = Enum.Font.GothamBlack
+	h.Font = Enum.Font.FredokaOne
 	h.Text = titleText
-	h.TextColor3 = Color3.new(1, 1, 1)
+	h.TextColor3 = Color3.fromRGB(70, 50, 30)
 	h.TextXAlignment = Enum.TextXAlignment.Left
 	h.TextScaled = true
 	h.Parent = f
@@ -1781,9 +1882,9 @@ local function panel(name, titleText)
 	return f, scroll
 end
 
-local shopPanel, shopList = panel("Shop", "💜 LOJA DE PODER")
-local petPanel, petList = panel("Pets", "🐉 PETS ELÉTRICOS")
-local rebirthPanel = panel("Rebirth", "⚡ PORTAL REBIRTH")
+local shopPanel, shopList = panel("Shop", "LOJA")
+local petPanel, petList = panel("Pets", "PETS")
+local rebirthPanel = panel("Rebirth", "REBIRTH")
 rebirthPanel.Size = UDim2.fromOffset(480, 280)
 
 local rebirthInfo = Instance.new("TextLabel")
@@ -1792,7 +1893,7 @@ rebirthInfo.Position = UDim2.fromOffset(20, 70)
 rebirthInfo.Size = UDim2.new(1, -40, 0, 110)
 rebirthInfo.Font = Enum.Font.GothamMedium
 rebirthInfo.TextWrapped = true
-rebirthInfo.TextColor3 = Color3.fromRGB(230, 220, 255)
+rebirthInfo.TextColor3 = Color3.fromRGB(80, 60, 40)
 rebirthInfo.TextScaled = true
 rebirthInfo.Text = ""
 rebirthInfo.Parent = rebirthPanel
@@ -1813,30 +1914,30 @@ codesPanel.Visible = false
 codesPanel.AnchorPoint = Vector2.new(0.5, 0.5)
 codesPanel.Position = UDim2.fromScale(0.5, 0.5)
 codesPanel.Size = UDim2.fromOffset(420, 220)
-codesPanel.BackgroundColor3 = Color3.fromRGB(12, 6, 28)
+codesPanel.BackgroundColor3 = Color3.fromRGB(255, 248, 230)
 codesPanel.BorderSizePixel = 0
 codesPanel.Parent = gui
 corner(codesPanel, 16)
-stroke(codesPanel, Color3.fromRGB(80, 255, 160), 2)
+stroke(codesPanel, Color3.fromRGB(90, 150, 90), 2)
 
 local codesTitle = Instance.new("TextLabel")
 codesTitle.BackgroundTransparency = 1
 codesTitle.Size = UDim2.new(1, -20, 0, 40)
 codesTitle.Position = UDim2.fromOffset(10, 10)
-codesTitle.Font = Enum.Font.GothamBlack
-codesTitle.Text = "🎁 RESGATAR CÓDIGO"
-codesTitle.TextColor3 = Color3.new(1, 1, 1)
+codesTitle.Font = Enum.Font.FredokaOne
+codesTitle.Text = "RESGATAR CÓDIGO"
+codesTitle.TextColor3 = Color3.fromRGB(60, 45, 30)
 codesTitle.TextScaled = true
 codesTitle.Parent = codesPanel
 
 local codesBox = Instance.new("TextBox")
 codesBox.Size = UDim2.new(1, -40, 0, 48)
 codesBox.Position = UDim2.fromOffset(20, 64)
-codesBox.BackgroundColor3 = Color3.fromRGB(30, 14, 55)
+codesBox.BackgroundColor3 = Color3.fromRGB(255, 255, 245)
 codesBox.PlaceholderText = "ex: RAIO"
 codesBox.Text = ""
 codesBox.Font = Enum.Font.GothamBold
-codesBox.TextColor3 = Color3.new(1, 1, 1)
+codesBox.TextColor3 = Color3.fromRGB(50, 40, 30)
 codesBox.TextScaled = true
 codesBox.ClearTextOnFocus = false
 codesBox.Parent = codesPanel
@@ -1870,7 +1971,7 @@ end)
 local function itemRow(parent, text, sub, color, callback)
 	local b = Instance.new("TextButton")
 	b.Size = UDim2.new(1, -8, 0, 64)
-	b.BackgroundColor3 = Color3.fromRGB(22, 10, 44)
+	b.BackgroundColor3 = Color3.fromRGB(255, 252, 240)
 	b.BorderSizePixel = 0
 	b.AutoButtonColor = true
 	b.Text = ""
@@ -1881,9 +1982,9 @@ local function itemRow(parent, text, sub, color, callback)
 	t.BackgroundTransparency = 1
 	t.Position = UDim2.fromOffset(12, 6)
 	t.Size = UDim2.new(1, -24, 0, 28)
-	t.Font = Enum.Font.GothamBlack
+	t.Font = Enum.Font.FredokaOne
 	t.Text = text
-	t.TextColor3 = Color3.new(1, 1, 1)
+	t.TextColor3 = Color3.fromRGB(50, 40, 30)
 	t.TextXAlignment = Enum.TextXAlignment.Left
 	t.TextScaled = true
 	t.Parent = b
@@ -1912,7 +2013,7 @@ local function fillShop()
 		h.Size = UDim2.new(1, 0, 0, 28)
 		h.Font = Enum.Font.GothamBlack
 		h.Text = text
-		h.TextColor3 = Color3.fromRGB(255, 230, 80)
+		h.TextColor3 = Color3.fromRGB(140, 90, 40)
 		h.TextXAlignment = Enum.TextXAlignment.Left
 		h.TextScaled = true
 		h.Parent = shopList
@@ -2088,52 +2189,53 @@ local function attachVfx(character)
 	att1.Position = Vector3.new(0, -2.4, 0)
 	att1.Parent = root
 
-	local trailCol = colorOf(Config.Trails, player:GetAttribute("Trail"), Color3.fromRGB(0, 245, 255))
+	local trailCol = colorOf(Config.Trails, player:GetAttribute("Trail"), Color3.fromRGB(120, 180, 90))
 	local trail = Instance.new("Trail")
 	trail.Name = "RaioTrail"
 	trail.Attachment0 = att0
 	trail.Attachment1 = att1
-	trail.Lifetime = 0.45
+	trail.Lifetime = 0.35
 	trail.MinLength = 0.2
 	trail.FaceCamera = true
-	trail.Color = ColorSequence.new(trailCol, Color3.new(1, 1, 1))
-	trail.Transparency = NumberSequence.new(0.15, 1)
-	trail.WidthScale = NumberSequence.new(1, 0)
-	trail.LightEmission = 1
+	trail.Color = ColorSequence.new(trailCol, Color3.fromRGB(255, 245, 220))
+	trail.Transparency = NumberSequence.new(0.35, 1)
+	trail.WidthScale = NumberSequence.new(0.8, 0)
+	trail.LightEmission = 0.2
 	trail.Parent = root
 
-	local auraCol = colorOf(Config.Auras, player:GetAttribute("Aura"), Color3.fromRGB(160, 80, 255))
+	local auraCol = colorOf(Config.Auras, player:GetAttribute("Aura"), Color3.fromRGB(200, 180, 120))
 	local hl = Instance.new("Highlight")
 	hl.Name = "RaioHighlight"
 	hl.FillColor = auraCol
 	hl.OutlineColor = trailCol
-	hl.FillTransparency = player:GetAttribute("Aura") ~= "" and 0.65 or 1
-	hl.OutlineTransparency = 0.2
+	hl.FillTransparency = player:GetAttribute("Aura") ~= "" and 0.78 or 1
+	hl.OutlineTransparency = 0.45
 	hl.Parent = character
 
 	local pe = Instance.new("ParticleEmitter")
 	pe.Name = "RaioSparks"
 	pe.Color = ColorSequence.new(trailCol)
-	pe.Size = NumberSequence.new(0.4, 0)
-	pe.Lifetime = NumberRange.new(0.3, 0.7)
-	pe.Rate = 18
-	pe.Speed = NumberRange.new(1, 4)
+	pe.Size = NumberSequence.new(0.25, 0)
+	pe.Lifetime = NumberRange.new(0.3, 0.6)
+	pe.Rate = 8
+	pe.Speed = NumberRange.new(0.5, 2)
 	pe.Texture = "rbxasset://textures/particles/sparkles_main.dds"
-	pe.LightEmission = 1
+	pe.LightEmission = 0.3
 	pe.Parent = root
 
 	local bb = Instance.new("BillboardGui")
 	bb.Name = "SpeedBillboard"
-	bb.Size = UDim2.fromOffset(160, 40)
-	bb.StudsOffset = Vector3.new(0, 3.4, 0)
-	bb.AlwaysOnTop = true
+	bb.Size = UDim2.fromOffset(140, 32)
+	bb.StudsOffset = Vector3.new(0, 3.2, 0)
+	bb.AlwaysOnTop = false
+	bb.MaxDistance = 55
 	bb.Parent = root
 	local tl = Instance.new("TextLabel")
 	tl.BackgroundTransparency = 1
 	tl.Size = UDim2.fromScale(1, 1)
-	tl.Font = Enum.Font.GothamBlack
+	tl.Font = Enum.Font.FredokaOne
 	tl.TextScaled = true
-	tl.TextColor3 = Color3.fromRGB(255, 230, 80)
+	tl.TextColor3 = Color3.fromRGB(90, 60, 30)
 	tl.Text = Config.Format(player:GetAttribute("Speed") or 0) .. " RAIO"
 	tl.Parent = bb
 
@@ -2144,30 +2246,26 @@ local function attachVfx(character)
 	pet.Name = "RaioPet"
 	pet.Shape = Enum.PartType.Ball
 	pet.Size = Vector3.new(1.8, 1.8, 1.8)
-	pet.Material = Enum.Material.Neon
+	pet.Material = Enum.Material.SmoothPlastic
 	pet.Color = petCfg.Color
 	pet.Massless = true
 	pet.CanCollide = false
-	pet.CastShadow = false
+	pet.CastShadow = true
 	pet.Anchored = true
 	pet.CFrame = root.CFrame * CFrame.new(2.4, 1.6, 1.2)
 	pet.Parent = folder
-	local light = Instance.new("PointLight")
-	light.Color = petCfg.Color
-	light.Brightness = 2
-	light.Range = 10
-	light.Parent = pet
 	local pbb = Instance.new("BillboardGui")
-	pbb.Size = UDim2.fromOffset(120, 24)
-	pbb.StudsOffset = Vector3.new(0, 1.4, 0)
-	pbb.AlwaysOnTop = true
+	pbb.Size = UDim2.fromOffset(110, 22)
+	pbb.StudsOffset = Vector3.new(0, 1.3, 0)
+	pbb.AlwaysOnTop = false
+	pbb.MaxDistance = 40
 	pbb.Parent = pet
 	local pn = Instance.new("TextLabel")
 	pn.BackgroundTransparency = 1
 	pn.Size = UDim2.fromScale(1, 1)
 	pn.Font = Enum.Font.GothamBold
 	pn.TextScaled = true
-	pn.TextColor3 = Color3.new(1, 1, 1)
+	pn.TextColor3 = Color3.fromRGB(60, 45, 30)
 	pn.Text = petCfg.Name
 	pn.Parent = pbb
 
@@ -2225,13 +2323,13 @@ workspace:GetAttributeChangedSignal("StormActive"):Connect(function()
 	local cc = Lighting:FindFirstChild("RaioCC")
 	if workspace:GetAttribute("StormActive") then
 		if cc then
-			TweenService:Create(cc, TweenInfo.new(0.4), { Contrast = 0.35, Saturation = 0.6 }):Play()
+			TweenService:Create(cc, TweenInfo.new(0.4), { Contrast = 0.12, Saturation = 0.22, TintColor = Color3.fromRGB(255, 240, 200) }):Play()
 		end
-		announce.Text = "🌩️ TEMPESTADE DOURADA!"
+		announce.Text = "FESTA DOURADA!"
 		announce.TextTransparency = 0
 	else
 		if cc then
-			TweenService:Create(cc, TweenInfo.new(0.4), { Contrast = 0.12, Saturation = 0.25 }):Play()
+			TweenService:Create(cc, TweenInfo.new(0.4), { Contrast = 0.06, Saturation = 0.12, TintColor = Color3.fromRGB(255, 250, 240) }):Play()
 		end
 	end
 end)
