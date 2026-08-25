@@ -1,0 +1,19 @@
+{
+  "name": "RaioKeyboardEscape",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "RaioGame": {
+        "$path": "src/ReplicatedStorage/RaioGame"
+      }
+    },
+    "ServerScriptService": {
+      "$path": "src/ServerScriptService"
+    },
+    "StarterPlayer": {
+      "StarterPlayerScripts": {
+        "$path": "src/StarterPlayer/StarterPlayerScripts"
+      }
+    }
+  }
+}
