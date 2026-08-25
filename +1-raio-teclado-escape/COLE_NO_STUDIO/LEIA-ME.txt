@@ -1,0 +1,15 @@
+COLE NESTA ORDEM NO ROBLOX STUDIO
+=================================
+
+Jeito mais fácil: ignore esta pasta e cole o arquivo
+INSTALAR_NO_COMMAND_BAR.lua na Command Bar (View > Command Bar).
+
+Se preferir colar na mão:
+
+1. ReplicatedStorage → Folder "RaioGame"
+2. Dentro da pasta: ModuleScript "Config"     ← 1_Config.lua
+3. Dentro da pasta: ModuleScript "World"      ← 2_World.lua
+4. ServerScriptService: Script "RaioServer"   ← 3_RaioServer.lua
+5. StarterPlayerScripts: LocalScript "RaioClient" ← 4_RaioClient.lua
+
+Aperte Play. Ande no teclado. Códigos: RAIO, TEMPESTADE, DRAGAO, STREAMER, NEON, COMBO100
